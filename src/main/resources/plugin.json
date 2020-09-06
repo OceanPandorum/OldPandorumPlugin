@@ -1,0 +1,7 @@
+{
+  "name": "PanorumPlugin",
+  "author": "OceanPandorum",
+  "main": "pandorum.Main",
+  "description": "Core plugin for pandorum servers",
+  "version": 1.0
+}
