@@ -2,138 +2,90 @@ package pandorum;
 
 import arc.Core;
 import arc.Events;
-import arc.struct.*;
-import arc.util.*;
+import arc.files.Fi;
+import arc.util.CommandHandler;
+import arc.util.Log;
 import mindustry.Vars;
-import mindustry.core.NetClient;
-import mindustry.entities.type.Player;
-import mindustry.entities.type.Unit;
-import mindustry.game.EventType;
-import mindustry.game.Team;
 import mindustry.gen.Call;
-import mindustry.net.Administration.*;
 import mindustry.plugin.Plugin;
+import org.hjson.*;
 
-import static mindustry.Vars.unitGroup;
+import static mindustry.game.EventType.PlayerJoin;
+import static mindustry.game.EventType.ServerLoadEvent;
 
 public class Main extends Plugin{
-    private static final double ratio = 0.6;
 
-    private Array<String> votes = new Array<>();
-    private ObjectMap<String, Ratekeeper> idToRate = new ObjectMap<>();
-    private IntIntMap placed = new IntIntMap();
+    public static final Fi dir = Core.settings.getDataDirectory().child("/mods/pandorum/");
+
+    public static final Config config = new Config();
 
     public Main(){}
 
     @Override
     public void init(){
-        Vars.netServer.admins.addActionFilter(action -> {
-            if(action.type != ActionType.breakBlock && action.type != ActionType.placeBlock &&
-                    action.type != ActionType.tapTile && Config.antiSpam.bool()
-                    && placed.get(action.tile.pos(), -1) != action.player.id){
 
-                int window = Core.settings.getInt("rateWindow", 6);
-                int limit = Core.settings.getInt("rateLimit", 25);
-                int kickLimit = Core.settings.getInt("rateKickLimit", 60);
+        Events.on(ServerLoadEvent.class, event -> Vars.netServer.admins.addActionFilter(playerAction -> false));
 
-                Ratekeeper rate = idToRate.getOr(action.player.uuid, Ratekeeper::new);
-                if(rate.allow(window * 1000, limit)){
-                    return true;
-                }else{
-                    if(rate.occurences > kickLimit){
-                        action.player.con.kick("You are interacting with too many blocks.", 1000 * 30);
-                    }else{
-                        action.player.sendMessage("[scarlet]You are interacting with blocks too quickly.");
-                    }
+        Events.on(PlayerJoin.class, event -> {
+            new Updater(event.player);
 
-                    return false;
-                }
-            }
-            return true;
-        });
+            Call.onLabel(event.player.con, config.get("title", 1).asString(), 1100f, 508f, 304f);
+            Call.onLabel(event.player.con, config.get("title", 2).asString(), 1100f, 284f, 304f);
+            Call.onLabel(event.player.con, config.get("title", 3).asString(), 1100f, 508f, 529f);
+            Call.onLabel(event.player.con, config.get("title", 4).asString(), 1100f, 284f, 529f);
 
+            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
+                Call.onLabel(event.player.con, "online", 1100f, 284f, 490f);
+            }, e -> Call.onLabel(event.player.con, "offine", 1100f, 284f, 490f));
 
-        Events.on(EventType.PlayerLeave.class, event -> {
-            int cur = votes.size;
-            int req = (int) Math.ceil(ratio * Vars.playerGroup.size());
-            if(votes.contains(event.player.uuid)) {
-                votes.remove(event.player.uuid);
-                Call.sendMessage(Strings.format("[lightgray][[RTV]: {0}[accent] left, [green]{1}[accent] votes, [green]{2}[accent] required",
-                                                NetClient.colorizeName(event.player.id, event.player.name), cur, req));
-            }
-        });
-        Events.on(EventType.GameOverEvent.class, event -> {
-            votes.clear();
-        });
-        Events.on(EventType.BlockBuildEndEvent.class, event -> {
-            if(event.player != null){
-                placed.put(event.tile.pos(), event.player.id);
-            }
+            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
+                Call.onLabel(event.player.con, "online", 1100f, 508f, 490f);
+            }, e -> Call.onLabel(event.player.con, "offline", 1100f, 508f, 490f));
+
+            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
+                Call.onLabel(event.player.con, "online", 1100f, 284f, 265f);
+            }, e -> Call.onLabel(event.player.con, "offline", 1100f, 280f, 265f));
+
+            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
+                Call.onLabel(event.player.con, "online", 1100f, 508f, 265f);
+            }, e -> Call.onLabel(event.player.con, "offline", 1100f, 508f, 265f));
         });
     }
 
     @Override
-    public void registerServerCommands(CommandHandler handler){
-        // на всякий
-        handler.register("despw", "Despawn all enemy units.", args -> {
-            unitGroup.all().each(Unit::kill);
-            Log.info("All units destroyed.");
-        });
-        // https://github.com/Anuken/RateLimitPlugin
-        handler.register("rateconfig", "<window/limit/kickLimit> <value>", "Set configuration values for the rate limit.", args -> {
-            String key = "rate" + Strings.capitalize(args[0]);
-
-            if(!(key.equals("rateWindow") || key.equals("rateLimit") || key.equals("rateKickLimit"))){
-                Log.err("Not a valid config value: {0}", args[0]);
-                return;
-            }
-
-            if(Strings.canParseInt(args[1])){
-                Core.settings.putSave(key, Integer.parseInt(args[1]));
-                Log.info("Ratelimit config value '{0}' set to '{1}'.", key, args[1]);
-            }else{
-                Log.err("Not a number: {0}", args[1]);
-            }
-        });
-    }
+    public void registerServerCommands(CommandHandler handler){}
 
     @Override
-    public void registerClientCommands(CommandHandler handler){
-        // https://github.com/mayli/RockTheVotePlugin
-        handler.<Player>register("rtv", "Rock the vote to change map", (args, player) -> {
-            if(player.uuid != null && votes.contains(player.uuid)){
-                player.sendMessage("[scarlet]You've already voted. Sit down.");
-                return;
+    public void registerClientCommands(CommandHandler handler){}
+
+    static class Config{
+        private JsonObject object;
+
+        public Config(){
+            load();
+        }
+
+        private void write(){
+            object = new JsonObject();
+            object.add("server1", new JsonObject().add("ip", "pandorum.su").add("port", 1000).add("title", "<text>"));
+            object.add("server2", new JsonObject().add("ip", "pandorum.su").add("port", 2000).add("title", "<text>"));
+            object.add("server3", new JsonObject().add("ip", "pandorum.su").add("port", 3000).add("title", "<text>"));
+            object.add("server4", new JsonObject().add("ip", "pandorum.su").add("port", 4000).add("title", "<text>"));
+
+            dir.child("config.hjson").writeString(object.toString(Stringify.HJSON), false);
+        }
+
+        private void load(){
+            try{
+                object = JsonValue.readHjson(dir.child("config.hjson").readString()).asObject();
+            }catch(Exception e){
+                write();
             }
+        }
 
-            votes.add(player.uuid);
-            int cur = votes.size;
-            int req = (int) Math.ceil(ratio * Vars.playerGroup.size());
-            Call.sendMessage(Strings.format("[lightgray][[RTV]: {0}[accent] wants to change the map, [green]{1}[accent] votes, [green]{2}[accent] required",
-                                            NetClient.colorizeName(player.id, player.name), cur, req));
-
-            if (cur < req) {
-                return;
-            }
-
-            votes.clear();
-            Call.sendMessage("[lightgray][[RTV]: [green]vote passed, changing map.");
-            Events.fire(new EventType.GameOverEvent(Team.crux));
-        });
-    }
-
-    static class Ratekeeper{
-        public int occurences;
-        public long lastTime;
-
-        public boolean allow(long spacing, int cap){
-            if(Time.timeSinceMillis(lastTime) > spacing){
-                occurences = 0;
-                lastTime = Time.millis();
-            }
-
-            occurences ++;
-            return occurences <= cap;
+        public JsonValue get(String name, int server){
+            load();
+            return object.get("server" + server).asObject().get(name);
         }
     }
 }
