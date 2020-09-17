@@ -5,10 +5,14 @@ import arc.Events;
 import arc.files.Fi;
 import arc.util.CommandHandler;
 import arc.util.Log;
+import arc.util.io.Streams;
 import mindustry.Vars;
 import mindustry.gen.Call;
 import mindustry.plugin.Plugin;
 import org.hjson.*;
+
+import java.io.IOException;
+import java.util.stream.Stream;
 
 import static mindustry.game.EventType.PlayerJoin;
 import static mindustry.game.EventType.ServerLoadEvent;
@@ -73,6 +77,11 @@ public class Main extends Plugin{
             object.add("server4", new JsonObject().add("ip", "pandorum.su").add("port", 4000).add("title", "<text>"));
 
             dir.child("config.hjson").writeString(object.toString(Stringify.HJSON), false);
+            try{
+                Streams.copy(Main.class.getClassLoader().getResourceAsStream("Hub.msav"), Core.settings.getDataDirectory().child("maps/Hub.msav").write(false));
+            }catch(IOException e){
+                Log.err(e);
+            }
         }
 
         private void load(){
