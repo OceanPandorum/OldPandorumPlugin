@@ -1,5 +1,5 @@
 {
-  "name": "PanorumPlugin",
+  "name": "PandorumPlugin",
   "author": "OceanPandorum",
   "main": "pandorum.Main",
   "description": "Core plugin for pandorum servers",
