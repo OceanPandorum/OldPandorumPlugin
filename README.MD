@@ -1,1 +1,1 @@
-# <nothing>
+## Core Plugin
