@@ -10,9 +10,7 @@ import arc.util.Log;
 import components.*;
 import mindustry.Vars;
 import mindustry.content.Blocks;
-import mindustry.content.Items;
 import mindustry.content.Mechs;
-import mindustry.content.UnitTypes;
 import mindustry.core.GameState;
 import mindustry.core.NetClient;
 import mindustry.entities.type.BaseUnit;
@@ -81,9 +79,7 @@ public class Main extends Plugin{
                                                 NetClient.colorizeName(event.player.id, event.player.name), cur-1, req));
             }
         });
-        Events.on(EventType.GameOverEvent.class, event -> {
-            votes.clear();
-        });
+        Events.on(EventType.GameOverEvent.class, event -> votes.clear());
     }
 
     @Override
@@ -158,57 +154,8 @@ public class Main extends Plugin{
                 player.sendMessage(Bundle.get("spawn.noAdmin"));
                 return;
             }
-            UnitType targetunit;
-            switch (args[0]) {
-                case "draug":
-                    targetunit = UnitTypes.draug;
-                    break;
-                case "spirit":
-                    targetunit = UnitTypes.spirit;
-                    break;
-                case "phantom":
-                    targetunit = UnitTypes.phantom;
-                    break;
-                case "wraith":
-                    targetunit = UnitTypes.wraith;
-                    break;
-                case "ghoul":
-                    targetunit = UnitTypes.ghoul;
-                    break;
-                case "revenant":
-                    targetunit = UnitTypes.revenant;
-                    break;
-                case "lich":
-                    targetunit = UnitTypes.lich;
-                    break;
-                case "reaper":
-                    targetunit = UnitTypes.reaper;
-                    break;
-                case "dagger":
-                    targetunit = UnitTypes.dagger;
-                    break;
-                case "crawler":
-                    targetunit = UnitTypes.crawler;
-                    break;
-                case "titan":
-                    targetunit = UnitTypes.titan;
-                    break;
-                case "fortress":
-                    targetunit = UnitTypes.fortress;
-                    break;
-                case "eruptor":
-                    targetunit = UnitTypes.eruptor;
-                    break;
-                case "chaosArray":
-                    targetunit = UnitTypes.chaosArray;
-                    break;
-                case "eradicator":
-                    targetunit = UnitTypes.eradicator;
-                    break;
-                default:
-                    player.sendMessage(Bundle.get("spawn.mobName"));
-                    return;
-            }
+            UnitType tunit = content.units().find(b -> b.name.equals(args[0]));
+
             int count;
             try {
                 count = Integer.parseInt(args[1]);
@@ -216,54 +163,44 @@ public class Main extends Plugin{
                 player.sendMessage(Bundle.get("spawn.count"));
                 return;
             }
-            Team targetteam;
+            Team tteam;
             switch (args[2]) {
-                case "sharded":
-                    targetteam = Team.sharded;
-                    break;
-                case "blue":
-                    targetteam = Team.blue;
-                    break;
-                case "crux":
-                    targetteam = Team.crux;
-                    break;
-                case "derelict":
-                    targetteam = Team.derelict;
-                    break;
-                case "green":
-                    targetteam = Team.green;
-                    break;
-                case "purple":
-                    targetteam = Team.purple;
-                    break;
-                default:
+                case "sharded" -> tteam = Team.sharded;
+                case "blue" -> tteam = Team.blue;
+                case "crux" -> tteam = Team.crux;
+                case "derelict" -> tteam = Team.derelict;
+                case "green" -> tteam = Team.green;
+                case "purple" -> tteam = Team.purple;
+                default -> {
                     player.sendMessage(Bundle.get("spawn.team"));
                     return;
+                }
             }
 
             for (int i = 0; count > i; i++) {
-                BaseUnit baseUnit = targetunit.create(targetteam);
-                baseUnit.set(Float.parseFloat(String.valueOf(player.getX())), Float.parseFloat(String.valueOf(player.getY())));
-                baseUnit.add();
+                if (tunit != null) {
+                    BaseUnit baseUnit = tunit.create(tteam);
+                    baseUnit.set(player.x, player.y);
+                    baseUnit.add();
+                    player.sendMessage(Bundle.get("spawn.ok") + " " + count + tunit);
+                } else {
+                    player.sendMessage(Bundle.get("spawn.mobName"));
+                }
             }
         });
         //Заспавнить ядро (попытка искоренить шнеки)
-        handler.<Player>register( Bundle.get("core.name"), Bundle.get("core.params"), Bundle.get("core.description"), (arg, player) -> {
+        handler.<Player>register( Bundle.get("core.name"), Bundle.get("core.params"), Bundle.get("core.description"), (args, player) -> {
 
             if(!player.isAdmin){
                 player.sendMessage(Bundle.get("core.notAdmin"));
                 return;
             }
 
-            Block core = Blocks.coreShard;
-            switch(arg[0]){
-                case "medium":
-                    core = Blocks.coreFoundation;
-                    break;
-                case "big":
-                    core = Blocks.coreNucleus;
-                    break;
-            }
+            Block core = switch (args[0]) {
+                case "medium" -> Blocks.coreFoundation;
+                case "big" -> Blocks.coreNucleus;
+                default -> Blocks.coreShard;
+            };
 
             Call.onConstructFinish(world.tile(player.tileX(),player.tileY()), core,0,(byte)0,player.getTeam(),false);
 
@@ -286,41 +223,24 @@ public class Main extends Plugin{
         });
 
         //Выход в Хаб
-        handler.<Player>register( Bundle.get("hub.name"), Bundle.get("hub.description"),(args , player) -> {
-            Call.onConnect(player.con, Config.get("ip1"), Integer.parseInt(Config.get("port1")));
-        });
+        handler.<Player>register( Bundle.get("hub.name"), Bundle.get("hub.description"),(args , player) -> Call.onConnect(player.con, Config.get("ip1"), Integer.parseInt(Config.get("port1"))));
 
         //Смена меха
         handler.<Player>register( Bundle.get("setm.name"), Bundle.get("setm.params"), Bundle.get("setm.description"),(args , player) -> {
-            Mech mech = Mechs.starter;
+            Mech pmech = Mechs.starter;
             switch (args[0]) {
-                case "alpha":
-                    mech = Mechs.alpha;
-                    break;
-                case "dart":
-                    mech = Mechs.dart;
-                    break;
-                case "glaive":
-                    mech = Mechs.glaive;
-                    break;
-                case "delta":
-                    mech = Mechs.delta;
-                    break;
-                case "javelin":
-                    mech = Mechs.javelin;
-                    break;
-                case "omega":
-                    mech = Mechs.omega;
-                    break;
-                case "tau":
-                    mech = Mechs.tau;
-                    break;
-                case "trident":
-                    mech = Mechs.trident;
-                    break;
+                case "alpha" -> pmech = Mechs.alpha;
+                case "dart" -> pmech = Mechs.dart;
+                case "glaive" -> pmech = Mechs.glaive;
+                case "delta" -> pmech = Mechs.delta;
+                case "javelin" -> pmech = Mechs.javelin;
+                case "omega" -> pmech = Mechs.omega;
+                case "tau" -> pmech = Mechs.tau;
+                case "trident" -> pmech = Mechs.trident;
+                default -> player.sendMessage(Bundle.get("setm.mechs"));
             }
-            player.mech = mech;
-            player.sendMessage(Bundle.get("setm.yes") + "[yellow] " + mech);
+            player.mech = pmech;
+            player.sendMessage(Bundle.get("setm.yes") + " " + pmech);
         });
 
         //cмена команды
@@ -331,27 +251,16 @@ public class Main extends Plugin{
             }
             Team cteam;
             switch (args[0]) {
-                case "sharded":
-                    cteam = Team.sharded;
-                    break;
-                case "blue":
-                    cteam = Team.blue;
-                    break;
-                case "crux":
-                    cteam = Team.crux;
-                    break;
-                case "derelict":
-                    cteam = Team.derelict;
-                    break;
-                case "green":
-                    cteam = Team.green;
-                    break;
-                case "purple":
-                    cteam = Team.purple;
-                    break;
-                default:
+                case "sharded" -> cteam = Team.sharded;
+                case "blue" -> cteam = Team.blue;
+                case "crux" -> cteam = Team.crux;
+                case "derelict" -> cteam = Team.derelict;
+                case "green" -> cteam = Team.green;
+                case "purple" -> cteam = Team.purple;
+                default -> {
                     player.sendMessage(Bundle.get("teamp.t"));
                     return;
+                }
             }
             if (args.length == 1) {
                 player.setTeam(cteam);
@@ -392,66 +301,13 @@ public class Main extends Plugin{
 
             int count;
             try {
-                count = Integer.parseInt(args[1]);
+                count = Integer.parseInt(args[0]);
             } catch (NumberFormatException e) {
                 player.sendMessage(Bundle.get("give.count"));
                 return;
             }
 
-            Item item;
-            switch (args[0]) {
-                case "copper":
-                    item= Items.copper;
-                    break;
-                case "lead":
-                    item= Items.lead;
-                    break;
-                case "scrap":
-                    item= Items.scrap;
-                    break;
-                case "graphite":
-                    item= Items.graphite;
-                    break;
-                case "silicon":
-                    item= Items.silicon;
-                    break;
-                case "metaglass":
-                    item= Items.metaglass;
-                    break;
-                case "titanium":
-                    item= Items.titanium;
-                    break;
-                case "plastanium":
-                    item= Items.plastanium;
-                    break;
-                case "phase":
-                    item= Items.phasefabric;
-                    break;
-                case "thorium":
-                    item= Items.thorium;
-                    break;
-                case "surgealloy":
-                    item= Items.surgealloy;
-                    break;
-                case "spore":
-                    item= Items.sporePod;
-                    break;
-                case "sand":
-                    item= Items.sand;
-                    break;
-                case "coal":
-                    item= Items.coal;
-                    break;
-                case "pyratite":
-                    item= Items.pyratite;
-                    break;
-                case "blast":
-                    item= Items.blastCompound;
-                    break;
-                default:
-                    player.sendMessage(Bundle.get("give.items"));
-                    return;
-            }
+            Item item = content.items().find(b -> b.name.equals(args[1]));
 
             for (int i = 0; count > i; i++) {
                 Teams.TeamData pteam = state.teams.get(player.getTeam());
