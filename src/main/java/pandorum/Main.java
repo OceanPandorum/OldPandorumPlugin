@@ -10,9 +10,8 @@ import mindustry.Vars;
 import mindustry.gen.Call;
 import mindustry.plugin.Plugin;
 import org.hjson.*;
-
-import java.io.IOException;
 import java.util.stream.Stream;
+import java.io.IOException;
 
 import static mindustry.game.EventType.PlayerJoin;
 import static mindustry.game.EventType.ServerLoadEvent;
@@ -33,26 +32,18 @@ public class Main extends Plugin{
         Events.on(PlayerJoin.class, event -> {
             new Updater(event.player);
 
-            Call.onLabel(event.player.con, config.get("title", 1).asString(), 1100f, 508f, 304f);
-            Call.onLabel(event.player.con, config.get("title", 2).asString(), 1100f, 284f, 304f);
-            Call.onLabel(event.player.con, config.get("title", 3).asString(), 1100f, 508f, 529f);
-            Call.onLabel(event.player.con, config.get("title", 4).asString(), 1100f, 284f, 529f);
+            Call.onLabel(event.player.con, config.get("title", 1).asString(), 1100f, 284f, 529f);
+            Call.onLabel(event.player.con, config.get("title", 2).asString(), 1100f, 508f, 529f);
+            Call.onLabel(event.player.con, config.get("title", 3).asString(), 1100f, 284f, 304f);
+            Call.onLabel(event.player.con, config.get("title", 4).asString(), 1100f, 508f, 304f);
 
-            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
-                Call.onLabel(event.player.con, "online", 1100f, 284f, 490f);
-            }, e -> Call.onLabel(event.player.con, "offine", 1100f, 284f, 490f));
+            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> Call.onLabel(event.player.con, "online", 1100f, 284f, 490f), e -> Call.onLabel(event.player.con, "offine", 1100f, 284f, 490f));
 
-            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
-                Call.onLabel(event.player.con, "online", 1100f, 508f, 490f);
-            }, e -> Call.onLabel(event.player.con, "offline", 1100f, 508f, 490f));
+            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> Call.onLabel(event.player.con, "online", 1100f, 508f, 490f), e -> Call.onLabel(event.player.con, "offline", 1100f, 508f, 490f));
 
-            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
-                Call.onLabel(event.player.con, "online", 1100f, 284f, 265f);
-            }, e -> Call.onLabel(event.player.con, "offline", 1100f, 280f, 265f));
+            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> Call.onLabel(event.player.con, "online", 1100f, 284f, 265f), e -> Call.onLabel(event.player.con, "offline", 1100f, 280f, 265f));
 
-            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
-                Call.onLabel(event.player.con, "online", 1100f, 508f, 265f);
-            }, e -> Call.onLabel(event.player.con, "offline", 1100f, 508f, 265f));
+            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> Call.onLabel(event.player.con, "online", 1100f, 508f, 265f), e -> Call.onLabel(event.player.con, "offline", 1100f, 508f, 265f));
         });
     }
 
