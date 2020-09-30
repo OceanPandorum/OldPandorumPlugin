@@ -178,12 +178,12 @@ public class Main extends Plugin{
             }
 
             if (tunit != null) {
-                for (int i = 0; count > 1; i++){
-                    BaseUnit sunit = tunit.create(tteam);
-                    sunit.set(player.x, player.y);
-                    sunit.add();
+                for (int i = 0; count > i; i++){
+                    BaseUnit baseUnit = tunit.create(tteam);
+                    baseUnit.set(player.x, player.y);
+                    baseUnit.add();
                 }
-                player.sendMessage(Bundle.get("spawn.ok") + " " + count + tunit);
+                player.sendMessage(Bundle.get("spawn.ok") + " " + count +" "+ tunit);
             } else  {
                 player.sendMessage(Bundle.get("spawn.mobName"));
             }
