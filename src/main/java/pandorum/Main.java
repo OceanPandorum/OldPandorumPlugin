@@ -177,16 +177,17 @@ public class Main extends Plugin{
                 }
             }
 
-            for (int i = 0; count > i; i++) {
-                if (tunit != null) {
-                    BaseUnit baseUnit = tunit.create(tteam);
-                    baseUnit.set(player.x, player.y);
-                    baseUnit.add();
-                    player.sendMessage(Bundle.get("spawn.ok") + " " + count + tunit);
-                } else {
-                    player.sendMessage(Bundle.get("spawn.mobName"));
+            if (tunit != null) {
+                for (int i = 0; count > 1; i++){
+                    BaseUnit sunit = tunit.create(tteam);
+                    sunit.set(player.x, player.y);
+                    sunit.add();
                 }
+                player.sendMessage(Bundle.get("spawn.ok") + " " + count + tunit);
+            } else  {
+                player.sendMessage(Bundle.get("spawn.mobName"));
             }
+
         });
         //Заспавнить ядро (попытка искоренить шнеки)
         handler.<Player>register( Bundle.get("core.name"), Bundle.get("core.params"), Bundle.get("core.description"), (args, player) -> {
