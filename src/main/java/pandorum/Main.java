@@ -37,13 +37,21 @@ public class Main extends Plugin{
             Call.onLabel(event.player.con, config.get("title", 3).asString(), 1100f, 284f, 304f);
             Call.onLabel(event.player.con, config.get("title", 4).asString(), 1100f, 508f, 304f);
 
-            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> Call.onLabel(event.player.con, "\uE837"+ " " +"[accent]Online", 1100f, 284f, 490f), e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 284f, 490f));
+            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
+                    Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 284f, 490f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 284f, 490f));
 
-            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> Call.onLabel(event.player.con, "\uE837"+ " " +"[accent]Online", 1100f, 508f, 490f), e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 508f, 490f));
+            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 508f, 490f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 508f, 490f));
 
-            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> Call.onLabel(event.player.con, "\uE837"+ " " +"[accent]Online", 1100f, 284f, 265f), e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 280f, 265f));
+            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 284f, 265f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 280f, 265f));
 
-            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> Call.onLabel(event.player.con, "\uE837"+ " " +"[accent]Online", 1100f, 508f, 265f), e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 508f, 265f));
+            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 508f, 265f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 508f, 265f));
         });
     }
 
@@ -69,7 +77,7 @@ public class Main extends Plugin{
 
             dir.child("config.hjson").writeString(object.toString(Stringify.HJSON), false);
             try{
-                Streams.copy(Main.class.getClassLoader().getResourceAsStream("HUB.msav"), Core.settings.getDataDirectory().child("maps/Hub.msav").write(false));
+                Streams.copy(Main.class.getClassLoader().getResourceAsStream("HUB.msav"), Core.settings.getDataDirectory().child("maps/HUB.msav").write(false));
             }catch(IOException e){
                 Log.err(e);
             }
