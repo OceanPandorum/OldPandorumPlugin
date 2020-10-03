@@ -110,7 +110,7 @@ public class Main extends Plugin{
         // слегка переделанный rtv
         handler.<Player>register(bundle.get("rtv.name"), bundle.get("rtv.description"), (args, player) -> {
             if(player.uuid != null && votes.contains(player.uuid)){
-                player.sendMessage(bundle.get("rtv.x2"));
+                Info.text(player, "$rtv.x2");
                 return;
             }
 
@@ -131,7 +131,7 @@ public class Main extends Plugin{
         //Отправка сообщения для всех в отдельнои окне
         handler.<Player>register(bundle.get("bc.name"), bundle.get("bc.params"), bundle.get("bc.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
             Info.broadCast(args);
@@ -140,7 +140,7 @@ public class Main extends Plugin{
         //Конец игры
         handler.<Player>register(bundle.get("go.name"), bundle.get("go.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
             if(state.is(GameState.State.menu)){
@@ -153,17 +153,17 @@ public class Main extends Plugin{
         //Заспавнить юнитов
         handler.<Player>register(bundle.get("spawn.name"), bundle.get("spawn.params"), bundle.get("spawn.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
             if(!Strings.canParseInt(args[1])){
-                player.sendMessage(bundle.get("commands.count-not-int"));
+                Info.text(player, "$commands.count-not-int");
                 return;
             }
 
             UnitType tunit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
             if(tunit == null){
-                player.sendMessage(bundle.get("spawn.units"));
+                Info.text(player, "$spawn.units");
                 return;
             }
 
@@ -178,7 +178,7 @@ public class Main extends Plugin{
                 case "green" -> tteam = Team.green;
                 case "purple" -> tteam = Team.purple;
                 default -> {
-                    player.sendMessage(bundle.get("spawn.team"));
+                    Info.text(player, "$spawn.team");
                     return;
                 }
             }
@@ -188,13 +188,13 @@ public class Main extends Plugin{
                 baseUnit.set(player.x, player.y);
                 baseUnit.add();
             }
-            player.sendMessage(bundle.format("spawn.ok", count, tunit.name));
+            Info.bundled(player,"spawn.ok", count, tunit.name);
 
         });
         //Заспавнить ядро (попытка искоренить шнеки)
         handler.<Player>register(bundle.get("core.name"), bundle.get("core.params"), bundle.get("core.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
 
@@ -206,20 +206,20 @@ public class Main extends Plugin{
 
             Call.onConstructFinish(world.tile(player.tileX(), player.tileY()), core, 0, (byte) 0, player.getTeam(), false);
 
-            player.sendMessage(world.tile(player.tileX(), player.tileY()).block() == core ? bundle.get("core.yes") : bundle.get("core.no"));
+            Info.text(player, world.tile(player.tileX(), player.tileY()).block() == core ? "$core.yes" : "$core.no");
         });
 
-        //Анимированный ник
+        //Анимированный ник (by Summet#4530)
         handler.<Player>register(bundle.get("nick.name"), bundle.get("nick.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
             if(colornick.targets.contains(player))
                 colornick.targets.remove(player);
             else
                 colornick.targets.add(player);
-            player.sendMessage(bundle.get("nick.successful"));
+            Info.text(player, "$nick.successful");
         });
 
         //Выход в Хаб
@@ -239,16 +239,16 @@ public class Main extends Plugin{
                 case "omega" -> pmech = Mechs.omega;
                 case "tau" -> pmech = Mechs.tau;
                 case "trident" -> pmech = Mechs.trident;
-                default -> player.sendMessage(bundle.get("setm.mechs"));
+                default -> Info.text(player, "$setm.mechs");
             }
             player.mech = pmech;
-            player.sendMessage(bundle.format("setm.yes", pmech.name));
+            Info.bundled(player, "setm.yes", pmech.name);
         });
 
         //cмена команды
         handler.<Player>register(bundle.get("teamp.name"), bundle.get("teamp.params"), bundle.get("teamp.description"), (args, player) -> {
             if (!player.isAdmin) {
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
             Team cteam;
@@ -260,32 +260,33 @@ public class Main extends Plugin{
                 case "green" -> cteam = Team.green;
                 case "purple" -> cteam = Team.purple;
                 default -> {
-                    player.sendMessage(bundle.get("teamp.teams"));
+                    Info.text(player, "$teamp.teams");
                     return;
                 }
             }
 
             if (args.length == 1) {
                 player.setTeam(cteam);
-                player.sendMessage(bundle.format("teamp.success", cteam.name));
+                Info.bundled(player, "teamp.success", cteam.name);
             } else {
                 Player target = playerGroup.find(p -> p.name.equals(args[1]));
                 if (target == null) {
-                    player.sendMessage(bundle.get("commands.player-not-found"));
+                    Info.text(player, "$commands.player-not-found");
                     return;
                 }
                 target.setTeam(cteam);
-                target.sendMessage(bundle.format("teamp.target", cteam.name));
-                player.sendMessage(bundle.format("teamp.player", target.name, cteam.name));
+                Info.bundled(target, "teamp.target", cteam.name);
+                Info.bundled(player, "teamp.player", target.name, cteam.name);
             }
         });
 
         //Спект режим ("Ваниш")
         handler.<Player>register(bundle.get("vanish.name"), bundle.get("vanish.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
+            player.spawner = player.lastSpawner = null;
             player.kill();
             player.setTeam(player.getTeam() == Team.derelict ? Team.sharded : Team.derelict);
         });
@@ -293,11 +294,11 @@ public class Main extends Plugin{
         //Выдача предметов в ядро
         handler.<Player>register(bundle.get("give.name"), bundle.get("give.params"), bundle.get("give.description"), (args, player) -> {
             if(!player.isAdmin) {
-                player.sendMessage(bundle.get("commands.permission-denied"));
+                Info.text(player, "$commands.permission-denied");
                 return;
             }
             if(!Strings.canParseInt(args[0])){
-                player.sendMessage(bundle.get("commands.count-not-int"));
+                Info.text(player, "$commands.count-not-int");
                 return;
             }
 
@@ -305,20 +306,20 @@ public class Main extends Plugin{
 
             Item item = content.items().find(b -> b.name.equalsIgnoreCase(args[1]));
             if(item == null){
-                player.sendMessage(bundle.get("give.item-not-found"));
+                Info.text(player, "$give.item-not-found");
                 return;
             }
 
             for (int i = 0; i < count; i++) {
                 Teams.TeamData pteam = state.teams.get(player.getTeam());
                 if (!pteam.hasCore()) {
-                    player.sendMessage(bundle.get("give.core-not-found"));
+                    Info.text(player, "$give.core-not-found");
                     return;
                 }
                 CoreBlock.CoreEntity core = pteam.cores.first();
                 core.items.set(item, count);
             }
-            player.sendMessage(bundle.get("give.success"));
+            Info.text(player, "$give.success");
         });
 
     }
