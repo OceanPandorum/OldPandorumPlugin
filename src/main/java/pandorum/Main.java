@@ -2,92 +2,88 @@ package pandorum;
 
 import arc.Core;
 import arc.Events;
+import arc.files.Fi;
 import arc.struct.Array;
-import arc.struct.IntIntMap;
-import arc.struct.ObjectMap;
 import arc.util.*;
-import arc.util.Log;
 import components.*;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.content.Mechs;
 import mindustry.core.GameState;
 import mindustry.core.NetClient;
-import mindustry.entities.type.BaseUnit;
-import mindustry.entities.type.Player;
-import mindustry.entities.type.Unit;
-import mindustry.game.EventType;
-import mindustry.game.Team;
-import mindustry.game.Teams;
+import mindustry.entities.type.*;
+import mindustry.game.*;
 import mindustry.gen.Call;
-import mindustry.net.Administration;
 import mindustry.plugin.Plugin;
-import mindustry.type.Item;
-import mindustry.type.Mech;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 import mindustry.world.Block;
-import arc.util.CommandHandler;
 import mindustry.world.blocks.storage.CoreBlock;
 
 import static mindustry.Vars.*;
 
 public class Main extends Plugin{
-    private ObjectMap<String, Ratekeeper> idToRate = new ObjectMap<>();
-    private IntIntMap placed = new IntIntMap();
     private static final double ratio = 0.6;
-    private Array<String> votes = new Array<>();
-    private boolean targets;
+    private final Array<String> votes = new Array<>();
+    public static final Fi dir = Core.settings.getDataDirectory().child("/mods/pandorum/");
+
     public static final Nick colornick = new Nick();
-    public Main() {
-        Config.main();
-    }
+    public static final Config config = new Config();
+    public static final Bundle bundle = new Bundle();
+
+    public Main(){}
 
     @Override
     public void init(){
 
-        Vars.netServer.admins.addActionFilter(action -> {
-            if(action.type != Administration.ActionType.breakBlock && action.type != Administration.ActionType.placeBlock &&
-                    action.type != Administration.ActionType.tapTile && Administration.Config.antiSpam.bool()
-                    && placed.get(action.tile.pos(), -1) != action.player.id){
+        /*netServer.admins.addActionFilter(action -> {
+            try{
+                if(action.type != ActionType.breakBlock &&
+                        action.type != ActionType.placeBlock &&
+                        action.type != ActionType.tapTile &&
+                        antiSpam.bool()){
+                    int window = Core.settings.getInt("rateWindow", 6);
+                    int limit = Core.settings.getInt("rateLimit", 25);
+                    int kickLimit = Core.settings.getInt("rateKickLimit", 60);
 
-                int window = Core.settings.getInt("rateWindow", 6);
-                int limit = Core.settings.getInt("rateLimit", 25);
-                int kickLimit = Core.settings.getInt("rateKickLimit", 60);
-
-                Ratekeeper rate = idToRate.getOr(action.player.uuid, Ratekeeper::new);
-                if(rate.allow(window * 1000, limit)){
-                    return true;
-                }else{
-                    if(rate.occurences > kickLimit){
-                        action.player.con.kick("You are interacting with too many blocks.", 1000 * 30);
+                    Ratekeeper rate = idToRate.getOr(action.player.uuid, Ratekeeper::new);
+                    if(rate.allow(window * 1000, limit)){
+                        return true;
                     }else{
-                        action.player.sendMessage("[scarlet]You are interacting with blocks too quickly.");
-                    }
+                        if(rate.occurences > kickLimit){
+                            action.player.con.kick("You are interacting with too many blocks.", 1000 * 30);
+                        }else{
+                            action.player.sendMessage("[scarlet]You are interacting with blocks too quickly.");
+                        }
 
-                    return false;
+                        return false;
+                    }
                 }
+                return true;
+            }catch(Exception e){
+                Log.err(e);
+                return true;
             }
-            return true;
-        });
+        });*/
 
         Events.on(EventType.PlayerLeave.class, event -> {
             int cur = votes.size;
             int req = (int) Math.ceil(ratio * Vars.playerGroup.size());
             if(votes.contains(event.player.uuid)) {
                 votes.remove(event.player.uuid);
-                Call.sendMessage(Strings.format(Bundle.get("rtv.left"),
-                                                NetClient.colorizeName(event.player.id, event.player.name), cur-1, req));
+                Call.sendMessage(bundle.format("rtv.left",
+                        NetClient.colorizeName(event.player.id, event.player.name), cur - 1, req));
             }
         });
+
         Events.on(EventType.GameOverEvent.class, event -> votes.clear());
     }
 
     @Override
     public void registerServerCommands(CommandHandler handler){
         // на всякий
-        handler.register(Bundle.get("despw.name"), Bundle.get("despw.description"), args -> {
+        handler.register(bundle.get("despw.name"), bundle.get("despw.description"), args -> {
             unitGroup.all().each(Unit::kill);
-            Log.info(Bundle.get("despw.log"));
+            Log.info(bundle.get("despw.log"));
         });
 
         // https://github.com/Anuken/RateLimitPlugin
@@ -112,59 +108,69 @@ public class Main extends Plugin{
     @Override
     public void registerClientCommands(CommandHandler handler){
         // слегка переделанный rtv
-        handler.<Player>register( Bundle.get("rtv.name"), Bundle.get("rtv.description"), (args, player) -> {
+        handler.<Player>register(bundle.get("rtv.name"), bundle.get("rtv.description"), (args, player) -> {
             if(player.uuid != null && votes.contains(player.uuid)){
-                player.sendMessage(Bundle.get("rtv.x2"));
+                player.sendMessage(bundle.get("rtv.x2"));
                 return;
             }
 
             votes.add(player.uuid);
             int cur = votes.size;
             int req = (int) Math.ceil(ratio * playerGroup.size());
-            Call.sendMessage(Strings.format(Bundle.get("rtv.ok"),
-                    NetClient.colorizeName(player.id, player.name), cur, req));
+            Call.sendMessage(bundle.format("rtv.ok", NetClient.colorizeName(player.id, player.name), cur, req));
 
-            if (cur < req) {
+            if(cur < req){
                 return;
             }
 
             votes.clear();
-            Call.sendMessage(Bundle.get("rtv.successful"));
+            Call.sendMessage(bundle.get("rtv.successful"));
             Events.fire(new EventType.GameOverEvent(Team.crux));
         });
 
         //Отправка сообщения для всех в отдельнои окне
-        handler.<Player>register(Bundle.get("bc.name"), Bundle.get("bc.params"), Bundle.get("bc.description"), (args, player) -> {
-            if (player.isAdmin) Broadcast.bc(args);
+        handler.<Player>register(bundle.get("bc.name"), bundle.get("bc.params"), bundle.get("bc.description"), (args, player) -> {
+            if(!player.isAdmin){
+                player.sendMessage(bundle.get("commands.permission-denied"));
+                return;
+            }
+            Info.broadCast(args);
         });
 
         //Конец игры
-        handler.<Player>register( Bundle.get("go.name"), Bundle.get("go.description"), (args, player) -> {
-            if (!player.isAdmin) return;
-            if(state.is(GameState.State.menu)) {
-                Log.err(Bundle.get("go.end"));
+        handler.<Player>register(bundle.get("go.name"), bundle.get("go.description"), (args, player) -> {
+            if(!player.isAdmin){
+                player.sendMessage(bundle.get("commands.permission-denied"));
+                return;
+            }
+            if(state.is(GameState.State.menu)){
+                Log.err(bundle.get("go.end"));
                 return;
             }
             Events.fire(new EventType.GameOverEvent(Team.crux));
         });
 
         //Заспавнить юнитов
-        handler.<Player>register( Bundle.get("spawn.name"), Bundle.get("spawn.params"), Bundle.get("spawn.description"), (args, player) ->{
+        handler.<Player>register(bundle.get("spawn.name"), bundle.get("spawn.params"), bundle.get("spawn.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(Bundle.get("spawn.noAdmin"));
+                player.sendMessage(bundle.get("commands.permission-denied"));
                 return;
             }
-            UnitType tunit = content.units().find(b -> b.name.equals(args[0]));
+            if(!Strings.canParseInt(args[1])){
+                player.sendMessage(bundle.get("commands.count-not-int"));
+                return;
+            }
 
-            int count;
-            try {
-                count = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                player.sendMessage(Bundle.get("spawn.count"));
+            UnitType tunit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
+            if(tunit == null){
+                player.sendMessage(bundle.get("spawn.units"));
                 return;
             }
+
+            int count = Strings.parseInt(args[1]);
             Team tteam;
-            switch (args[2]) {
+
+            switch(args[2]){
                 case "sharded" -> tteam = Team.sharded;
                 case "blue" -> tteam = Team.blue;
                 case "crux" -> tteam = Team.crux;
@@ -172,62 +178,57 @@ public class Main extends Plugin{
                 case "green" -> tteam = Team.green;
                 case "purple" -> tteam = Team.purple;
                 default -> {
-                    player.sendMessage(Bundle.get("spawn.team"));
+                    player.sendMessage(bundle.get("spawn.team"));
                     return;
                 }
             }
 
-            if (tunit != null) {
-                for (int i = 0; count > i; i++){
-                    BaseUnit baseUnit = tunit.create(tteam);
-                    baseUnit.set(player.x, player.y);
-                    baseUnit.add();
-                }
-                player.sendMessage(Bundle.get("spawn.ok") + " " + count +" "+ tunit);
-            } else  {
-                player.sendMessage(Bundle.get("spawn.mobName"));
+            for(int i = 0; i < count; i++){
+                BaseUnit baseUnit = tunit.create(tteam);
+                baseUnit.set(player.x, player.y);
+                baseUnit.add();
             }
+            player.sendMessage(bundle.format("spawn.ok", count, tunit.name));
 
         });
         //Заспавнить ядро (попытка искоренить шнеки)
-        handler.<Player>register( Bundle.get("core.name"), Bundle.get("core.params"), Bundle.get("core.description"), (args, player) -> {
-
+        handler.<Player>register(bundle.get("core.name"), bundle.get("core.params"), bundle.get("core.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(Bundle.get("core.notAdmin"));
+                player.sendMessage(bundle.get("commands.permission-denied"));
                 return;
             }
 
-            Block core = switch (args[0]) {
+            Block core = switch(args[0]){
                 case "medium" -> Blocks.coreFoundation;
                 case "big" -> Blocks.coreNucleus;
                 default -> Blocks.coreShard;
             };
 
-            Call.onConstructFinish(world.tile(player.tileX(),player.tileY()), core,0,(byte)0,player.getTeam(),false);
+            Call.onConstructFinish(world.tile(player.tileX(), player.tileY()), core, 0, (byte) 0, player.getTeam(), false);
 
-            if(world.tile(player.tileX(),player.tileY()).block() == core){
-                player.sendMessage(Bundle.get("core.yes"));
-            } else {
-                player.sendMessage(Bundle.get("core.no"));
-            }
+            player.sendMessage(world.tile(player.tileX(), player.tileY()).block() == core ? bundle.get("core.yes") : bundle.get("core.no"));
         });
 
         //Анимированный ник
-        handler.<Player>register( Bundle.get("nick.name"), Bundle.get("nick.description"), (args, player) -> {
+        handler.<Player>register(bundle.get("nick.name"), bundle.get("nick.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(Bundle.get("nick.notAdmin"));
+                player.sendMessage(bundle.get("commands.permission-denied"));
                 return;
             }
-            colornick.targets.add(player);
-            if (this.targets = true) colornick.targets.add(player) ;
-            player.sendMessage(Bundle.get("nick.successful"));
+            if(colornick.targets.contains(player))
+                colornick.targets.remove(player);
+            else
+                colornick.targets.add(player);
+            player.sendMessage(bundle.get("nick.successful"));
         });
 
         //Выход в Хаб
-        handler.<Player>register( Bundle.get("hub.name"), Bundle.get("hub.description"),(args , player) -> Call.onConnect(player.con, Config.get("ip1"), Integer.parseInt(Config.get("port1"))));
+        handler.<Player>register(bundle.get("hub.name"), bundle.get("hub.description"), (args, player) -> {
+            Call.onConnect(player.con, config.object.getString("hub-ip", "???"), config.object.getInt("hub-port", 0));
+        });
 
         //Смена меха
-        handler.<Player>register( Bundle.get("setm.name"), Bundle.get("setm.params"), Bundle.get("setm.description"),(args , player) -> {
+        handler.<Player>register(bundle.get("setm.name"), bundle.get("setm.params"), bundle.get("setm.description"), (args, player) -> {
             Mech pmech = Mechs.starter;
             switch (args[0]) {
                 case "alpha" -> pmech = Mechs.alpha;
@@ -238,16 +239,16 @@ public class Main extends Plugin{
                 case "omega" -> pmech = Mechs.omega;
                 case "tau" -> pmech = Mechs.tau;
                 case "trident" -> pmech = Mechs.trident;
-                default -> player.sendMessage(Bundle.get("setm.mechs"));
+                default -> player.sendMessage(bundle.get("setm.mechs"));
             }
             player.mech = pmech;
-            player.sendMessage(Bundle.get("setm.yes") + " " + pmech);
+            player.sendMessage(bundle.format("setm.yes", pmech.name));
         });
 
         //cмена команды
-        handler.<Player>register(Bundle.get("teamp.name"), Bundle.get("teamp.params"), Bundle.get("teamp.description"), (args, player) -> {
+        handler.<Player>register(bundle.get("teamp.name"), bundle.get("teamp.params"), bundle.get("teamp.description"), (args, player) -> {
             if (!player.isAdmin) {
-                player.sendMessage(Bundle.get("teamp.notAdmin"));
+                player.sendMessage(bundle.get("commands.permission-denied"));
                 return;
             }
             Team cteam;
@@ -259,67 +260,65 @@ public class Main extends Plugin{
                 case "green" -> cteam = Team.green;
                 case "purple" -> cteam = Team.purple;
                 default -> {
-                    player.sendMessage(Bundle.get("teamp.t"));
+                    player.sendMessage(bundle.get("teamp.teams"));
                     return;
                 }
             }
+
             if (args.length == 1) {
                 player.setTeam(cteam);
-                player.sendMessage(Bundle.get("teamp.success") + " " + "[accent]"+cteam);
+                player.sendMessage(bundle.format("teamp.success", cteam.name));
             } else {
                 Player target = playerGroup.find(p -> p.name.equals(args[1]));
                 if (target == null) {
-                    player.sendMessage(Bundle.get("teamp.notPlayer"));
+                    player.sendMessage(bundle.get("commands.player-not-found"));
                     return;
                 }
                 target.setTeam(cteam);
-                target.sendMessage((Bundle.get("teamp.setTeam1")) + " " +"[accent]"+cteam);
-                player.sendMessage((Bundle.get("teamp.setTeam2"))+ " " +"[accent]"+target.name + " " + (Bundle.get("teamp.setTeam3")) + " " + "[accent]"+cteam);
+                target.sendMessage(bundle.format("teamp.target", cteam.name));
+                player.sendMessage(bundle.format("teamp.player", target.name, cteam.name));
             }
         });
 
-    //Спект режим ("Ваниш")
-        handler.<Player>register(Bundle.get("vanish.name"),Bundle.get("vanish.description"), (args, player) -> {
+        //Спект режим ("Ваниш")
+        handler.<Player>register(bundle.get("vanish.name"), bundle.get("vanish.description"), (args, player) -> {
             if(!player.isAdmin){
-                player.sendMessage(Bundle.get("vanish.notAdmin"));
+                player.sendMessage(bundle.get("commands.permission-denied"));
                 return;
             }
-            if(player.getTeam() == Team.derelict){
-                player.kill();
-                player.setTeam(Team.sharded);
-            }else{
-                player.kill();
-                player.setTeam(Team.derelict);
-            }
+            player.kill();
+            player.setTeam(player.getTeam() == Team.derelict ? Team.sharded : Team.derelict);
         });
 
         //Выдача предметов в ядро
-        handler.<Player>register(Bundle.get("give.name"), Bundle.get("give.params"), Bundle.get("give.description"), (args , player) -> {
+        handler.<Player>register(bundle.get("give.name"), bundle.get("give.params"), bundle.get("give.description"), (args, player) -> {
             if(!player.isAdmin) {
-                player.sendMessage(Bundle.get("give.notAdmin"));
+                player.sendMessage(bundle.get("commands.permission-denied"));
+                return;
+            }
+            if(!Strings.canParseInt(args[0])){
+                player.sendMessage(bundle.get("commands.count-not-int"));
                 return;
             }
 
-            int count;
-            try {
-                count = Integer.parseInt(args[0]);
-            } catch (NumberFormatException e) {
-                player.sendMessage(Bundle.get("give.count"));
+            int count = Strings.parseInt(args[0]);
+
+            Item item = content.items().find(b -> b.name.equalsIgnoreCase(args[1]));
+            if(item == null){
+                player.sendMessage(bundle.get("give.item-not-found"));
                 return;
             }
 
-            Item item = content.items().find(b -> b.name.equals(args[1]));
-
-            for (int i = 0; count > i; i++) {
+            for (int i = 0; i < count; i++) {
                 Teams.TeamData pteam = state.teams.get(player.getTeam());
                 if (!pteam.hasCore()) {
-                    player.sendMessage(Bundle.get("give.notCore"));
+                    player.sendMessage(bundle.get("give.core-not-found"));
                     return;
                 }
                 CoreBlock.CoreEntity core = pteam.cores.first();
                 core.items.set(item, count);
             }
-            player.sendMessage(Bundle.get("give.success"));
+            player.sendMessage(bundle.get("give.success"));
         });
 
     }
@@ -334,7 +333,7 @@ public class Main extends Plugin{
                 lastTime = Time.millis();
             }
 
-            occurences ++;
+            occurences++;
             return occurences <= cap;
         }
     }

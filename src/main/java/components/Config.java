@@ -1,71 +1,23 @@
 package components;
 
-import arc.util.Log;
+import arc.files.Fi;
+import org.hjson.*;
 
-import java.io.*;
-import java.util.Properties;
+import static pandorum.Main.dir;
 
 public class Config {
+    public JsonObject object;
 
-    public static void main() {
-
-        // Создаём папку если не существует
-        final File dir1 = new File("config/mods/Pandorum");
-        if (!dir1.exists()) {
-            dir1.mkdir();
+    public Config(){
+        Fi fi = dir.child("config.hjson");
+        try{
+            object = JsonValue.readHjson(fi.readString()).asObject();
+        }catch(Exception e){
+            object = new JsonObject();
+            object.add("hub-ip", "");
+            object.add("hub-port", 0);
+            object.add("language", "ru_RU");
+            fi.writeString(object.toString(Stringify.HJSON));
         }
-
-
-        File file1 = new File("config/mods/Pandorum/config.properties");
-        if (!file1.exists()) {
-            Log.warn("The config file was successfully generated.");
-
-            try (InputStream in = Config.class
-                    .getClassLoader()
-                    .getResourceAsStream("config.properties");
-                 OutputStream out = new FileOutputStream("config/mods/Pandorum/config.properties")) {
-                int data;
-                while ((data = in.read()) != -1) {
-                    out.write(data);
-                }
-            } catch (IOException exc) {
-                exc.printStackTrace();
-            }
-        }
-
-        final File dir2 = new File("config/mods/Pandorum/bundles");
-        if (!dir2.exists()) {
-            dir2.mkdir();
-        }
-
-        File file2 = new File("config/mods/Pandorum/bundles/bundle_RU.properties");
-        if(!file2.exists()) {
-            try (InputStream in = Config.class
-                    .getClassLoader()
-                    .getResourceAsStream("bundles/bundle_RU.properties");
-                 OutputStream out = new FileOutputStream("config/mods/Pandorum/bundles/bundle_RU.properties")) {
-                int data;
-                while ((data = in.read()) != -1) {
-                    out.write(data);
-                }
-            } catch (IOException exc) {
-                exc.printStackTrace();
-            }
-        }
-    }
-
-    public static String get(String nameStr) {
-        String out = "CONFIG_ERROR";
-        FileInputStream fileInputStream;
-        Properties prop = new Properties();
-        try {
-            fileInputStream = new FileInputStream("config/mods/Pandorum/config.properties");
-            prop.load(fileInputStream);
-            out = prop.getProperty(nameStr);
-            out = new String(out.getBytes("ISO-8859-1"), "UTF-8");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return out;
     }
 }

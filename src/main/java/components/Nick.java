@@ -3,12 +3,12 @@ package components;
 import arc.struct.Array;
 import mindustry.entities.type.Player;
 
-public class Nick  implements Runnable{
-    private static int update = 1000;
+public class Nick implements Runnable{
+    private static final int update = 1000;
 
     private static int colorOffset = 0;
 
-    private static String[] colors = new String[11];
+    private static final String[] colors = new String[11];
 
     static {
         colors[0] = "[#ff0000]";

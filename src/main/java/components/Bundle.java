@@ -1,24 +1,28 @@
 package components;
 
-import java.io.*;
-import java.util.Properties;
+import arc.util.Strings;
 
-public class Bundle {
+import java.util.Locale;
+import java.util.ResourceBundle;
 
-    public static String get(String nameStr) {
-        String out = "TRANSLATE_ERROR("+nameStr+")";
-        FileInputStream fileInputStream;
-        Properties prop = new Properties();
-        try {
-            fileInputStream = new FileInputStream("config/mods/Pandorum/bundles/"+ Config.get("language")+".properties");
-            prop.load(fileInputStream);
-            if (prop.getProperty(nameStr) != null) {
-                out = prop.getProperty(nameStr);
-                out = new String(out.getBytes("ISO-8859-1"), "UTF-8");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+import static pandorum.Main.config;
+
+public class Bundle{
+    private final ResourceBundle bundle;
+
+    public Bundle(){
+        bundle = ResourceBundle.getBundle("bundle", new Locale(config.object.getString("language", "ru_RU")));
+    }
+
+    public String get(String key) {
+        try{
+            return bundle.getString(key);
+        }catch(Exception e){
+            return "???" + key + "???";
         }
-        return out;
+    }
+
+    public String format(String key, Object... values){
+        return Strings.format(get(key), values);
     }
 }
