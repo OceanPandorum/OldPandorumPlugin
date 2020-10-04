@@ -33,25 +33,46 @@ public class Main extends Plugin{
             new Updater(event.player);
 
             Call.onLabel(event.player.con, config.get("title", 1).asString(), 1100f, 284f, 529f);
-            Call.onLabel(event.player.con, config.get("title", 2).asString(), 1100f, 508f, 529f);
-            Call.onLabel(event.player.con, config.get("title", 3).asString(), 1100f, 284f, 304f);
-            Call.onLabel(event.player.con, config.get("title", 4).asString(), 1100f, 508f, 304f);
+            Call.onLabel(event.player.con, config.get("title", 2).asString(), 1100f, 396f, 560f);
+            Call.onLabel(event.player.con, config.get("title", 3).asString(), 1100f, 508f, 529f);
+            Call.onLabel(event.player.con, config.get("title", 4).asString(), 1100f, 508f, 418f);
+            Call.onLabel(event.player.con, config.get("title", 5).asString(), 1100f, 508f, 304f);
+            Call.onLabel(event.player.con, config.get("title", 6).asString(), 1100f, 396f, 304f);
+            Call.onLabel(event.player.con, config.get("title", 7).asString(), 1100f, 284f, 304f);
+            Call.onLabel(event.player.con, config.get("title", 8).asString(), 1100f, 284f, 418f);
 
             Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
                     Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 284f, 490f);
             }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 284f, 490f));
 
             Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 396f, 521f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 396f, 521f));
+
+            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
                 Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 508f, 490f);
             }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 508f, 490f));
 
-            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
-                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 284f, 265f);
-            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 280f, 265f));
-
             Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 508f, 377f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 508f, 377f));
+
+            Vars.net.pingHost(config.get("ip", 5).asString(), config.get("port", 5).asInt(), host -> {
                 Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 508f, 265f);
             }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 508f, 265f));
+
+            Vars.net.pingHost(config.get("ip", 6).asString(), config.get("port", 6).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 396f, 265f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 396f, 265f));
+
+            Vars.net.pingHost(config.get("ip", 7).asString(), config.get("port", 7).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 284f, 265f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 284f, 265f));
+
+            Vars.net.pingHost(config.get("ip", 8).asString(), config.get("port", 8).asInt(), host -> {
+                Call.onLabel(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 284f, 377f);
+            }, e -> Call.onLabel(event.player.con, "[red]Offline", 1100f, 284f, 377f));
+
         });
     }
 
@@ -74,6 +95,10 @@ public class Main extends Plugin{
             object.add("server2", new JsonObject().add("ip", "pandorum.su").add("port", 2000).add("title", "<text>"));
             object.add("server3", new JsonObject().add("ip", "pandorum.su").add("port", 3000).add("title", "<text>"));
             object.add("server4", new JsonObject().add("ip", "pandorum.su").add("port", 4000).add("title", "<text>"));
+            object.add("server5", new JsonObject().add("ip", "pandorum.su").add("port", 5000).add("title", "<text>"));
+            object.add("server6", new JsonObject().add("ip", "pandorum.su").add("port", 6000).add("title", "<text>"));
+            object.add("server7", new JsonObject().add("ip", "pandorum.su").add("port", 7000).add("title", "<text>"));
+            object.add("server8", new JsonObject().add("ip", "pandorum.su").add("port", 9000).add("title", "<text>"));
 
             dir.child("config.hjson").writeString(object.toString(Stringify.HJSON), false);
             try{
