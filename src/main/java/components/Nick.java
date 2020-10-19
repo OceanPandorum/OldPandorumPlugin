@@ -1,7 +1,8 @@
 package components;
 
-import arc.struct.Array;
-import mindustry.entities.type.Player;
+import arc.struct.Seq;
+import arc.util.Strings;
+import mindustry.gen.Player;
 
 public class Nick implements Runnable{
     private static final int update = 1000;
@@ -24,7 +25,7 @@ public class Nick implements Runnable{
         colors[10] = "[#ff00ff]";
     }
 
-    public Array<Player> targets = new Array();
+    public Seq<Player> targets = new Seq<>();
 
     public Nick() {
         (new Thread(this)).start();
