@@ -20,13 +20,12 @@ import mindustry.world.blocks.storage.CoreBlock;
 import static mindustry.Vars.*;
 
 public class Main extends Plugin{
-    private static final double ratio = 0.6;
-    private final Seq<String> votes = new Seq<>();
     public static final Fi dir = Core.settings.getDataDirectory().child("/mods/pandorum/");
-
     public static final Nick colornick = new Nick();
     public static final Config config = new Config();
     public static final Bundle bundle = new Bundle();
+    private static final double ratio = 0.6;
+    private final Seq<String> votes = new Seq<>();
 
     public Main(){}
 
@@ -35,10 +34,10 @@ public class Main extends Plugin{
         Events.on(EventType.PlayerLeave.class, event -> {
             int cur = votes.size;
             int req = (int) Math.ceil(ratio * Groups.player.size());
-            if(votes.contains(event.player.uuid())) {
+            if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
                 Call.sendMessage(bundle.format("rtv.left",
-                        NetClient.colorizeName(event.player.id, event.player.name), cur - 1, req));
+                                               NetClient.colorizeName(event.player.id, event.player.name), cur - 1, req));
             }
         });
 
@@ -118,7 +117,7 @@ public class Main extends Plugin{
 
             int count = Strings.parseInt(args[1]);
 
-            Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[0]));
+            Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[1]));
             if(team == null){
                 Info.text(player, "$teamp.teams");
                 return;
@@ -127,9 +126,10 @@ public class Main extends Plugin{
             for(int i = 0; i < count; i++){
                 tunit.spawn(team, player.x, player.y);
             }
-            Info.bundled(player,"spawn.ok", count, tunit.name);
+            Info.bundled(player, "spawn.ok", count, tunit.name);
 
         });
+
         //Заспавнить ядро (попытка искоренить шнеки)
         handler.<Player>register(bundle.get("core.name"), bundle.get("core.params"), bundle.get("core.description"), (args, player) -> {
             if(!player.admin){
@@ -164,24 +164,12 @@ public class Main extends Plugin{
 
         //Выход в Хаб
         handler.<Player>register(bundle.get("hub.name"), bundle.get("hub.description"), (args, player) -> {
-            Call.connect(player.con, config.object.getString("hub-ip", "???"), config.object.getInt("hub-port", 0));
-        });
-
-        //Смена меха
-        handler.<Player>register(bundle.get("setm.name"), bundle.get("setm.params"), bundle.get("setm.description"), (args, player) -> {
-            /*UnitType unit = content.units().find(u -> u.name.equalsIgnoreCase(args[0]));
-            if(unit == null){
-                Info.text(player, "$setm.mechs");
-                return;
-            }
-
-            player.unit.set(unit.);
-            Info.bundled(player, "setm.yes", unit.name);*/
+            Call.connect(player.con, config.object.getString("hub-ip", null), config.object.getInt("hub-port", 0));
         });
 
         //cмена команды
         handler.<Player>register(bundle.get("teamp.name"), bundle.get("teamp.params"), bundle.get("teamp.description"), (args, player) -> {
-            if (!player.admin) {
+            if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
                 return;
             }
@@ -214,7 +202,7 @@ public class Main extends Plugin{
 
         //Выдача предметов в ядро
         handler.<Player>register(bundle.get("give.name"), bundle.get("give.params"), bundle.get("give.description"), (args, player) -> {
-            if(!player.admin) {
+            if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
                 return;
             }
@@ -232,13 +220,13 @@ public class Main extends Plugin{
             }
 
             Teams.TeamData pteam = state.teams.get(player.team());
-            if (!pteam.hasCore()) {
+            if(!pteam.hasCore()){
                 Info.text(player, "$give.core-not-found");
                 return;
             }
             CoreBlock.CoreBuild core = pteam.cores.first();
 
-            for(int i = 0; i < count; i++) {
+            for(int i = 0; i < count; i++){
                 core.items.set(item, count);
             }
             Info.text(player, "$give.success");

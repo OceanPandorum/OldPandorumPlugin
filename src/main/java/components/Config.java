@@ -5,7 +5,7 @@ import org.hjson.*;
 
 import static pandorum.Main.dir;
 
-public class Config {
+public class Config{
     public JsonObject object;
 
     public Config(){

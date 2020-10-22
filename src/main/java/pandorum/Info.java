@@ -4,7 +4,7 @@ import arc.util.Strings;
 import mindustry.gen.Call;
 import mindustry.gen.Player;
 
-import static pandorum.Main.*;
+import static pandorum.Main.bundle;
 
 public class Info{
 
@@ -12,7 +12,7 @@ public class Info{
         // Util class
     }
 
-    public static void broadCast(String[] args) {
+    public static void broadCast(String[] args){
         String text = Strings.join(" ", args[0].split("\n"));
 
         Call.infoMessage("\uE805" + bundle.get("bc.txt") + "\uE805\n\n" + text + "\n");

@@ -14,7 +14,7 @@ public class Bundle{
         bundle = ResourceBundle.getBundle("bundle", new Locale(config.object.getString("language", "ru_RU")));
     }
 
-    public String get(String key) {
+    public String get(String key){
         try{
             return bundle.getString(key);
         }catch(Exception e){
