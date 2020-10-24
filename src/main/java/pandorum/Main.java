@@ -7,7 +7,6 @@ import arc.struct.Seq;
 import arc.util.*;
 import components.*;
 import mindustry.content.Blocks;
-import mindustry.core.GameState;
 import mindustry.core.NetClient;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -21,7 +20,6 @@ import static mindustry.Vars.*;
 
 public class Main extends Plugin{
     public static final Fi dir = Core.settings.getDataDirectory().child("/mods/pandorum/");
-    public static final Nick colornick = new Nick();
     public static final Config config = new Config();
     public static final Bundle bundle = new Bundle();
     private static final double ratio = 0.6;
@@ -36,8 +34,8 @@ public class Main extends Plugin{
             int req = (int) Math.ceil(ratio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
-                Call.sendMessage(bundle.format("rtv.left",
-                                               NetClient.colorizeName(event.player.id, event.player.name), cur - 1, req));
+                Call.sendMessage(bundle.format("rtv.left", NetClient.colorizeName(event.player.id, event.player.name),
+                                               cur - 1, req));
             }
         });
 
@@ -76,7 +74,7 @@ public class Main extends Plugin{
             Events.fire(new EventType.GameOverEvent(Team.crux));
         });
 
-        //Отправка сообщения для всех в отдельнои окне
+        //Отправка сообщения для всех в отдельном окне
         handler.<Player>register(bundle.get("bc.name"), bundle.get("bc.params"), bundle.get("bc.description"), (args, player) -> {
             if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
@@ -89,10 +87,6 @@ public class Main extends Plugin{
         handler.<Player>register(bundle.get("go.name"), bundle.get("go.description"), (args, player) -> {
             if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
-                return;
-            }
-            if(state.is(GameState.State.menu)){
-                Log.err(bundle.get("go.end"));
                 return;
             }
             Events.fire(new EventType.GameOverEvent(Team.crux));
@@ -109,24 +103,24 @@ public class Main extends Plugin{
                 return;
             }
 
-            UnitType tunit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
-            if(tunit == null){
+            UnitType unit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
+            if(unit == null){
                 Info.text(player, "$spawn.units");
                 return;
             }
 
             int count = Strings.parseInt(args[1]);
 
-            Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[1]));
+            Team team = Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2]));
             if(team == null){
                 Info.text(player, "$teamp.teams");
                 return;
             }
 
             for(int i = 0; i < count; i++){
-                tunit.spawn(team, player.x, player.y);
+                unit.spawn(team, player.x, player.y);
             }
-            Info.bundled(player, "spawn.ok", count, tunit.name);
+            Info.bundled(player, "spawn.ok", count, unit.name);
 
         });
 
@@ -146,20 +140,6 @@ public class Main extends Plugin{
             Call.constructFinish(world.tile(player.tileX(), player.tileY()), core, player.unit(), (byte) 0, player.team(), false);
 
             Info.text(player, world.tile(player.tileX(), player.tileY()).block() == core ? "$core.yes" : "$core.no");
-        });
-
-        //Анимированный ник (by Summet#4530)
-        handler.<Player>register(bundle.get("nick.name"), bundle.get("nick.description"), (args, player) -> {
-            if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
-                return;
-            }
-            if(colornick.targets.contains(player)){
-                colornick.targets.remove(player);
-            }else{
-                colornick.targets.add(player);
-            }
-            Info.text(player, "$nick.successful");
         });
 
         //Выход в Хаб
@@ -219,12 +199,12 @@ public class Main extends Plugin{
                 return;
             }
 
-            Teams.TeamData pteam = state.teams.get(player.team());
-            if(!pteam.hasCore()){
+            Teams.TeamData team = state.teams.get(player.team());
+            if(!team.hasCore()){
                 Info.text(player, "$give.core-not-found");
                 return;
             }
-            CoreBlock.CoreBuild core = pteam.cores.first();
+            CoreBlock.CoreBuild core = team.cores.first();
 
             for(int i = 0; i < count; i++){
                 core.items.set(item, count);
