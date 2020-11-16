@@ -15,9 +15,9 @@ import mindustry.world.Tile;
 import org.hjson.*;
 
 import java.io.IOException;
+import java.util.Objects;
 
-import static mindustry.Vars.customMapDirectory;
-import static mindustry.Vars.netServer;
+import static mindustry.Vars.*;
 import static mindustry.game.EventType.PlayerJoin;
 import static mindustry.game.EventType.ServerLoadEvent;
 
@@ -37,21 +37,16 @@ public class Main extends Plugin{
         for(int i = 0; i < teleports.length; i++){
             if(teleports[i].valid(tile != null ? tile.x : player.tileX(), tile != null ? tile.y : player.tileY())){
                 int finalI = i + 1;
-                Vars.net.pingHost(config.get("ip", finalI).asString(), config.get("port", finalI).asInt(), host -> {
-                    Call.connect(player.con, config.get("ip", finalI).asString(), config.get("port", finalI).asInt());
-                }, e -> {});
+                Vars.net.pingHost(config.get("ip", finalI).asString(), config.get("port", finalI).asInt(), host -> Call.connect(player.con, config.get("ip", finalI).asString(), config.get("port", finalI).asInt()), e -> {});
             }
         }
     }
 
     @Override
     public void init(){
-
         Events.on(ServerLoadEvent.class, event -> netServer.admins.addActionFilter(playerAction -> false));
 
-        Events.on(TapEvent.class, event -> {
-            teleport(event.player, event.tile);
-        });
+        Events.on(TapEvent.class, event -> teleport(event.player, event.tile));
 
         Events.on(PlayerJoin.class, event -> {
             new Updater(event.player);
@@ -64,29 +59,20 @@ public class Main extends Plugin{
             Call.label(event.player.con, config.get("title", 6).asString(), 1100f, 96, 120);
 
             // tile x or y * 8 = coordinate
-            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 96,272);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 96,272));
+            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 96,272), e -> Call.label(event.player.con, "[red]Offline", 1100f, 96,272));
 
-            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 192, 304);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 192, 304));
+            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 192, 304), e -> Call.label(event.player.con, "[red]Offline", 1100f, 192, 304));
 
-            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 288, 272);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 288, 272));
+            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 288, 272), e -> Call.label(event.player.con, "[red]Offline", 1100f, 288, 272));
 
-            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 288, 80);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 288, 80));
+            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 288, 80), e -> Call.label(event.player.con, "[red]Offline", 1100f, 288, 80));
 
-            Vars.net.pingHost(config.get("ip", 5).asString(), config.get("port", 5).asInt(), host -> {
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 192, 48);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 192, 48));
+            Vars.net.pingHost(config.get("ip", 5).asString(), config.get("port", 5).asInt(), host -> Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 192, 48), e -> Call.label(event.player.con, "[red]Offline", 1100f, 192, 48));
 
-            Vars.net.pingHost(config.get("ip", 6).asString(), config.get("port", 6).asInt(), host -> {
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 96, 80);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 96, 80));
+            Vars.net.pingHost(config.get("ip", 6).asString(), config.get("port", 6).asInt(), host -> Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 96, 80), e -> Call.label(event.player.con, "[red]Offline", 1100f, 96, 80));
+
+            Vars.net.pingHost("pandorum.su", 9000, host -> Core.settings.put("totalPlayers", host.players), Log::err);
+
         });
     }
 
@@ -114,7 +100,7 @@ public class Main extends Plugin{
 
             dir.child("config.hjson").writeString(object.toString(Stringify.HJSON), false);
             try{
-                Streams.copy(Main.class.getClassLoader().getResourceAsStream("hub-0.2.msav"),
+                Streams.copy(Objects.requireNonNull(Main.class.getClassLoader().getResourceAsStream("hub-0.2.msav")),
                              customMapDirectory.child("hub-0.2.msav").write(false));
             }catch(IOException e){
                 Log.err(e);
