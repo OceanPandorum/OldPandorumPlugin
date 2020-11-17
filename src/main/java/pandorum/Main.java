@@ -5,11 +5,17 @@ import arc.Events;
 import arc.files.Fi;
 import arc.struct.Seq;
 import arc.util.*;
-import components.*;
+import components.Bundle;
+import components.Config;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
-import mindustry.game.*;
-import mindustry.gen.*;
+import mindustry.game.EventType;
+import mindustry.game.Team;
+import mindustry.game.Teams;
+import mindustry.gen.Call;
+import mindustry.gen.Groups;
+import mindustry.gen.Player;
+import mindustry.gen.Unit;
 import mindustry.mod.Plugin;
 import mindustry.type.Item;
 import mindustry.type.UnitType;
@@ -29,6 +35,7 @@ public class Main extends Plugin{
 
     @Override
     public void init(){
+
         Events.on(EventType.PlayerLeave.class, event -> {
             int cur = votes.size;
             int req = (int) Math.ceil(ratio * Groups.player.size());
@@ -143,9 +150,7 @@ public class Main extends Plugin{
         });
 
         //Выход в Хаб
-        handler.<Player>register(bundle.get("hub.name"), bundle.get("hub.description"), (args, player) -> {
-            Call.connect(player.con, config.object.getString("hub-ip", null), config.object.getInt("hub-port", 0));
-        });
+        handler.<Player>register(bundle.get("hub.name"), bundle.get("hub.description"), (args, player) -> Call.connect(player.con, config.object.getString("hub-ip", null), config.object.getInt("hub-port", 0)));
 
         //cмена команды
         handler.<Player>register(bundle.get("teamp.name"), bundle.get("teamp.params"), bundle.get("teamp.description"), (args, player) -> {

@@ -14,8 +14,8 @@ public class Config{
             object = JsonValue.readHjson(fi.readString()).asObject();
         }catch(Exception e){
             object = new JsonObject();
-            object.add("hub-ip", "");
-            object.add("hub-port", 0);
+            object.add("hub-ip", "pandorum.su");
+            object.add("hub-port", 8000);
             object.add("language", "ru_RU");
             fi.writeString(object.toString(Stringify.HJSON));
         }
