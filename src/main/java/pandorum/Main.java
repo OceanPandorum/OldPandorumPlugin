@@ -13,9 +13,7 @@ import mindustry.gen.Player;
 import mindustry.mod.Plugin;
 import mindustry.world.Tile;
 import org.hjson.*;
-
 import java.io.IOException;
-import java.util.Objects;
 
 import static mindustry.Vars.*;
 import static mindustry.game.EventType.PlayerJoin;
@@ -91,16 +89,16 @@ public class Main extends Plugin{
 
         private void write(){
             object = new JsonObject();
-            object.add("server1", new JsonObject().add("ip", "pandorum.su").add("port", 1000).add("title", "<text>"));
-            object.add("server2", new JsonObject().add("ip", "pandorum.su").add("port", 2000).add("title", "<text>"));
-            object.add("server3", new JsonObject().add("ip", "pandorum.su").add("port", 3000).add("title", "<text>"));
-            object.add("server4", new JsonObject().add("ip", "pandorum.su").add("port", 4000).add("title", "<text>"));
-            object.add("server5", new JsonObject().add("ip", "pandorum.su").add("port", 5000).add("title", "<text>"));
-            object.add("server6", new JsonObject().add("ip", "pandorum.su").add("port", 6000).add("title", "<text>"));
+            object.add("server1", new JsonObject().add("ip", "pandorum.su").add("port", 9000).add("title", "<text>"));
+            object.add("server2", new JsonObject().add("ip", "pandorum.su").add("port", 1000).add("title", "<text>"));
+            object.add("server3", new JsonObject().add("ip", "pandorum.su").add("port", 7000).add("title", "<text>"));
+            object.add("server4", new JsonObject().add("ip", "pandorum.su").add("port", 2000).add("title", "<text>"));
+            object.add("server5", new JsonObject().add("ip", "pandorum.su").add("port", 3000).add("title", "<text>"));
+            object.add("server6", new JsonObject().add("ip", "pandorum.su").add("port", 4000).add("title", "<text>"));
 
             dir.child("config.hjson").writeString(object.toString(Stringify.HJSON), false);
             try{
-                Streams.copy(Objects.requireNonNull(Main.class.getClassLoader().getResourceAsStream("hub-0.2.msav")),
+                Streams.copy(Main.class.getClassLoader().getResourceAsStream("hub-0.2.msav"),
                              customMapDirectory.child("hub-0.2.msav").write(false));
             }catch(IOException e){
                 Log.err(e);
