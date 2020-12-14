@@ -100,10 +100,23 @@ public class Main extends Plugin{
     }
 
     @Override
-    public void registerServerCommands(CommandHandler handler){}
+    public void registerServerCommands(CommandHandler handler){
+        handler.register("stat", "Debug command", args -> {
+            Log.info("threads: @", Thread.activeCount());
+            Log.info("players: @", Core.settings.getInt("totalPlayers"));
+        });
+    }
 
     @Override
-    public void registerClientCommands(CommandHandler handler){}
+    public void registerClientCommands(CommandHandler handler){
+        handler.<Player>register("bc", "<text...>", "Broad cast", (args, player) -> {
+            if(player.admin){
+                Call.infoToast(args[0], 15);
+            }else{
+                player.sendMessage("[scarlet]You must be admin to use this command.");
+            }
+        });
+    }
 
     static class Config{
         private JsonObject object;
