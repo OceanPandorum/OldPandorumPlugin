@@ -24,6 +24,6 @@ allprojects{
 }
 
 jar{
-    archiveFileName = "${project.archivesBaseName}.jar"
+    archiveFileName = "${project.archivesBaseName}-hub.jar"
     from{configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}}
 }
