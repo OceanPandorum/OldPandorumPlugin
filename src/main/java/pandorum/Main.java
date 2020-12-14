@@ -94,6 +94,7 @@ public class Main extends Plugin{
             Timer.schedule(() -> {
                 Log.debug("all: @", allPlayers.get());
                 Core.settings.put("totalPlayers", allPlayers.get());
+                allPlayers.set(0);
             }, 3);
         });
     }
