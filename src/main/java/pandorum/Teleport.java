@@ -9,6 +9,7 @@ public class Teleport{
     }
 
     public boolean valid(int x, int y){
-        return x <= this.x + 3 && x >= this.x && y >= this.y && y <= this.y + 3;
+        return x <= this.x + 3 && x >= this.x &&
+               y >= this.y && y <= this.y + 3;
     }
 }

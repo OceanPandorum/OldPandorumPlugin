@@ -2,26 +2,31 @@ package pandorum;
 
 import mindustry.gen.*;
 
-import static pandorum.Main.*;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-public class Updater{
+import static pandorum.Main.teleport;
 
-    private Thread th;
+public class Updater implements Runnable{
+    private final Player target;
 
-    public Updater(Player player){
-        th = new Thread(() -> {
-            while(!th.isInterrupted()){
-                try{
-                    Thread.sleep(100);
-                    if(Groups.player.contains(p -> p == player)){
-                        teleport(player, null);
-                    }else{
-                        th.interrupt();
-                    }
-                }catch(InterruptedException ignored){}
-            }
-        });
-        th.start();
+    public Updater(Player target){
+        this.target = target;
+    }
+
+    @Override
+    public void run(){
+        Thread t = Thread.currentThread();
+        while(!t.isInterrupted()){
+            try{
+                TimeUnit.MILLISECONDS.sleep(100);
+                if(Groups.player.contains(p -> Objects.equals(p, target))){
+                    teleport(target, null);
+                }else{
+                    t.interrupt();
+                }
+            }catch(InterruptedException ignored){}
+        }
     }
 }
 

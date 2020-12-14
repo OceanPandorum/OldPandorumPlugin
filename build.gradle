@@ -1,15 +1,12 @@
 apply plugin: "java"
 
-version '1.0'
-
 repositories{
     mavenCentral()
     maven{ url 'https://www.jitpack.io' }
 }
 
 ext{
-    //the build number that this plugin is made for
-    mindustryVersion = 'v120.2'
+    mindustryVersion = 'v121'
 }
 
 dependencies{
@@ -18,13 +15,15 @@ dependencies{
     implementation "org.hjson:hjson:3.0.0"
 }
 
+allprojects{
+    tasks.withType(JavaCompile){
+        if(JavaVersion.current() != JavaVersion.VERSION_1_8){
+            options.compilerArgs.addAll(['--release', '8'])
+        }
+    }
+}
+
 jar{
     archiveFileName = "${project.archivesBaseName}.jar"
-    from{
-        configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
-    }
-
-    from(rootDir){
-        include "plugin.json"
-    }
+    from{configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}}
 }
