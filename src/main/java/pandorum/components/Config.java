@@ -1,4 +1,4 @@
-package components;
+package pandorum.components;
 
 import arc.files.Fi;
 import org.hjson.*;

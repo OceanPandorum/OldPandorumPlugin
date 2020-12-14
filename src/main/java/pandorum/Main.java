@@ -4,7 +4,7 @@ import arc.*;
 import arc.files.Fi;
 import arc.struct.*;
 import arc.util.*;
-import components.*;
+import pandorum.components.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
 import mindustry.game.EventType.*;
@@ -104,18 +104,18 @@ public class Main extends Plugin{
         handler.<Player>register(bundle.get("bc.name"), bundle.get("bc.params"), bundle.get("bc.description"), (args, player) -> {
             if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
-                return;
+            }else{
+                Info.broadCast(args);
             }
-            Info.broadCast(args);
         });
 
         //Конец игры
         handler.<Player>register(bundle.get("go.name"), bundle.get("go.description"), (args, player) -> {
             if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
-                return;
+            }else{
+                Events.fire(new GameOverEvent(Team.crux));
             }
-            Events.fire(new GameOverEvent(Team.crux));
         });
 
         //Заспавнить юнитов
@@ -137,7 +137,7 @@ public class Main extends Plugin{
 
             int count = Strings.parseInt(args[1]);
 
-            Team team = Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2]));
+            Team team = args.length > 2 ? Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2])) : player.team();
             if(team == null){
                 Info.text(player, "$teamp.teams");
                 return;
@@ -163,9 +163,9 @@ public class Main extends Plugin{
                 default -> Blocks.coreShard;
             };
 
-            Call.constructFinish(world.tile(player.tileX(), player.tileY()), core, player.unit(), (byte) 0, player.team(), false);
+            Call.constructFinish(player.tileOn(), core, player.unit(), (byte)0, player.team(), false);
 
-            Info.text(player, world.tile(player.tileX(), player.tileY()).block() == core ? "$core.yes" : "$core.no");
+            Info.text(player, player.tileOn().block() == core ? "$core.yes" : "$core.no");
         });
 
         //Выход в Хаб
@@ -197,11 +197,10 @@ public class Main extends Plugin{
         handler.<Player>register(bundle.get("vanish.name"), bundle.get("vanish.description"), (args, player) -> {
             if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
-                return;
+            }else{
+                player.clearUnit();
+                player.team(player.team() == Team.derelict ? Team.sharded : Team.derelict);
             }
-
-            player.clearUnit();
-            player.team(player.team() == Team.derelict ? Team.sharded : Team.derelict);
         });
 
         //Выдача предметов в ядро

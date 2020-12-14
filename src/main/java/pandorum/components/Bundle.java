@@ -1,7 +1,6 @@
-package components;
+package pandorum.components;
 
-import arc.util.Strings;
-
+import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -23,6 +22,6 @@ public class Bundle{
     }
 
     public String format(String key, Object... values){
-        return Strings.format(get(key), values);
+        return MessageFormat.format(get(key), values);
     }
 }
