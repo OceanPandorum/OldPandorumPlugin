@@ -61,7 +61,7 @@ public class Main extends Plugin{
             int req = (int) Math.ceil(ratio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
-                Call.sendMessage(bundle.format("rtv.left", NetClient.colorizeName(event.player.id, event.player.name),
+                Call.sendMessage(bundle.format("commands.rtv.left", NetClient.colorizeName(event.player.id, event.player.name),
                                                cur - 1, req));
             }
         });
@@ -80,13 +80,13 @@ public class Main extends Plugin{
 
     @Override
     public void registerClientCommands(CommandHandler handler){
-        handler.<Player>register("alert", bundle.get("alert.description"), (args, player) -> {
+        handler.<Player>register("alert", bundle.get("commands.alert.description"), (args, player) -> {
             if(alertIgnores.contains(player.uuid())){
                 alertIgnores.remove(player.uuid());
-                Info.bundled(player, "alert.on");
+                Info.bundled(player, "commands.alert.on");
             }else{
                 alertIgnores.add(player.uuid());
-                Info.bundled(player, "alert.off");
+                Info.bundled(player, "commands.alert.off");
             }
         });
 
@@ -154,7 +154,7 @@ public class Main extends Plugin{
         });
 
         // слегка переделанный rtv
-        handler.<Player>register("rtv", bundle.get("rtv.description"), (args, player) -> {
+        handler.<Player>register("rtv", bundle.get("commands.rtv.description"), (args, player) -> {
             if(player.uuid() != null && votes.contains(player.uuid())){
                 Info.bundled(player, "commands.rtv.contains");
                 return;
