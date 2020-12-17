@@ -72,46 +72,46 @@ public class Main extends Plugin{
     @Override
     public void registerServerCommands(CommandHandler handler){
         // на всякий
-        handler.register(bundle.get("despw.name"), bundle.get("despw.description"), args -> {
+        handler.register("despw", bundle.get("commands.despw.description"), args -> {
             Groups.unit.each(Unit::kill);
-            Log.info(bundle.get("despw.log"));
+            Log.info(bundle.get("commands.despw.log"));
         });
     }
 
     @Override
     public void registerClientCommands(CommandHandler handler){
-        handler.<Player>register(bundle.get("alert.name"), bundle.get("alert.description"), (args, player) -> {
+        handler.<Player>register("alert", bundle.get("alert.description"), (args, player) -> {
             if(alertIgnores.contains(player.uuid())){
                 alertIgnores.remove(player.uuid());
-                Info.text(player, "$alert.on");
+                Info.bundled(player, "alert.on");
             }else{
                 alertIgnores.add(player.uuid());
-                Info.text(player, "$alert.off");
+                Info.bundled(player, "alert.off");
             }
         });
 
-        handler.<Player>register("ban", bundle.get("ban.params"), bundle.get("ban.description"), (args, player) -> {
+        handler.<Player>register("ban", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.ban.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
                 return;
             }
             if(!Strings.canParseInt(args[0])){
-                Info.text(player, "$ban.id-not-int");
+                Info.bundled(player, "commands.admin.ban.id-not-int");
                 return;
             }
             if(!Strings.canParseInt(args[1])){
-                Info.text(player, "$ban.delay-not-int");
+                Info.bundled(player, "commands.admin.ban.delay-not-int"); // todo пока ничего не делает
                 return;
             }
 
             int id = Strings.parseInt(args[0]);
             Player target = Groups.player.find(p -> p.id() == id);
             if(target == null){
-                Info.text(player, "$commands.player-not-found");
+                Info.bundled(player, "commands.player-not-found");
                 return;
             }
             if(Objects.equals(target, player) || target.admin()){
-                Info.text(player, "$commands.not-allowed-target");
+                Info.bundled(player, "commands.not-allowed-target");
                 return;
             }
 
@@ -123,9 +123,9 @@ public class Main extends Plugin{
             }
         });
 
-        handler.<Player>register("pl", bundle.get("pl.params"), bundle.get("pl.description"), (args, player) -> {
+        handler.<Player>register("pl", bundle.get("commands.pl.params"), bundle.get("commands.pl.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                Info.text(player, "$pl.page-not-int");
+                Info.bundled(player, "commands.pl.page-not-int");
                 return;
             }
 
@@ -135,12 +135,12 @@ public class Main extends Plugin{
             page--;
 
             if(page >= pages || page < 0){
-                Info.bundled(player, "pl.under-page", pages);
+                Info.bundled(player, "commands.pl.under-page", pages);
                 return;
             }
 
             StringBuilder result = new StringBuilder();
-            result.append(bundle.format("pl.page", (page + 1), pages)).append("\n");
+            result.append(bundle.format("commands.pl.page", (page + 1), pages)).append("\n");
 
             for(int i = 6 * page; i < Math.min(6 * (page + 1), Groups.player.size()); i++){
                 Player t = Groups.player.index(i);
@@ -154,59 +154,64 @@ public class Main extends Plugin{
         });
 
         // слегка переделанный rtv
-        handler.<Player>register(bundle.get("rtv.name"), bundle.get("rtv.description"), (args, player) -> {
+        handler.<Player>register("rtv", bundle.get("rtv.description"), (args, player) -> {
             if(player.uuid() != null && votes.contains(player.uuid())){
-                Info.text(player, "$rtv.x2");
+                Info.bundled(player, "commands.rtv.contains");
                 return;
             }
 
             votes.add(player.uuid());
             int cur = votes.size;
             int req = (int) Math.ceil(ratio * Groups.player.size());
-            Call.sendMessage(bundle.format("rtv.ok", NetClient.colorizeName(player.id, player.name), cur, req));
+            Call.sendMessage(bundle.format("commands.rtv.ok", NetClient.colorizeName(player.id, player.name), cur, req));
 
             if(cur < req){
                 return;
             }
 
             votes.clear();
-            Call.sendMessage(bundle.get("rtv.successful"));
+            Call.sendMessage(bundle.get("commands.rtv.successful"));
             Events.fire(new GameOverEvent(Team.crux));
         });
 
         //Отправка сообщения для всех в отдельном окне
-        handler.<Player>register(bundle.get("bc.name"), bundle.get("bc.params"), bundle.get("bc.description"), (args, player) -> {
+        handler.<Player>register("bc", bundle.get("commands.admin.bc.params"), bundle.get("commands.admin.bc.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
             }else{
-                Player target = !args[0].toLowerCase().equals("all") ? Groups.player.find(p -> p.name.toLowerCase().equals(args[0])) : null;
+                String arg = args[0].toLowerCase();
+                Player target = null;
+                if(Strings.canParseInt(arg)){
+                    int id = Strings.parseInt(args[0]);
+                    target = Groups.player.find(p -> p.id == id);
+                }
                 Info.broadCast(target, args);
             }
         });
 
         //Конец игры
-        handler.<Player>register(bundle.get("go.name"), bundle.get("go.description"), (args, player) -> {
+        handler.<Player>register("go", bundle.get("commands.admin.go.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
             }else{
                 Events.fire(new GameOverEvent(Team.crux));
             }
         });
 
         //Заспавнить юнитов
-        handler.<Player>register(bundle.get("spawn.name"), bundle.get("spawn.params"), bundle.get("spawn.description"), (args, player) -> {
+        handler.<Player>register("spawn", bundle.get("commands.admin.spawn.params"), bundle.get("commands.admin.spawn.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
                 return;
             }
             if(!Strings.canParseInt(args[1])){
-                Info.text(player, "$commands.count-not-int");
+                Info.bundled(player, "commands.count-not-int");
                 return;
             }
 
             UnitType unit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
             if(unit == null){
-                Info.text(player, "$spawn.units");
+                Info.bundled(player, "commands.admin.spawn.units");
                 return;
             }
 
@@ -214,25 +219,25 @@ public class Main extends Plugin{
 
             Team team = args.length > 2 ? Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2])) : player.team();
             if(team == null){
-                Info.text(player, "$teamp.teams");
+                Info.bundled(player, "commands.admin.teamp.teams");
                 return;
             }
 
             for(int i = 0; i < count; i++){
                 unit.spawn(team, player.x, player.y);
             }
-            Info.bundled(player, "spawn.ok", count, unit.name);
+            Info.bundled(player, "commands.admin.spawn.success", count, unit.name);
 
         });
 
         //Заспавнить ядро (попытка искоренить шнеки)
-        handler.<Player>register(bundle.get("core.name"), bundle.get("core.params"), bundle.get("core.description"), (args, player) -> {
+        handler.<Player>register("core", bundle.get("commands.admin.core.params"), bundle.get("commands.admin.core.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
                 return;
             }
 
-            Block core = switch(args[0]){
+            Block core = switch(args[0].toLowerCase()){
                 case "medium" -> Blocks.coreFoundation;
                 case "big" -> Blocks.coreNucleus;
                 default -> Blocks.coreShard;
@@ -240,38 +245,38 @@ public class Main extends Plugin{
 
             Call.constructFinish(player.tileOn(), core, player.unit(), (byte)0, player.team(), false);
 
-            Info.text(player, player.tileOn().block() == core ? "$core.yes" : "$core.no");
+            Info.bundled(player, player.tileOn().block() == core ? "commands.admin.core.success" : "commands.admin.core.failed");
         });
 
         //Выход в Хаб
-        handler.<Player>register(bundle.get("hub.name"), bundle.get("hub.description"), (args, player) -> Call.connect(player.con, config.hubIp, config.hubPort));
+        handler.<Player>register("hub", bundle.get("commands.hub.description"), (args, player) -> Call.connect(player.con, config.hubIp, config.hubPort));
 
         //cмена команды
-        handler.<Player>register(bundle.get("teamp.name"), bundle.get("teamp.params"), bundle.get("teamp.description"), (args, player) -> {
+        handler.<Player>register("teamp", bundle.get("commands.admin.teamp.params"), bundle.get("commands.admin.teamp.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
                 return;
             }
             Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[0]));
             if(team == null){
-                Info.text(player, "$teamp.teams");
+                Info.bundled(player, "commands.admin.teamp.teams");
                 return;
             }
 
             Player target = args.length > 1 ? Groups.player.find(p -> p.name.equalsIgnoreCase(args[1])) : player;
             if(target == null){
-                Info.text(player, "$commands.player-not-found");
+                Info.bundled(player, "commands.player-not-found");
                 return;
             }
 
-            Info.bundled(target, "teamp.success", team.name);
+            Info.bundled(target, "commands.admin.teamp.success", team.name);
             target.team(team);
         });
 
         //Спект режим ("Ваниш")
-        handler.<Player>register(bundle.get("vanish.name"), bundle.get("vanish.description"), (args, player) -> {
+        handler.<Player>register("s", bundle.get("commands.admin.vanish.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
             }else{
                 player.clearUnit();
                 player.team(player.team() == Team.derelict ? Team.sharded : Team.derelict);
@@ -279,13 +284,13 @@ public class Main extends Plugin{
         });
 
         //Выдача предметов в ядро
-        handler.<Player>register(bundle.get("give.name"), bundle.get("give.params"), bundle.get("give.description"), (args, player) -> {
+        handler.<Player>register("give", bundle.get("commands.admin.give.params"), bundle.get("commands.admin.give.description"), (args, player) -> {
             if(!player.admin){
-                Info.text(player, "$commands.permission-denied");
+                Info.bundled(player, "commands.permission-denied");
                 return;
             }
             if(!Strings.canParseInt(args[0])){
-                Info.text(player, "$commands.count-not-int");
+                Info.bundled(player, "commands.count-not-int");
                 return;
             }
 
@@ -293,13 +298,13 @@ public class Main extends Plugin{
 
             Item item = content.items().find(b -> b.name.equalsIgnoreCase(args[1]));
             if(item == null){
-                Info.text(player, "$give.item-not-found");
+                Info.bundled(player, "commands.admin.give.item-not-found");
                 return;
             }
 
             Teams.TeamData team = state.teams.get(player.team());
             if(!team.hasCore()){
-                Info.text(player, "$give.core-not-found");
+                Info.bundled(player, "commands.admin.give.core-not-found");
                 return;
             }
             CoreBlock.CoreBuild core = team.cores.first();
@@ -307,8 +312,7 @@ public class Main extends Plugin{
             for(int i = 0; i < count; i++){
                 core.items.set(item, count);
             }
-            Info.text(player, "$give.success");
+            Info.bundled(player, "commands.admin.give.success");
         });
-
     }
 }
