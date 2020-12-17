@@ -113,11 +113,9 @@ public class PandorumHub extends Plugin{
                         player.sendMessage("[scarlet]Player not found");
                         return;
                     }
-                    Call.infoToast(target.con(), args[0], 15);
-                }else if(args[0].toLowerCase().equals("all")){
-                    Call.infoToast(args[0], 15);
+                    Call.infoToast(target.con(), args[1], 15);
                 }else{
-                    player.sendMessage("[scarlet]Incorrect first argument");
+                    Call.infoToast(args[1], 15);
                 }
             }else{
                 player.sendMessage("[scarlet]You must be admin to use this command.");
