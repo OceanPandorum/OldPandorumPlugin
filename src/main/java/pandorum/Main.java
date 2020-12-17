@@ -4,12 +4,12 @@ import arc.Core;
 import arc.Events;
 import arc.files.Fi;
 import arc.func.Func;
+import arc.math.Mathf;
 import arc.util.*;
 import arc.util.io.Streams;
 import mindustry.Vars;
 import mindustry.game.EventType.TapEvent;
-import mindustry.gen.Call;
-import mindustry.gen.Player;
+import mindustry.gen.*;
 import mindustry.mod.Plugin;
 import mindustry.net.*;
 import mindustry.world.Tile;
@@ -145,12 +145,54 @@ public class Main extends Plugin{
 
     @Override
     public void registerClientCommands(CommandHandler handler){
-        handler.<Player>register("bc", "<text...>", "Broad cast", (args, player) -> {
+        handler.<Player>register("bc", "<all/player> <text...>", "Broad cast", (args, player) -> {
             if(player.admin){
-                Call.infoToast(args[0], 15);
+                if(Strings.canParseInt(args[0])){
+                    int id = Strings.parseInt(args[0]);
+                    Player target = Groups.player.find(p -> p.id() == id);
+                    if(target == null){
+                        player.sendMessage("[scarlet]Player not found");
+                        return;
+                    }
+                    Call.infoToast(target.con(), args[0], 15);
+                }else if(args[0].toLowerCase().equals("all")){
+                    Call.infoToast(args[0], 15);
+                }else{
+                    player.sendMessage("[scarlet]Incorrect first argument");
+                }
             }else{
                 player.sendMessage("[scarlet]You must be admin to use this command.");
             }
+        });
+
+        handler.<Player>register("pl", "[page]", "Player list.", (args, player) -> {
+            if(args.length > 0 && !Strings.canParseInt(args[0])){
+                player.sendMessage("[scarlet]'page' must be a number.");
+                return;
+            }
+
+            int page = args.length > 0 ? Strings.parseInt(args[0]) : 1;
+            int pages = Mathf.ceil((float)Groups.player.size() / 6);
+
+            page--;
+
+            if(page >= pages || page < 0){
+                player.sendMessage(Strings.format("[scarlet]'page' must be a number between[orange] 1[] and[orange] @[scarlet].", pages));
+                return;
+            }
+
+            StringBuilder result = new StringBuilder();
+            result.append(Strings.format("[orange]-- Player List Page[lightgray] @[gray]/[lightgray]@[orange] --\n", (page + 1), pages));
+
+            for(int i = 6 * page; i < Math.min(6 * (page + 1), Groups.player.size()); i++){
+                Player t = Groups.player.index(i);
+                result.append("[lightgray]* ").append(t.name).append(" [lightgray]/ ID: ").append(t.id());
+
+                if(player.admin){
+                    result.append(" / raw: ").append(t.name.replaceAll("\\[", "[[")).append("\n");
+                }
+            }
+            player.sendMessage(result.toString());
         });
     }
 
