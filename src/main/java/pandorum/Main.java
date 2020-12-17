@@ -47,7 +47,7 @@ public class Main extends Plugin{
         Events.on(BuildSelectEvent.class, event -> {
             if(!event.breaking && event.builder != null && event.builder.buildPlan() != null &&
                event.builder.buildPlan().block == Blocks.thoriumReactor && event.builder.isPlayer() &&
-               event.team.cores().contains(c -> event.tile.dst(c.x, c.y) < 300)){
+               event.team.cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
                 Player target = event.builder.getPlayer();
 
                 if(alertInterval.get(200)){
