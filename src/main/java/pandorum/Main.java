@@ -6,7 +6,9 @@ import arc.math.Mathf;
 import arc.struct.*;
 import arc.util.*;
 import com.google.gson.*;
+import mindustry.game.Teams.TeamData;
 import mindustry.net.Packets.KickReason;
+import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
@@ -302,12 +304,12 @@ public class Main extends Plugin{
                 return;
             }
 
-            Teams.TeamData team = state.teams.get(player.team());
+            TeamData team = state.teams.get(player.team());
             if(!team.hasCore()){
                 Info.bundled(player, "commands.admin.give.core-not-found");
                 return;
             }
-            CoreBlock.CoreBuild core = team.cores.first();
+            CoreBuild core = team.cores.first();
 
             for(int i = 0; i < count; i++){
                 core.items.set(item, count);
