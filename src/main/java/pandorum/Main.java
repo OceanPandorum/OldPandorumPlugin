@@ -67,8 +67,6 @@ public class Main extends Plugin{
         });
 
         Events.on(GameOverEvent.class, event -> votes.clear());
-
-        netServer.admins.addChatFilter((player, text) -> null);
     }
 
     @Override
