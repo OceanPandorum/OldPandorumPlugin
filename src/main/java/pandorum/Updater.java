@@ -5,7 +5,7 @@ import mindustry.gen.*;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import static pandorum.Main.teleport;
+import static pandorum.PandorumHub.teleport;
 
 public class Updater implements Runnable{
     private final Player target;

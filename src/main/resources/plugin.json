@@ -1,7 +1,7 @@
 {
   "name": "PanorumPlugin",
   "author": "OceanPandorum",
-  "main": "pandorum.Main",
+  "main": "pandorum.PandorumHub",
   "description": "Hub plugin for pandorum servers",
   "version": 1.1
 }
