@@ -5,6 +5,8 @@ import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.net.Packets;
+import mindustry.net.Packets.KickReason;
 import pandorum.components.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
@@ -15,6 +17,8 @@ import mindustry.mod.Plugin;
 import mindustry.type.*;
 import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock;
+
+import java.util.Objects;
 
 import static mindustry.Vars.*;
 
@@ -80,9 +84,42 @@ public class Main extends Plugin{
             }
         });
 
-        handler.<Player>register("pl", "[page]", "Player list.", (args, player) -> { // todo перевод
+        handler.<Player>register("ban", bundle.get("ban.params"), bundle.get("ban.description"), (args, player) -> {
+            if(!player.admin){
+                Info.text(player, "$commands.permission-denied");
+                return;
+            }
+            if(!Strings.canParseInt(args[0])){
+                Info.text(player, "$ban.id-not-int");
+                return;
+            }
+            if(!Strings.canParseInt(args[1])){
+                Info.text(player, "$ban.delay-not-int");
+                return;
+            }
+
+            int id = Strings.parseInt(args[0]);
+            Player target = Groups.player.find(p -> p.id() == id);
+            if(target == null){
+                Info.text(player, "$commands.player-not-found");
+                return;
+            }
+            if(Objects.equals(target, player) || target.admin()){
+                Info.text(player, "$commands.not-allowed-target");
+                return;
+            }
+
+            netServer.admins.banPlayer(target.uuid());
+            if(args.length > 2){
+                target.kick(args[2]);
+            }else{
+                target.kick(KickReason.banned);
+            }
+        });
+
+        handler.<Player>register("pl", bundle.get("pl.params"), bundle.get("pl.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                player.sendMessage("[scarlet]'page' must be a number.");
+                Info.text(player, "$pl.page-not-int");
                 return;
             }
 
@@ -92,12 +129,12 @@ public class Main extends Plugin{
             page--;
 
             if(page >= pages || page < 0){
-                player.sendMessage(Strings.format("[scarlet]'page' must be a number between[orange] 1[] and[orange] @[scarlet].", pages));
+                Info.bundled(player, "pl.under-page", pages);
                 return;
             }
 
             StringBuilder result = new StringBuilder();
-            result.append(Strings.format("[orange]-- Player List Page[lightgray] @[gray]/[lightgray]@[orange] --\n", (page + 1), pages));
+            result.append(bundle.format("pl.page", (page + 1), pages)).append("\n");
 
             for(int i = 6 * page; i < Math.min(6 * (page + 1), Groups.player.size()); i++){
                 Player t = Groups.player.index(i);
