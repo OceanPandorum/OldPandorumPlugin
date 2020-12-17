@@ -3,6 +3,7 @@ package pandorum;
 import arc.Core;
 import arc.Events;
 import arc.files.Fi;
+import arc.func.Func;
 import arc.util.*;
 import arc.util.io.Streams;
 import mindustry.Vars;
@@ -10,6 +11,7 @@ import mindustry.game.EventType.TapEvent;
 import mindustry.gen.Call;
 import mindustry.gen.Player;
 import mindustry.mod.Plugin;
+import mindustry.net.*;
 import mindustry.world.Tile;
 import org.hjson.*;
 import java.io.IOException;
@@ -31,7 +33,10 @@ public class Main extends Plugin{
     };
     public static final Fi dir = Core.settings.getDataDirectory().child("/mods/pandorum/");
     public static final Config config = new Config();
+
     private final AtomicInteger allPlayers = new AtomicInteger();
+    private final Func<Host, String> formatter = h -> Strings.format("\uE837 [accent]Online @", h.players);
+    private final String offline = "[red]Offline";
 
     public static ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -39,64 +44,95 @@ public class Main extends Plugin{
         for(int i = 0; i < teleports.length; i++){
             if(teleports[i].valid(tile != null ? tile.x : player.tileX(), tile != null ? tile.y : player.tileY())){
                 int finalI = i + 1;
-                Vars.net.pingHost(config.get("ip", finalI).asString(), config.get("port", finalI).asInt(), host -> Call.connect(player.con, config.get("ip", finalI).asString(), config.get("port", finalI).asInt()), e -> {});
+                String ip = config.get("ip", finalI).asString();
+                int port = config.get("port", finalI).asInt();
+                net.pingHost(ip, port, host -> Call.connect(player.con, ip, port), e -> {});
             }
         }
     }
 
     @Override
     public void init(){
+
         Events.on(ServerLoadEvent.class, event -> netServer.admins.addActionFilter(playerAction -> false));
 
         Events.on(TapEvent.class, event -> teleport(event.player, event.tile));
 
         Events.on(PlayerJoin.class, event -> {
             executor.submit(new Updater(event.player));
+            NetConnection con = event.player.con();
 
-            Call.label(event.player.con, config.get("title", 1).asString(), 1100f, 96,312);
-            Call.label(event.player.con, config.get("title", 2).asString(), 1100f, 192, 344);
-            Call.label(event.player.con, config.get("title", 3).asString(), 1100f, 288, 312);
-            Call.label(event.player.con, config.get("title", 4).asString(), 1100f, 288, 120);
-            Call.label(event.player.con, config.get("title", 5).asString(), 1100f, 192, 88);
-            Call.label(event.player.con, config.get("title", 6).asString(), 1100f, 96, 120);
+            Call.label(con, config.get("title", 1).asString(), 1100f, 96,312);
+            Call.label(con, config.get("title", 2).asString(), 1100f, 192, 344);
+            Call.label(con, config.get("title", 3).asString(), 1100f, 288, 312);
+            Call.label(con, config.get("title", 4).asString(), 1100f, 288, 120);
+            Call.label(con, config.get("title", 5).asString(), 1100f, 192, 88);
+            Call.label(con, config.get("title", 6).asString(), 1100f, 96, 120);
 
-            // tile x or y * 8 = coordinate
-            Vars.net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
+            //todo надо бы хранить координаты в конфиг
+            net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
+                Call.label(con, formatter.get(host), 10, 96,272);
+            }, e -> Call.label(con, offline, 3, 96,272));
+
+            net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
+                Call.label(con, formatter.get(host), 10, 192, 304);
+            }, e -> Call.label(con, offline, 3, 192, 304));
+
+            net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
+                Call.label(con, formatter.get(host), 10, 288, 272);
+            }, e -> Call.label(con, offline, 3, 288, 272));
+
+            net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
+                Call.label(con, formatter.get(host), 10, 288, 80);
+            }, e -> Call.label(con, offline, 3, 288, 80));
+
+            net.pingHost(config.get("ip", 5).asString(), config.get("port", 5).asInt(), host -> {
+                Call.label(con, formatter.get(host), 10, 192, 48);
+            }, e -> Call.label(con, offline, 3, 192, 48));
+
+            net.pingHost(config.get("ip", 6).asString(), config.get("port", 6).asInt(), host -> {
+                Call.label(con, formatter.get(host), 10, 96, 80);
+            }, e -> Call.label(con, offline, 3, 96, 80));
+        });
+
+        // tile x or y * 8 = coordinate
+        Timer.schedule(() -> {
+            net.pingHost(config.get("ip", 1).asString(), config.get("port", 1).asInt(), host -> {
                 allPlayers.addAndGet(host.players);
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 96,272);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 96,272));
+                Call.label(formatter.get(host), 10, 96,272);
+            }, e -> Call.label(offline, 10, 96,272));
 
-            Vars.net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
+            net.pingHost(config.get("ip", 2).asString(), config.get("port", 2).asInt(), host -> {
                 allPlayers.addAndGet(host.players);
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 192, 304);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 192, 304));
+                Call.label(formatter.get(host), 10, 192, 304);
+            }, e -> Call.label(offline, 10, 192, 304));
 
-            Vars.net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
+            net.pingHost(config.get("ip", 3).asString(), config.get("port", 3).asInt(), host -> {
                 allPlayers.addAndGet(host.players);
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 288, 272);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 288, 272));
+                Call.label(formatter.get(host), 10, 288, 272);
+            }, e -> Call.label(offline, 10, 288, 272));
 
-            Vars.net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
+            net.pingHost(config.get("ip", 4).asString(), config.get("port", 4).asInt(), host -> {
                 allPlayers.addAndGet(host.players);
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 288, 80);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 288, 80));
+                Call.label(formatter.get(host), 10, 288, 80);
+            }, e -> Call.label( offline, 10, 288, 80));
 
-            Vars.net.pingHost(config.get("ip", 5).asString(), config.get("port", 5).asInt(), host -> {
+            net.pingHost(config.get("ip", 5).asString(), config.get("port", 5).asInt(), host -> {
                 allPlayers.addAndGet(host.players);
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 192, 48);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 192, 48));
+                Call.label(formatter.get(host), 10, 192, 48);
+            }, e -> Call.label(offline, 10, 192, 48));
 
-            Vars.net.pingHost(config.get("ip", 6).asString(), config.get("port", 6).asInt(), host -> {
+            net.pingHost(config.get("ip", 6).asString(), config.get("port", 6).asInt(), host -> {
                 allPlayers.addAndGet(host.players);
-                Call.label(event.player.con, "\uE837 [accent]Online " + host.players, 1100f, 96, 80);
-            }, e -> Call.label(event.player.con, "[red]Offline", 1100f, 96, 80));
+                Call.label(formatter.get(host), 10, 96, 80);
+            }, e -> Call.label(offline, 10, 96, 80));
 
             Timer.schedule(() -> {
                 Log.debug("all: @", allPlayers.get());
                 Core.settings.put("totalPlayers", allPlayers.get());
                 allPlayers.set(0);
             }, 3);
-        });
+        }, 3, 10);
     }
 
     @Override
