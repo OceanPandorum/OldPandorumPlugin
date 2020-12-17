@@ -81,6 +81,7 @@ public class PandorumHub extends Plugin{
         Timer.schedule(() -> {
             for(HostData h : config.servers){
                 net.pingHost(h.ip, h.port, host -> {
+                    allPlayers.addAndGet(host.players);
                     Call.label(formatter.get(host), 10, h.labelX, h.labelY);
                 }, e -> Call.label(offline, 10, h.labelX, h.labelY));
             }
