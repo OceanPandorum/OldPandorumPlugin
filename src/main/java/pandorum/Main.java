@@ -2,6 +2,7 @@ package pandorum;
 
 import arc.*;
 import arc.files.Fi;
+import arc.math.Mathf;
 import arc.struct.*;
 import arc.util.*;
 import pandorum.components.*;
@@ -77,6 +78,36 @@ public class Main extends Plugin{
                 alertIgnores.add(player.uuid());
                 Info.text(player, "$alert.off");
             }
+        });
+
+        handler.<Player>register("pl", "[page]", "Player list.", (args, player) -> { // todo перевод
+            if(args.length > 0 && !Strings.canParseInt(args[0])){
+                player.sendMessage("[scarlet]'page' must be a number.");
+                return;
+            }
+
+            int page = args.length > 0 ? Strings.parseInt(args[0]) : 1;
+            int pages = Mathf.ceil((float)Groups.player.size() / 6);
+
+            page--;
+
+            if(page >= pages || page < 0){
+                player.sendMessage(Strings.format("[scarlet]'page' must be a number between[orange] 1[] and[orange] @[scarlet].", pages));
+                return;
+            }
+
+            StringBuilder result = new StringBuilder();
+            result.append(Strings.format("[orange]-- Player List Page[lightgray] @[gray]/[lightgray]@[orange] --\n", (page + 1), pages));
+
+            for(int i = 6 * page; i < Math.min(6 * (page + 1), Groups.player.size()); i++){
+                Player t = Groups.player.index(i);
+                result.append("[lightgray]* ").append(t.name).append(" [lightgray]/ ID: ").append(t.id());
+
+                if(player.admin){
+                    result.append(" / raw: ").append(t.name.replaceAll("\\[", "[[")).append("\n");
+                }
+            }
+            player.sendMessage(result.toString());
         });
 
         // слегка переделанный rtv
