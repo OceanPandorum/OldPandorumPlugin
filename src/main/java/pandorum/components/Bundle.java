@@ -10,7 +10,7 @@ public class Bundle{
     private final ResourceBundle bundle;
 
     public Bundle(){
-        bundle = ResourceBundle.getBundle("bundle", new Locale(config.object.getString("language", "ru_RU")));
+        bundle = ResourceBundle.getBundle("bundle", new Locale(config.locale));
     }
 
     public String get(String key){

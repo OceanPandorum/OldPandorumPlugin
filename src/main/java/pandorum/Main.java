@@ -5,7 +5,7 @@ import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.net.Packets;
+import com.google.gson.*;
 import mindustry.net.Packets.KickReason;
 import pandorum.components.*;
 import mindustry.content.Blocks;
@@ -24,17 +24,23 @@ import static mindustry.Vars.*;
 
 public class Main extends Plugin{
     private static final double ratio = 0.6;
-
-    public static final Fi dir = Core.settings.getDataDirectory().child("/mods/pandorum/");
-    public static final Config config = new Config();
-    public static final Bundle bundle = new Bundle();
+    public static Config config;
+    public static Bundle bundle;
 
     private final Seq<String> votes = new Seq<>();
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();
+    private final Interval alertInterval = new Interval();
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    private Interval alertInterval = new Interval();
-
-    public Main(){}
+    public Main(){
+        Fi cfg = dataDirectory.child("config.json");
+        if(!cfg.exists()){
+            config = new Config();
+            cfg.writeString(gson.toJson(config));
+        }
+        config = gson.fromJson(cfg.reader(), Config.class);
+        bundle = new Bundle();
+    }
 
     @Override
     public void init(){
@@ -61,6 +67,8 @@ public class Main extends Plugin{
         });
 
         Events.on(GameOverEvent.class, event -> votes.clear());
+
+        netServer.admins.addChatFilter((player, text) -> null);
     }
 
     @Override
@@ -238,7 +246,7 @@ public class Main extends Plugin{
         });
 
         //Выход в Хаб
-        handler.<Player>register(bundle.get("hub.name"), bundle.get("hub.description"), (args, player) -> Call.connect(player.con, config.object.getString("hub-ip", null), config.object.getInt("hub-port", 0)));
+        handler.<Player>register(bundle.get("hub.name"), bundle.get("hub.description"), (args, player) -> Call.connect(player.con, config.hubIp, config.hubPort));
 
         //cмена команды
         handler.<Player>register(bundle.get("teamp.name"), bundle.get("teamp.params"), bundle.get("teamp.description"), (args, player) -> {
