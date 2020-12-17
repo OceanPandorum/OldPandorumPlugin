@@ -105,7 +105,8 @@ public class Main extends Plugin{
             if(!player.admin){
                 Info.text(player, "$commands.permission-denied");
             }else{
-                Info.broadCast(args);
+                Player target = !args[0].toLowerCase().equals("all") ? Groups.player.find(p -> p.name.toLowerCase().equals(args[0])) : null;
+                Info.broadCast(target, args);
             }
         });
 

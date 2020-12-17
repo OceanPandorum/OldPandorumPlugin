@@ -12,10 +12,14 @@ public class Info{
         // Util class
     }
 
-    public static void broadCast(String[] args){
-        String text = Strings.join(" ", args[0].split("\n"));
+    public static void broadCast(Player player, String[] args){
+        String text = Strings.format("\uE805@\uE805\n\n@\n", bundle.get("bc.txt"), Strings.join(" ", args[0].split("\n")));
 
-        Call.infoMessage("\uE805" + bundle.get("bc.txt") + "\uE805\n\n" + text + "\n");
+        if(player != null){
+            Call.infoMessage(player.con, text);
+        }else{
+            Call.infoMessage(text);
+        }
     }
 
     public static void text(Player player, String key){
