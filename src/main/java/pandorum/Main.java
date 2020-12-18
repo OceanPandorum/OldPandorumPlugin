@@ -1,24 +1,23 @@
 package pandorum;
 
-import arc.*;
+import arc.Events;
 import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.*;
 import arc.util.*;
 import com.google.gson.*;
-import mindustry.game.Teams.TeamData;
-import mindustry.net.Packets.KickReason;
-import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
-import pandorum.components.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
 import mindustry.game.EventType.*;
-import mindustry.game.*;
+import mindustry.game.Team;
+import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
 import mindustry.mod.Plugin;
+import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
 import mindustry.world.Block;
-import mindustry.world.blocks.storage.CoreBlock;
+import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
+import pandorum.components.*;
 
 import java.util.Objects;
 
@@ -32,7 +31,10 @@ public class Main extends Plugin{
     private final Seq<String> votes = new Seq<>();
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();
     private final Interval alertInterval = new Interval();
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = new GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
+            .setPrettyPrinting()
+            .create();
 
     public Main(){
         Fi cfg = dataDirectory.child("config.json");
