@@ -48,6 +48,13 @@ public class Main extends Plugin{
 
     @Override
     public void init(){
+        Events.on(PlayerConnect.class, event -> {
+            Player player = event.player;
+            if(config.bannedNames.contains(player.name())){
+                player.con.kick(bundle.get("events.unofficial-mindustry"), 60000);
+            }
+        });
+
         Events.on(BuildSelectEvent.class, event -> {
             if(!event.breaking && event.builder != null && event.builder.buildPlan() != null &&
                event.builder.buildPlan().block == Blocks.thoriumReactor && event.builder.isPlayer() &&
