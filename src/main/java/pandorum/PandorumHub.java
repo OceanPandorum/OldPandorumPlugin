@@ -30,7 +30,10 @@ public class PandorumHub extends Plugin{
     private final Func<Host, String> formatter = h -> Strings.format("\uE837 [accent]Online @", h.players);
     private final String offline = "[red]Offline";
 
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = new GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
+            .setPrettyPrinting()
+            .create();
 
     public static ExecutorService executor = Executors.newCachedThreadPool();
 

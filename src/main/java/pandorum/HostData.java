@@ -1,25 +1,17 @@
 package pandorum;
 
-import com.google.gson.annotations.SerializedName;
-
 public class HostData{
     public String ip = "pandorum.su";
     public int port;
 
-    @SerializedName("teleport-x")
     public int teleportX;
-    @SerializedName("teleport-y")
     public int teleportY;
 
     public String title = "title";
-    @SerializedName("title-x")
     public int titleX;
-    @SerializedName("title-y")
     public int titleY;
 
-    @SerializedName("label-x")
     public int labelX;
-    @SerializedName("label-y")
     public int labelY;
 
     public HostData(int port, int teleportX, int teleportY, int titleX, int titleY, int labelX, int labelY){
