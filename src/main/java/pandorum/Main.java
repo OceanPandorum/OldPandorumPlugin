@@ -1,8 +1,10 @@
 package pandorum;
 
-import arc.Events;
+import arc.*;
+import arc.Net.*;
 import arc.files.Fi;
 import arc.math.Mathf;
+import arc.struct.ObjectMap.Entry;
 import arc.struct.*;
 import arc.util.*;
 import com.google.gson.*;
@@ -13,13 +15,16 @@ import mindustry.game.Team;
 import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
 import mindustry.mod.Plugin;
+import mindustry.net.Administration;
 import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
 import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
 
-import java.util.Objects;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -33,6 +38,9 @@ public class Main extends Plugin{
     private final Interval alertInterval = new Interval();
     private final Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
+            .registerTypeAdapter(Instant.class, (JsonSerializer<Instant>)(src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
+            .disableHtmlEscaping()
+            .serializeNulls()
             .setPrettyPrinting()
             .create();
 
@@ -87,6 +95,14 @@ public class Main extends Plugin{
             Groups.unit.each(Unit::kill);
             Log.info(bundle.get("commands.despw.log"));
         });
+
+        handler.register("kicks", bundle.get("commands.kicks.description"), args -> {
+            Log.info("Kicks: @", netServer.admins.kickedIPs.isEmpty() ? "<none>" : "");
+            for(Entry<String, Long> e : netServer.admins.kickedIPs){
+                Administration.PlayerInfo info = netServer.admins.findByIPs(e.key).first();
+                Log.info("  @ / ID: '@' / IP: '@' / END: @", info.lastName, info.id, info.lastIP, e.value); // todo форматировать милисекунды
+            }
+        });
     }
 
     @Override
@@ -110,7 +126,8 @@ public class Main extends Plugin{
                 Info.bundled(player, "commands.admin.ban.id-not-int");
                 return;
             }
-            if(!Strings.canParseInt(args[1])){
+            Instant delay = CommonUtil.parseTime(args[1]);
+            if(delay == null){
                 Info.bundled(player, "commands.admin.ban.delay-not-int"); // todo пока ничего не делает
                 return;
             }
@@ -125,13 +142,24 @@ public class Main extends Plugin{
                 Info.bundled(player, "commands.not-allowed-target");
                 return;
             }
+            Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[0]) : Optional.empty();
 
+            AdminAction action = new AdminAction();
+            action.targetId(target.uuid());
+            action.adminId(player.uuid());
+            action.type(AdminActionType.ban);
+            reason.ifPresent(action::reason);
+            action.timestamp(Instant.now());
+            action.endTimestamp(delay);
+            String json = gson.toJson(action);
+            Log.info(json);
+            Core.net.http(
+                    new HttpRequest().method(HttpMethod.POST).content(json).header("Content-type", "application/json").url(config.url),
+                    res -> Log.info(res.getResultAsString()),
+                    Log::err
+            );
             netServer.admins.banPlayer(target.uuid());
-            if(args.length > 2){
-                target.kick(args[2]);
-            }else{
-                target.kick(KickReason.banned);
-            }
+            reason.ifPresentOrElse(target::kick, () -> target.kick(KickReason.banned));
         });
 
         handler.<Player>register("pl", bundle.get("commands.pl.params"), bundle.get("commands.pl.description"), (args, player) -> {

@@ -11,6 +11,8 @@ public class Config{
 
     public String locale = "ru_RU";
 
+    public String url;
+
     public Set<String> bannedNames = Set.of(
             "IGGGAMES",
             "CODEX",
