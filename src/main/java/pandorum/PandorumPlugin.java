@@ -8,6 +8,7 @@ import arc.struct.ObjectSet;
 import arc.util.Timer;
 import arc.util.*;
 import com.google.gson.*;
+import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.*;
 import mindustry.content.Blocks;
@@ -74,6 +75,13 @@ public class PandorumPlugin extends Plugin{
             if(config.bannedNames.contains(player.name())){
                 player.con.kick(bundle.get("events.unofficial-mindustry"), 60000);
             }
+
+            ActionService.get(AdminActionType.ban, player.uuid(), actions -> {
+                AdminAction action = actions.isEmpty() ? null : actions.get(0);
+                if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
+                    action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
+                }
+            });
         });
 
         Events.on(BuildSelectEvent.class, event -> {
@@ -100,23 +108,16 @@ public class PandorumPlugin extends Plugin{
 
         Events.on(GameOverEvent.class, event -> votes.clear());
 
-        Timer.schedule(() -> {
-            Core.net.httpGet(
-                    config.url + "/ban",
-                    res -> {
-                        List<AdminAction> actions = gson.fromJson(res.getResultAsString(), new TypeToken<List<AdminAction>>(){}.getType());
-                        for(AdminAction a : actions){
-                            Log.debug(gson.toJson(a));
-                            if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
-                                netServer.admins.unbanPlayerID(a.targetId());
-                                Log.info("Unbanned: @", a.targetId());
-                                ActionService.delete(a.targetId());
-                            }
-                        }
-                    },
-                    Log::err
-            );
-        }, 5, 15);
+        Timer.schedule(() -> ActionService.get(AdminActionType.ban, actions -> {
+            for(AdminAction a : actions){
+                Log.debug(gson.toJson(a));
+                if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
+                    netServer.admins.unbanPlayerID(a.targetId());
+                    Log.info("Unbanned: @", a.targetId());
+                    ActionService.delete(a.targetId());
+                }
+            }
+        }), 5, 20);
     }
 
     @Override

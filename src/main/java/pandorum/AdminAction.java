@@ -3,7 +3,7 @@ package pandorum;
 import com.google.gson.annotations.SerializedName;
 
 import java.time.Instant;
-import java.util.Objects;
+import java.util.*;
 
 public class AdminAction{
     private String id;
@@ -55,8 +55,8 @@ public class AdminAction{
         this.type = type;
     }
 
-    public String reason(){
-        return reason;
+    public Optional<String> reason(){
+        return Optional.ofNullable(reason);
     }
 
     public void reason(String reason){
