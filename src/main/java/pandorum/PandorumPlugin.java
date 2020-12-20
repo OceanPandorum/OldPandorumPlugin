@@ -24,7 +24,8 @@ import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
 
 import java.io.IOException;
-import java.time.Instant;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static mindustry.Vars.*;
@@ -55,6 +56,8 @@ public class PandorumPlugin extends Plugin{
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();
     private final Interval alertInterval = new Interval();
 
+    private DateTimeFormatter formatter;
+
     public PandorumPlugin(){
         Fi cfg = dataDirectory.child("config.json");
         if(!cfg.exists()){
@@ -63,6 +66,7 @@ public class PandorumPlugin extends Plugin{
         }
         config = gson.fromJson(cfg.reader(), Config.class);
         bundle = new Bundle();
+        formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss", Locale.forLanguageTag(config.locale));
     }
 
     @Override
@@ -148,7 +152,7 @@ public class PandorumPlugin extends Plugin{
             Log.info("Kicks: @", netServer.admins.kickedIPs.isEmpty() ? "<none>" : "");
             for(Entry<String, Long> e : netServer.admins.kickedIPs){
                 PlayerInfo info = netServer.admins.findByIPs(e.key).first();
-                Log.info("  @ / ID: '@' / IP: '@' / END: @", info.lastName, info.id, info.lastIP, e.value); // todo форматировать милисекунды
+                Log.info("  @ / ID: '@' / IP: '@' / END: @", info.lastName, info.id, info.lastIP, formatter.format(Instant.ofEpochMilli(e.value).atZone(ZoneId.systemDefault())));
             }
         });
     }
