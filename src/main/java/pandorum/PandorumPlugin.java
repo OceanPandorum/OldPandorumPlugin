@@ -106,7 +106,7 @@ public class PandorumPlugin extends Plugin{
                     res -> {
                         List<AdminAction> actions = gson.fromJson(res.getResultAsString(), new TypeToken<List<AdminAction>>(){}.getType());
                         for(AdminAction a : actions){
-                            Log.info(gson.toJson(a));
+                            Log.debug(gson.toJson(a));
                             if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
                                 netServer.admins.unbanPlayerID(a.targetId());
                                 Log.info("Unbanned: @", a.targetId());
