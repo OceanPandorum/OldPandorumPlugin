@@ -35,7 +35,7 @@ public class CommonUtil{
         offsetDateTime = addUnit(offsetDateTime, ChronoUnit.HOURS, matcher.group(14));
         offsetDateTime = addUnit(offsetDateTime, ChronoUnit.MINUTES, matcher.group(17));
         offsetDateTime = addUnit(offsetDateTime, ChronoUnit.SECONDS, matcher.group(20));
-        return Instant.now().plusMillis(offsetDateTime.toEpochSecond(ZoneOffset.UTC) * 1000);
+        return Instant.now().plusSeconds(offsetDateTime.toEpochSecond(ZoneOffset.UTC));
     }
 
     private static <T extends Temporal> T addUnit(T instant, ChronoUnit unit, String amount){
