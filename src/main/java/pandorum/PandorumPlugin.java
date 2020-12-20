@@ -1,6 +1,6 @@
 package pandorum;
 
-import arc.*;
+import arc.Events;
 import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.ObjectMap.Entry;
@@ -16,7 +16,6 @@ import mindustry.game.Team;
 import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
 import mindustry.mod.Plugin;
-import mindustry.net.Administration;
 import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
@@ -31,8 +30,6 @@ import java.util.*;
 import static mindustry.Vars.*;
 
 public class PandorumPlugin extends Plugin{
-    private static final double ratio = 0.6;
-
     public static Config config;
     public static Bundle bundle;
 
@@ -70,6 +67,11 @@ public class PandorumPlugin extends Plugin{
 
     @Override
     public void init(){
+
+        // netServer.admins.addChatFilter((target, text) -> {
+        //    // todo Команда для мьюта
+        // });
+
         Events.on(PlayerConnect.class, event -> {
             Player player = event.player;
             if(config.bannedNames.contains(player.name())){
@@ -98,7 +100,7 @@ public class PandorumPlugin extends Plugin{
 
         Events.on(PlayerLeave.class, event -> {
             int cur = votes.size;
-            int req = (int) Math.ceil(ratio * Groups.player.size());
+            int req = (int) Math.ceil(config.voteRatio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
                 Call.sendMessage(bundle.format("commands.rtv.left", NetClient.colorizeName(event.player.id, event.player.name),
@@ -126,6 +128,20 @@ public class PandorumPlugin extends Plugin{
         handler.register("despw", bundle.get("commands.despw.description"), args -> {
             Groups.unit.each(Unit::kill);
             Log.info(bundle.get("commands.despw.log"));
+        });
+
+        handler.register("ban-sync", bundle.get("commands.ban-sync.description"), args -> {
+            ActionService.get(AdminActionType.ban, actions -> {
+                int pre = netServer.admins.getBanned().size;
+                actions.forEach(action -> {
+                    try{
+                        PlayerInfo playerInfo = netServer.admins.getInfo(action.targetId());
+                        netServer.admins.banPlayerID(playerInfo.id);
+                        netServer.admins.banPlayerIP(playerInfo.lastIP);
+                    }catch(Throwable ignored){}
+                });
+                Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
+            });
         });
 
         handler.register("kicks", bundle.get("commands.kicks.description"), args -> {
@@ -245,7 +261,7 @@ public class PandorumPlugin extends Plugin{
 
             votes.add(player.uuid());
             int cur = votes.size;
-            int req = (int) Math.ceil(ratio * Groups.player.size());
+            int req = (int) Math.ceil(config.voteRatio * Groups.player.size());
             Call.sendMessage(bundle.format("commands.rtv.ok", NetClient.colorizeName(player.id, player.name), cur, req));
 
             if(cur < req){
