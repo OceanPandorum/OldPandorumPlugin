@@ -4,9 +4,10 @@ import arc.Events;
 import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.ObjectMap.Entry;
-import arc.struct.ObjectSet;
+import arc.struct.*;
 import arc.util.Timer;
 import arc.util.*;
+import arc.util.io.Streams;
 import com.google.gson.*;
 import com.google.gson.stream.*;
 import mindustry.content.Blocks;
@@ -56,7 +57,9 @@ public class PandorumPlugin extends Plugin{
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();
     private final Interval alertInterval = new Interval();
 
-    private DateTimeFormatter formatter;
+    private final DateTimeFormatter formatter;
+
+    private Seq<IpInfo> forbiddenIps;
 
     public PandorumPlugin(){
         Fi cfg = dataDirectory.child("config.json");
@@ -67,6 +70,11 @@ public class PandorumPlugin extends Plugin{
         config = gson.fromJson(cfg.reader(), Config.class);
         bundle = new Bundle();
         formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss", Locale.forLanguageTag(config.locale));
+        try{
+            forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split("\n")).map(IpInfo::new);
+        }catch(IOException e){
+            throw new ArcRuntimeException(e);
+        }
     }
 
     @Override
@@ -81,6 +89,8 @@ public class PandorumPlugin extends Plugin{
             if(config.bannedNames.contains(player.name())){
                 player.con.kick(bundle.get("events.unofficial-mindustry"), 60000);
             }
+
+            forbiddenIps.filter(i -> i.matchIp(player.con.address)).each(i -> player.con.kick(bundle.get("events.vpn-ip")));
 
             ActionService.get(AdminActionType.ban, player.uuid(), actions -> {
                 AdminAction action = actions.isEmpty() ? null : actions.get(0);
