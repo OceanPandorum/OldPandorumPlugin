@@ -8,8 +8,6 @@ import arc.struct.ObjectSet;
 import arc.util.Timer;
 import arc.util.*;
 import com.google.gson.*;
-import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
@@ -19,6 +17,7 @@ import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration;
+import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
 import mindustry.world.Block;
@@ -33,6 +32,7 @@ import static mindustry.Vars.*;
 
 public class PandorumPlugin extends Plugin{
     private static final double ratio = 0.6;
+
     public static Config config;
     public static Bundle bundle;
 
@@ -114,7 +114,7 @@ public class PandorumPlugin extends Plugin{
                 if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
                     netServer.admins.unbanPlayerID(a.targetId());
                     Log.info("Unbanned: @", a.targetId());
-                    ActionService.delete(a.targetId());
+                    ActionService.delete(AdminActionType.ban, a.targetId());
                 }
             }
         }), 5, 20);
@@ -131,7 +131,7 @@ public class PandorumPlugin extends Plugin{
         handler.register("kicks", bundle.get("commands.kicks.description"), args -> {
             Log.info("Kicks: @", netServer.admins.kickedIPs.isEmpty() ? "<none>" : "");
             for(Entry<String, Long> e : netServer.admins.kickedIPs){
-                Administration.PlayerInfo info = netServer.admins.findByIPs(e.key).first();
+                PlayerInfo info = netServer.admins.findByIPs(e.key).first();
                 Log.info("  @ / ID: '@' / IP: '@' / END: @", info.lastName, info.id, info.lastIP, e.value); // todo форматировать милисекунды
             }
         });
@@ -160,7 +160,7 @@ public class PandorumPlugin extends Plugin{
             }
             Instant delay = CommonUtil.parseTime(args[1]);
             if(delay == null){
-                Info.bundled(player, "commands.admin.ban.delay-not-int");
+                Info.bundled(player, "commands.admin.delay-not-int");
                 return;
             }
 
@@ -185,8 +185,24 @@ public class PandorumPlugin extends Plugin{
             action.endTimestamp(delay);
 
             ActionService.save(action);
-            netServer.admins.banPlayer(target.uuid());
-            reason.ifPresentOrElse(target::kick, () -> target.kick(KickReason.banned));
+            if(netServer.admins.banPlayer(target.uuid())){
+                reason.ifPresentOrElse(target::kick, () -> target.kick(KickReason.banned));
+            }
+        });
+
+        handler.<Player>register("unban", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unban.description"), (args, player) -> {
+            if(!player.admin){
+                Info.bundled(player, "commands.permission-denied");
+                return;
+            }
+
+            if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
+                Info.bundled(player, "commands.admin.unban.successful");
+                PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
+                ActionService.delete(AdminActionType.ban, target.id);
+            }else{
+                Info.bundled(player, "commands.admin.unban.not-banned");
+            }
         });
 
         handler.<Player>register("pl", bundle.get("commands.pl.params"), bundle.get("commands.pl.description"), (args, player) -> {

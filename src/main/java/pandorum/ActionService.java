@@ -33,10 +33,10 @@ public class ActionService{
         );
     }
 
-    public static void delete(String targetId){
+    public static void delete(AdminActionType type, String targetId){
         net.http(
-                new HttpRequest().method(HttpMethod.DELETE).url(Strings.format("@/ban/@", config.url, targetId)),
-                res -> Log.debug(res.getResultAsString()),
+                new HttpRequest().method(HttpMethod.DELETE).url(Strings.format("@/@/@", config.url, type, targetId)),
+                res -> {/* no-op */},
                 Log::err
         );
     }
