@@ -1,13 +1,15 @@
 package pandorum;
 
 import arc.*;
-import arc.Net.*;
 import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.ObjectMap.Entry;
-import arc.struct.*;
+import arc.struct.ObjectSet;
+import arc.util.Timer;
 import arc.util.*;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
 import mindustry.game.EventType.*;
@@ -22,29 +24,40 @@ import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
 
+import java.io.IOException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static mindustry.Vars.*;
 
-public class Main extends Plugin{
+public class PandorumPlugin extends Plugin{
     private static final double ratio = 0.6;
     public static Config config;
     public static Bundle bundle;
 
-    private final Seq<String> votes = new Seq<>();
-    private final ObjectSet<String> alertIgnores = new ObjectSet<>();
-    private final Interval alertInterval = new Interval();
-    private final Gson gson = new GsonBuilder()
+    protected static final Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
-            .registerTypeAdapter(Instant.class, (JsonSerializer<Instant>)(src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
+            .registerTypeAdapter(Instant.class, new TypeAdapter<Instant>(){
+                @Override
+                public void write(JsonWriter out, Instant value) throws IOException{
+                    out.value(value.toString());
+                }
+
+                @Override
+                public Instant read(JsonReader in) throws IOException{
+                    return Instant.parse(in.nextString());
+                }
+            })
             .disableHtmlEscaping()
             .serializeNulls()
             .setPrettyPrinting()
             .create();
 
-    public Main(){
+    private final ObjectSet<String> votes = new ObjectSet<>();
+    private final ObjectSet<String> alertIgnores = new ObjectSet<>();
+    private final Interval alertInterval = new Interval();
+
+    public PandorumPlugin(){
         Fi cfg = dataDirectory.child("config.json");
         if(!cfg.exists()){
             config = new Config();
@@ -86,6 +99,24 @@ public class Main extends Plugin{
         });
 
         Events.on(GameOverEvent.class, event -> votes.clear());
+
+        Timer.schedule(() -> {
+            Core.net.httpGet(
+                    config.url + "/ban",
+                    res -> {
+                        List<AdminAction> actions = gson.fromJson(res.getResultAsString(), new TypeToken<List<AdminAction>>(){}.getType());
+                        for(AdminAction a : actions){
+                            Log.info(gson.toJson(a));
+                            if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
+                                netServer.admins.unbanPlayerID(a.targetId());
+                                Log.info("Unbanned: @", a.targetId());
+                                ActionService.delete(a.targetId());
+                            }
+                        }
+                    },
+                    Log::err
+            );
+        }, 5, 15);
     }
 
     @Override
@@ -128,7 +159,7 @@ public class Main extends Plugin{
             }
             Instant delay = CommonUtil.parseTime(args[1]);
             if(delay == null){
-                Info.bundled(player, "commands.admin.ban.delay-not-int"); // todo пока ничего не делает
+                Info.bundled(player, "commands.admin.ban.delay-not-int");
                 return;
             }
 
@@ -151,13 +182,8 @@ public class Main extends Plugin{
             reason.ifPresent(action::reason);
             action.timestamp(Instant.now());
             action.endTimestamp(delay);
-            String json = gson.toJson(action);
-            Log.info(json);
-            Core.net.http(
-                    new HttpRequest().method(HttpMethod.POST).content(json).header("Content-type", "application/json").url(config.url),
-                    res -> Log.info(res.getResultAsString()),
-                    Log::err
-            );
+
+            ActionService.save(action);
             netServer.admins.banPlayer(target.uuid());
             reason.ifPresentOrElse(target::kick, () -> target.kick(KickReason.banned));
         });
@@ -186,8 +212,9 @@ public class Main extends Plugin{
                 result.append("[lightgray]* ").append(t.name).append(" [lightgray]/ ID: ").append(t.id());
 
                 if(player.admin){
-                    result.append(" / raw: ").append(t.name.replaceAll("\\[", "[[")).append("\n");
+                    result.append(" / raw: ").append(t.name.replaceAll("\\[", "[["));
                 }
+                result.append("\n");
             }
             player.sendMessage(result.toString());
         });

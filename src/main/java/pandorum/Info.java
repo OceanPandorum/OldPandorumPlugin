@@ -4,7 +4,7 @@ import arc.util.Strings;
 import mindustry.gen.Call;
 import mindustry.gen.Player;
 
-import static pandorum.Main.bundle;
+import static pandorum.PandorumPlugin.bundle;
 
 public class Info{
 

@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import static pandorum.Main.config;
+import static pandorum.PandorumPlugin.config;
 
 public class Bundle{
     private final ResourceBundle bundle;
