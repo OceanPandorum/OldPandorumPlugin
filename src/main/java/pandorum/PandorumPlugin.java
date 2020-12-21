@@ -12,10 +12,12 @@ import com.google.gson.*;
 import com.google.gson.stream.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
-import mindustry.game.Team;
 import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
+import mindustry.io.SaveIO;
+import mindustry.maps.Map;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
@@ -32,6 +34,7 @@ import java.util.*;
 import static mindustry.Vars.*;
 
 public class PandorumPlugin extends Plugin{
+    public static VoteSession[] current = {null};
     public static Config config;
     public static Bundle bundle;
 
@@ -55,11 +58,10 @@ public class PandorumPlugin extends Plugin{
 
     private final ObjectSet<String> votes = new ObjectSet<>();
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();
+    private final Seq<IpInfo> forbiddenIps;
     private final Interval alertInterval = new Interval();
 
     private final DateTimeFormatter formatter;
-
-    private Seq<IpInfo> forbiddenIps;
 
     public PandorumPlugin(){
         Fi cfg = dataDirectory.child("config.json");
@@ -83,6 +85,21 @@ public class PandorumPlugin extends Plugin{
         // netServer.admins.addChatFilter((target, text) -> {
         //    // todo Команда для мьюта
         // });
+
+        netServer.admins.addChatFilter((target, text) -> {
+            String lower = text.toLowerCase();
+            if(current[0] != null && (lower.equals("y") || lower.equals("n"))){
+                if((current[0].voted().contains(target.uuid()) || current[0].voted().contains(netServer.admins.getInfo(target.uuid()).lastIP))){
+                    target.sendMessage("[scarlet]You've already voted. Sit down.");
+                    return null;
+                }
+
+                int sign = lower.equals("y") ? 1 : -1;
+                current[0].vote(target, sign);
+                return null;
+            }
+            return text;
+        });
 
         Events.on(PlayerConnect.class, event -> {
             Player player = event.player;
@@ -252,7 +269,7 @@ public class PandorumPlugin extends Plugin{
             }
 
             StringBuilder result = new StringBuilder();
-            result.append(bundle.format("commands.pl.page", (page + 1), pages)).append("\n");
+            result.append(bundle.format("commands.pl.page", page + 1, pages)).append("\n");
 
             for(int i = 6 * page; i < Math.min(6 * (page + 1), Groups.player.size()); i++){
                 Player t = Groups.player.index(i);
@@ -275,7 +292,7 @@ public class PandorumPlugin extends Plugin{
 
             votes.add(player.uuid());
             int cur = votes.size;
-            int req = (int) Math.ceil(config.voteRatio * Groups.player.size());
+            int req = (int)Math.ceil(config.voteRatio * Groups.player.size());
             Call.sendMessage(bundle.format("commands.rtv.ok", NetClient.colorizeName(player.id, player.name), cur, req));
 
             if(cur < req){
@@ -428,7 +445,7 @@ public class PandorumPlugin extends Plugin{
             Info.bundled(player, "commands.admin.give.success");
         });
 
-        handler.<Player>register("tp", "<x> <y>", "Teleport to coordinates.", (args, player) -> {
+        handler.<Player>register("tpp", "<x> <y>", "Teleport to coordinates.", (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
                 return;
@@ -438,6 +455,142 @@ public class PandorumPlugin extends Plugin{
             int y = Mathf.clamp(Strings.parseInt(args[1]), 0, world.height());
 
             Call.setPosition(player.con, x * tilesize, y * tilesize);
+        });
+
+        handler.<Player>register("tp", "<target>", "Teleport to other players", (args, player) -> {
+            if(!player.admin){
+                Info.bundled(player, "commands.permission-denied");
+                return;
+            }
+
+            Player target = Groups.player.find(p -> Strings.canParseInt(args[0]) ? p.id() == Strings.parseInt(args[0]) : Objects.equals(p.uuid(), args[0]) || Objects.equals(p.con().address, args[0]));
+            if(target == null){
+                Info.bundled(player, "commands.player-not-found");
+                return;
+            }
+
+            Call.setPosition(player.con, target.x(), target.y());
+        });
+
+        handler.<Player>register("tpa", "[target]", "Teleport to other players", (args, player) -> {
+            if(!player.admin){
+                Info.bundled(player, "commands.permission-denied");
+                return;
+            }
+
+            Player target = args.length > 0 ? Groups.player.find(p -> Strings.canParseInt(args[0]) ? p.id() == Strings.parseInt(args[0]) : Objects.equals(p.uuid(), args[0]) || Objects.equals(p.con().address, args[0])) : player;
+            if(target == null){
+                Info.bundled(player, "commands.player-not-found");
+                return;
+            }
+
+            Groups.player.each(p -> Call.setPosition(p.con, target.x(), target.y()));
+        });
+
+        handler.<Player>register("maps", "[page]", "Lists all server maps.", (args, player) -> {
+            if(args.length > 0 && !Strings.canParseInt(args[0])){
+                player.sendMessage("[scarlet]'page' must be a number.");
+                return;
+            }
+
+            Seq<Map> mapList = maps.all();
+            int page = args.length > 0 ? Strings.parseInt(args[0]) : 1;
+            int pages = Mathf.ceil(mapList.size / 6.0F);
+
+            if(--page >= pages || page < 0){
+                player.sendMessage("[scarlet]'page' must be a number between[orange] 1[] and[orange] " + pages + "[scarlet].");
+                return;
+            }
+
+            StringBuilder result = new StringBuilder();
+            result.append(Strings.format("[orange]-- Server Maps Page[lightgray] @[gray]/[lightgray]@[orange] --\n", page + 1, pages));
+            for(int i = 6 * page; i < Math.min(6 * (page + 1), mapList.size); i++){
+                result.append("[lightgray] ").append(i + 1).append("[orange] ").append(mapList.get(i).name()).append("[white] ").append("\n");
+            }
+            player.sendMessage(result.toString());
+        });
+
+        handler.<Player>register("saves", "[page]", "Lists all server maps.", (args, player) -> {
+            if(args.length > 0 && !Strings.canParseInt(args[0])){
+                player.sendMessage("[scarlet]'page' must be a number.");
+                return;
+            }
+
+            Seq<Fi> saves = Seq.with(saveDirectory.list()).filter(f -> Objects.equals(f.extension(), saveExtension));
+            int page = args.length > 0 ? Strings.parseInt(args[0]) : 1;
+            int pages = Mathf.ceil(saves.size / 6.0F);
+
+            if(--page >= pages || page < 0){
+                player.sendMessage("[scarlet]'page' must be a number between[orange] 1[] and[orange] " + pages + "[scarlet].");
+                return;
+            }
+
+            StringBuilder result = new StringBuilder();
+            result.append(Strings.format("[orange]-- Server Saves Page[lightgray] @[gray]/[lightgray]@[orange] --\n", page + 1, pages));
+            for(int i = 6 * page; i < Math.min(6 * (page + 1), saves.size); i++){
+                result.append("[lightgray] ").append(i + 1).append("[orange] ").append(saves.get(i).nameWithoutExtension()).append("[white] ").append("\n");
+            }
+            player.sendMessage(result.toString());
+        });
+
+        handler.<Player>register("nominate", "<map/save/load> [value...]", "<No>", (args, player) -> {
+            VoteMode mode;
+            try{
+                mode = VoteMode.valueOf(args[0].toLowerCase());
+            }catch(Throwable t){
+                player.sendMessage("Not found");
+                return;
+            }
+
+            if(current[0] != null){
+                player.sendMessage("[scarlet]A vote is already in progress.");
+                return;
+            }
+
+            switch(mode){
+                case map -> {
+                    if(args.length == 1){
+                        player.sendMessage("Map not found");
+                        return;
+                    }
+
+                    Map map = CommonUtil.findMap(args[1]);
+                    if(map == null){
+                        player.sendMessage("Map not found");
+                        return;
+                    }
+
+                    VoteSession session = new VoteMapSession(current, map);
+                    current[0] = session;
+                    session.vote(player, 1);
+                }
+                case save -> {
+                    if(args.length == 1){
+                        player.sendMessage("Map not found");
+                        return;
+                    }
+
+                    VoteSession session = new VoteSaveSession(current, args[1]);
+                    current[0] = session;
+                    session.vote(player, 1);
+                }
+                case load -> {
+                    if(args.length == 1){
+                        player.sendMessage("Map not found");
+                        return;
+                    }
+
+                    Fi save = CommonUtil.findSave(args[1]);
+                    if(save == null){
+                        player.sendMessage("Map not found");
+                        return;
+                    }
+
+                    VoteSession session = new VoteLoadSession(current, save);
+                    current[0] = session;
+                    session.vote(player, 1);
+                }
+            }
         });
     }
 }

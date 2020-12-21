@@ -1,12 +1,17 @@
 package pandorum;
 
-import arc.util.Strings;
+import arc.files.Fi;
+import arc.util.*;
+import mindustry.Vars;
+import mindustry.maps.Map;
 
 import java.time.*;
 import java.time.temporal.*;
+import java.util.Objects;
 import java.util.regex.*;
 
 import static java.util.regex.Pattern.compile;
+import static mindustry.Vars.*;
 
 public class CommonUtil{
 
@@ -40,5 +45,25 @@ public class CommonUtil{
 
     private static <T extends Temporal> T addUnit(T instant, ChronoUnit unit, String amount){
         return Strings.canParseInt(amount) ? unit.addTo(instant, Long.parseLong(amount)) : instant;
+    }
+
+    public static Map findMap(String text){
+        for(int i = 0; i < maps.all().size; i++){
+            Map m = maps.all().get(i);
+            if(Strings.canParseInt(text) ? i == Strings.parseInt(text) - 1 : m.name().equals(text)){
+                return m;
+            }
+        }
+        return null;
+    }
+
+    public static Fi findSave(String text){
+        for(int i = 0; i < saveDirectory.list().length; i++){
+            Fi save = saveDirectory.list()[i];
+            if(Strings.canParseInt(text) ? i == Strings.parseInt(text) + 1 : Objects.equals(save.nameWithoutExtension(), text)){
+                return save;
+            }
+        }
+        return null;
     }
 }
