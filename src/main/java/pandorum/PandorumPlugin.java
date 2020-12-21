@@ -427,5 +427,17 @@ public class PandorumPlugin extends Plugin{
             }
             Info.bundled(player, "commands.admin.give.success");
         });
+
+        handler.<Player>register("tp", "<x> <y>", "Teleport to coordinates.", (args, player) -> {
+            if(!player.admin){
+                Info.bundled(player, "commands.permission-denied");
+                return;
+            }
+
+            int x = Mathf.clamp(Strings.parseInt(args[0]), 0, world.width());
+            int y = Mathf.clamp(Strings.parseInt(args[1]), 0, world.height());
+
+            Call.setPosition(player.con, x * tilesize, y * tilesize);
+        });
     }
 }
