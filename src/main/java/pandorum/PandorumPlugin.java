@@ -154,6 +154,17 @@ public class PandorumPlugin extends Plugin{
 
     @Override
     public void registerServerCommands(CommandHandler handler){
+        handler.register("tell", bundle.get("commands.tell.params"), bundle.get("commands.tell.description"), args -> {
+            Player target = Groups.player.find(p -> p.name().equalsIgnoreCase(args[0]) || p.uuid().equalsIgnoreCase(args[0]));
+            if(target == null){
+                Log.info(bundle.get("commands.tell.player-not-found"));
+                return;
+            }
+
+            target.sendMessage("[scarlet][[Server]:[accent] " + args[1]);
+            Log.info(bundle.format("commands.tell.log", target.name(), args[1]));
+        });
+
         // на всякий
         handler.register("despw", bundle.get("commands.despw.description"), args -> {
             Groups.unit.each(Unit::kill);
@@ -201,7 +212,7 @@ public class PandorumPlugin extends Plugin{
                 return;
             }
             if(!Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.admin.ban.id-not-int");
+                Info.bundled(player, "commands.id-not-int");
                 return;
             }
             Instant delay = CommonUtil.parseTime(args[1]);
@@ -253,7 +264,7 @@ public class PandorumPlugin extends Plugin{
 
         handler.<Player>register("pl", bundle.get("commands.pl.params"), bundle.get("commands.pl.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.pl.page-not-int");
+                Info.bundled(player, "commands.page-not-int");
                 return;
             }
 
@@ -263,7 +274,7 @@ public class PandorumPlugin extends Plugin{
             page--;
 
             if(page >= pages || page < 0){
-                Info.bundled(player, "commands.pl.under-page", pages);
+                Info.bundled(player, "commands.under-page", pages);
                 return;
             }
 
@@ -444,7 +455,7 @@ public class PandorumPlugin extends Plugin{
             Info.bundled(player, "commands.admin.give.success");
         });
 
-        handler.<Player>register("tpp", "<x> <y>", "Teleport to coordinates.", (args, player) -> {
+        handler.<Player>register("tp", "<x> <y>", bundle.get("commands.admin.tp.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
                 return;
@@ -456,13 +467,18 @@ public class PandorumPlugin extends Plugin{
             Call.setPosition(player.con, x * tilesize, y * tilesize);
         });
 
-        handler.<Player>register("tp", "<target>", "Teleport to other players", (args, player) -> {
+        handler.<Player>register("tpp", bundle.get("commands.admin.tpp.params"), bundle.get("commands.admin.tpp.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
+            if(!Strings.canParseInt(args[0])){
+                Info.bundled(player, "commands.id-not-int");
+                return;
+            }
 
-            Player target = Groups.player.find(p -> Strings.canParseInt(args[0]) ? p.id() == Strings.parseInt(args[0]) : Objects.equals(p.uuid(), args[0]) || Objects.equals(p.con().address, args[0]));
+            int id = Strings.parseInt(args[0]);
+            Player target = Groups.player.find(p -> p.id() == id);
             if(target == null){
                 Info.bundled(player, "commands.player-not-found");
                 return;
@@ -471,13 +487,17 @@ public class PandorumPlugin extends Plugin{
             Call.setPosition(player.con, target.x(), target.y());
         });
 
-        handler.<Player>register("tpa", "[target]", "Teleport to other players", (args, player) -> {
+        handler.<Player>register("tpa", bundle.get("commands.admin.tpa.params"), bundle.get("commands.admin.tpa.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
+            if(args.length > 0 && !Strings.canParseInt(args[0])){
+                Info.bundled(player, "commands.id-not-int");
+                return;
+            }
 
-            Player target = args.length > 0 ? Groups.player.find(p -> Strings.canParseInt(args[0]) ? p.id() == Strings.parseInt(args[0]) : Objects.equals(p.uuid(), args[0]) || Objects.equals(p.con().address, args[0])) : player;
+            Player target = args.length > 0 ? Groups.player.find(p -> p.id() == Strings.parseInt(args[0])) : player;
             if(target == null){
                 Info.bundled(player, "commands.player-not-found");
                 return;
@@ -486,9 +506,9 @@ public class PandorumPlugin extends Plugin{
             Groups.player.each(p -> Call.setPosition(p.con, target.x(), target.y()));
         });
 
-        handler.<Player>register("maps", "[page]", "Lists all server maps.", (args, player) -> {
+        handler.<Player>register("maps", bundle.get("commands.maps.params"), bundle.get("commands.maps.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                player.sendMessage("[scarlet]'page' must be a number.");
+                Info.bundled(player, "commands.page-not-int");
                 return;
             }
 
@@ -497,21 +517,21 @@ public class PandorumPlugin extends Plugin{
             int pages = Mathf.ceil(mapList.size / 6.0F);
 
             if(--page >= pages || page < 0){
-                player.sendMessage("[scarlet]'page' must be a number between[orange] 1[] and[orange] " + pages + "[scarlet].");
+                Info.bundled(player, "commands.under-page", pages);
                 return;
             }
 
             StringBuilder result = new StringBuilder();
-            result.append(Strings.format("[orange]-- Server Maps Page[lightgray] @[gray]/[lightgray]@[orange] --\n", page + 1, pages));
+            result.append(bundle.format("commands.maps.page", page + 1, pages)).append("\n");
             for(int i = 6 * page; i < Math.min(6 * (page + 1), mapList.size); i++){
                 result.append("[lightgray] ").append(i + 1).append("[orange] ").append(mapList.get(i).name()).append("[white] ").append("\n");
             }
             player.sendMessage(result.toString());
         });
 
-        handler.<Player>register("saves", "[page]", "Lists all server maps.", (args, player) -> {
+        handler.<Player>register("saves", bundle.get("commands.saves.params"), bundle.get("commands.saves.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                player.sendMessage("[scarlet]'page' must be a number.");
+                Info.bundled(player, "commands.page-not-int");
                 return;
             }
 
@@ -520,12 +540,12 @@ public class PandorumPlugin extends Plugin{
             int pages = Mathf.ceil(saves.size / 6.0F);
 
             if(--page >= pages || page < 0){
-                player.sendMessage("[scarlet]'page' must be a number between[orange] 1[] and[orange] " + pages + "[scarlet].");
+                Info.bundled(player, "commands.under-page", pages);
                 return;
             }
 
             StringBuilder result = new StringBuilder();
-            result.append(Strings.format("[orange]-- Server Saves Page[lightgray] @[gray]/[lightgray]@[orange] --\n", page + 1, pages));
+            result.append(bundle.format("commands.saves.page", page + 1, pages)).append("\n");
             for(int i = 6 * page; i < Math.min(6 * (page + 1), saves.size); i++){
                 result.append("[lightgray] ").append(i + 1).append("[orange] ").append(saves.get(i).nameWithoutExtension()).append("[white] ").append("\n");
             }
