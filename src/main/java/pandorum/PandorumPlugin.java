@@ -16,7 +16,6 @@ import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
-import mindustry.io.SaveIO;
 import mindustry.maps.Map;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration.PlayerInfo;
@@ -90,7 +89,7 @@ public class PandorumPlugin extends Plugin{
             String lower = text.toLowerCase();
             if(current[0] != null && (lower.equals("y") || lower.equals("n"))){
                 if((current[0].voted().contains(target.uuid()) || current[0].voted().contains(netServer.admins.getInfo(target.uuid()).lastIP))){
-                    target.sendMessage("[scarlet]You've already voted. Sit down.");
+                    Info.bundled(target, "commands.nominate.already-voted");
                     return null;
                 }
 
@@ -349,7 +348,7 @@ public class PandorumPlugin extends Plugin{
 
             Team team = args.length > 2 ? Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2])) : player.team();
             if(team == null){
-                Info.bundled(player, "commands.admin.teamp.teams");
+                Info.bundled(player, "commands.admin.team.teams");
                 return;
             }
 
@@ -382,14 +381,14 @@ public class PandorumPlugin extends Plugin{
         handler.<Player>register("hub", bundle.get("commands.hub.description"), (args, player) -> Call.connect(player.con, config.hubIp, config.hubPort));
 
         //cмена команды
-        handler.<Player>register("teamp", bundle.get("commands.admin.teamp.params"), bundle.get("commands.admin.teamp.description"), (args, player) -> {
+        handler.<Player>register("team", bundle.get("commands.admin.team.params"), bundle.get("commands.admin.teamp.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
             Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[0]));
             if(team == null){
-                Info.bundled(player, "commands.admin.teamp.teams");
+                Info.bundled(player, "commands.admin.team.teams");
                 return;
             }
 
@@ -399,7 +398,7 @@ public class PandorumPlugin extends Plugin{
                 return;
             }
 
-            Info.bundled(target, "commands.admin.teamp.success", team.name);
+            Info.bundled(target, "commands.admin.team.success", team.name);
             target.team(team);
         });
 
@@ -533,30 +532,30 @@ public class PandorumPlugin extends Plugin{
             player.sendMessage(result.toString());
         });
 
-        handler.<Player>register("nominate", "<map/save/load> [value...]", "<No>", (args, player) -> {
+        handler.<Player>register("nominate", bundle.get("commands.nominate.params"), bundle.get("commands.nominate.description"), (args, player) -> {
             VoteMode mode;
             try{
                 mode = VoteMode.valueOf(args[0].toLowerCase());
             }catch(Throwable t){
-                player.sendMessage("Not found");
+                Info.bundled(player, "commands.nominate.incorrect-mode");
                 return;
             }
 
             if(current[0] != null){
-                player.sendMessage("[scarlet]A vote is already in progress.");
+                Info.bundled(player, "commands.nominate.already-started");
                 return;
             }
 
             switch(mode){
                 case map -> {
                     if(args.length == 1){
-                        player.sendMessage("Map not found");
+                        Info.bundled(player, "commands.nominate.required-second-arg");
                         return;
                     }
 
                     Map map = CommonUtil.findMap(args[1]);
                     if(map == null){
-                        player.sendMessage("Map not found");
+                        Info.bundled(player, "commands.nominate.map.not-found");
                         return;
                     }
 
@@ -566,7 +565,7 @@ public class PandorumPlugin extends Plugin{
                 }
                 case save -> {
                     if(args.length == 1){
-                        player.sendMessage("Map not found");
+                        Info.bundled(player, "commands.nominate.required-second-arg");
                         return;
                     }
 
@@ -576,13 +575,13 @@ public class PandorumPlugin extends Plugin{
                 }
                 case load -> {
                     if(args.length == 1){
-                        player.sendMessage("Map not found");
+                        Info.bundled(player, "commands.nominate.required-second-arg");
                         return;
                     }
 
                     Fi save = CommonUtil.findSave(args[1]);
                     if(save == null){
-                        player.sendMessage("Map not found");
+                        player.sendMessage("commands.nominate.load.not-found");
                         return;
                     }
 

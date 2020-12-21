@@ -60,7 +60,7 @@ public class CommonUtil{
     public static Fi findSave(String text){
         for(int i = 0; i < saveDirectory.list().length; i++){
             Fi save = saveDirectory.list()[i];
-            if(Strings.canParseInt(text) ? i == Strings.parseInt(text) + 1 : Objects.equals(save.nameWithoutExtension(), text)){
+            if(Strings.canParseInt(text) ? i == Strings.parseInt(text) - 1 : Objects.equals(save.nameWithoutExtension(), text)){
                 return save;
             }
         }
