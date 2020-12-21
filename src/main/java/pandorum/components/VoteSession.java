@@ -18,17 +18,20 @@ public abstract class VoteSession{
 
     public VoteSession(VoteSession[] map){
         this.map = map;
-        this.task = Timer.schedule(() -> {
-            if(!checkPass()){
-                Call.sendMessage(Strings.format("[lightgray]Vote failed"));
-                map[0] = null;
-                task.cancel();
-            }
-        }, voteDuration);
+        this.task = start();
     }
 
     public ObjectSet<String> voted(){
         return voted;
+    }
+
+    protected Task start(){
+        return Timer.schedule(() -> {
+            if(!checkPass()){
+                map[0] = null;
+                task.cancel();
+            }
+        }, voteDuration);
     }
 
     public void vote(Player player, int d){
