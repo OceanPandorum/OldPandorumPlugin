@@ -109,12 +109,14 @@ public class PandorumPlugin extends Plugin{
 
             forbiddenIps.filter(i -> i.matchIp(player.con.address)).each(i -> player.con.kick(bundle.get("events.vpn-ip")));
 
-            ActionService.get(AdminActionType.ban, player.uuid(), actions -> {
-                AdminAction action = actions.isEmpty() ? null : actions.get(0);
-                if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
-                    action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
-                }
-            });
+            if(config.rest()){
+                ActionService.get(AdminActionType.ban, player.uuid(), actions -> {
+                    AdminAction action = actions.isEmpty() ? null : actions.get(0);
+                    if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
+                        action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
+                    }
+                });
+            }
         });
 
         Events.on(DepositEvent.class, event -> {
