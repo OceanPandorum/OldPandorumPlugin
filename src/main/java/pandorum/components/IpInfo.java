@@ -28,7 +28,7 @@ public class IpInfo{
     public boolean matchIp(String ip){
         InetAddress remoteAddress = parseAddress(ip);
 
-        if(required.getClass() != remoteAddress.getClass()){
+        if(!Objects.equals(required.getClass(), remoteAddress.getClass())){
             return false;
         }
 

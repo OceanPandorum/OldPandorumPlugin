@@ -214,7 +214,7 @@ public class PandorumPlugin extends Plugin{
                 return;
             }
 
-            target.sendMessage("[scarlet][[Server]:[accent] " + args[1]);
+            target.sendMessage("[scarlet][[Server]:[] " + args[1]);
             Log.info(bundle.format("commands.tell.log", target.name(), args[1]));
         });
 
@@ -454,7 +454,7 @@ public class PandorumPlugin extends Plugin{
                 unit.spawn(team, player.x, player.y);
             }
             Info.bundled(player, "commands.admin.spawn.success", count, unit.name);
-            if(unit.equals(UnitTypes.oct)){
+            if(unit.equals(UnitTypes.oct) || unit.equals(UnitTypes.horizon) || unit.equals(UnitTypes.quad)){
                 Call.sendMessage("[scarlet]KIROV REPORTING");
             }
         });
