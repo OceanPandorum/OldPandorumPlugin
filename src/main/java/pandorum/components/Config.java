@@ -29,7 +29,7 @@ public class Config{
         return url != null;
     }
 
-    enum PluginType{
+    public enum PluginType{
         // атака-выживание
         def,
         // песочница

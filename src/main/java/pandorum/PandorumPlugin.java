@@ -24,6 +24,7 @@ import mindustry.type.*;
 import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
+import pandorum.components.Config.PluginType;
 
 import java.io.IOException;
 import java.time.*;
@@ -151,6 +152,18 @@ public class PandorumPlugin extends Plugin{
         });
 
         Events.on(GameOverEvent.class, event -> votes.clear());
+
+        if(config.type == PluginType.duel){
+            Events.on(PlayerLeave.class, event -> {
+                Events.fire(new GameOverEvent(Team.crux));
+                netServer.kickAll(KickReason.gameover);
+            });
+
+            Events.on(GameOverEvent.class, event -> {
+                votes.clear();
+                netServer.kickAll(KickReason.gameover);
+            });
+        }
 
         if(config.rest()){
             Timer.schedule(() -> ActionService.get(AdminActionType.ban, actions -> {
