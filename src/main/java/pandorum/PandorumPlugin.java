@@ -21,7 +21,7 @@ import mindustry.mod.Plugin;
 import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
-import mindustry.world.Block;
+import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
 import pandorum.components.Config.PluginType;
@@ -56,6 +56,7 @@ public class PandorumPlugin extends Plugin{
             .setPrettyPrinting()
             .create();
 
+    private final ObjectMap<Team, ObjectSet<String>> surrendered = new ObjectMap<>();
     private final ObjectSet<String> votes = new ObjectSet<>();
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();
     private final Seq<IpInfo> forbiddenIps;
@@ -162,6 +163,22 @@ public class PandorumPlugin extends Plugin{
             Events.on(GameOverEvent.class, event -> {
                 votes.clear();
                 netServer.kickAll(KickReason.gameover);
+            });
+        }
+
+        if(config.type == PluginType.pvp){
+            Events.on(PlayerLeave.class, event -> {
+                String uuid = event.player.uuid();
+                ObjectSet<String> uuids = surrendered.get(event.player.team(), ObjectSet::new);
+                if(uuids.contains(uuid)){
+                    uuids.remove(uuid);
+                }
+                surrendered.put(event.player.team(), uuids);
+            });
+
+            Events.on(GameOverEvent.class, event -> {
+                votes.clear();
+                surrendered.clear();
             });
         }
 
@@ -289,6 +306,42 @@ public class PandorumPlugin extends Plugin{
                     ActionService.delete(AdminActionType.ban, target.id);
                 }else{
                     Info.bundled(player, "commands.admin.unban.not-banned");
+                }
+            });
+        }
+
+        if(config.type == PluginType.pvp){
+            handler.<Player>register("france", bundle.get("commands.surrender.description"), (args, player) -> {
+                String uuid = player.uuid();
+                Team team = player.team();
+                ObjectSet<String> uuids = surrendered.get(team, ObjectSet::new);
+                if(uuid != null && uuids.contains(uuid)){
+                    Info.bundled(player, "commands.already-voted");
+                    return;
+                }
+
+                uuids.add(uuid);
+                surrendered.put(team, uuids);
+                int cur = uuids.size;
+
+                Seq<Player> players = new Seq<>();
+                Groups.player.each(p -> p.team() == team, players::add);
+                int req = (int)Math.ceil(config.voteRatio * players.size);
+                Call.sendMessage(bundle.format("commands.surrender.ok",
+                                               Strings.format("[#@](@)[green]", team.color, team),
+                                               NetClient.colorizeName(player.id, player.name), cur, req));
+
+                if(cur < req){
+                    return;
+                }
+
+                surrendered.remove(team);
+                Call.sendMessage(bundle.format("commands.surrender.successful", Strings.format("[#@]@[green]", team.color, team)));
+                players.each(p -> p.unit().kill());
+                for(Tile tile : world.tiles){
+                    if(tile.build != null && Objects.equals(tile.team(), team)){
+                        Time.run(Mathf.random(360), tile.build::kill);
+                    }
                 }
             });
         }
