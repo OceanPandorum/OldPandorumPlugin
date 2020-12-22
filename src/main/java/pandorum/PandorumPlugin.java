@@ -107,7 +107,8 @@ public class PandorumPlugin extends Plugin{
                 player.con.kick(bundle.get("events.unofficial-mindustry"), 60000);
             }
 
-            forbiddenIps.filter(i -> i.matchIp(player.con.address)).each(i -> player.con.kick(bundle.get("events.vpn-ip")));
+            forbiddenIps.each(i -> i.matchIp(player.con.address), i -> player.con.kick(bundle.get("events.vpn-ip")));
+            Log.info(forbiddenIps.size);
 
             if(config.rest()){
                 ActionService.get(AdminActionType.ban, player.uuid(), actions -> {
