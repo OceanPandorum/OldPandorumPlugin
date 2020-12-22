@@ -3,5 +3,5 @@
   "author": "OceanPandorum",
   "main": "pandorum.PandorumPlugin",
   "description": "Core plugin for pandorum servers",
-  "version": "1.2"
+  "version": "1.3"
 }

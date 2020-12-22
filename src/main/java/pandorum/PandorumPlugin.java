@@ -228,13 +228,7 @@ public class PandorumPlugin extends Plugin{
             handler.register("ban-sync", bundle.get("commands.ban-sync.description"), args -> {
                 ActionService.get(AdminActionType.ban, actions -> {
                     int pre = netServer.admins.getBanned().size;
-                    actions.forEach(action -> {
-                        try{
-                            PlayerInfo playerInfo = netServer.admins.getInfo(action.targetId());
-                            netServer.admins.banPlayerID(playerInfo.id);
-                            netServer.admins.banPlayerIP(playerInfo.lastIP);
-                        }catch(Throwable ignored){}
-                    });
+                    actions.forEach(action -> netServer.admins.banPlayer(action.targetId()));
                     Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
                 });
             });
@@ -460,7 +454,9 @@ public class PandorumPlugin extends Plugin{
                 unit.spawn(team, player.x, player.y);
             }
             Info.bundled(player, "commands.admin.spawn.success", count, unit.name);
-
+            if(unit.equals(UnitTypes.oct)){
+                Call.sendMessage("[scarlet]KIROV REPORTING");
+            }
         });
 
         //Заспавнить ядро (попытка искоренить шнеки)
