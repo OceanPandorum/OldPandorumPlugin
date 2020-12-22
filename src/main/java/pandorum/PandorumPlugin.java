@@ -37,7 +37,7 @@ public class PandorumPlugin extends Plugin{
     public static Config config;
     public static Bundle bundle;
 
-    protected static final Gson gson = new GsonBuilder()
+    protected static final Gson gson = new GsonBuilder() // для моих нужд больше уже подойдёт джексон
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
             .registerTypeAdapter(Instant.class, new TypeAdapter<Instant>(){
                 @Override
@@ -67,6 +67,7 @@ public class PandorumPlugin extends Plugin{
         if(!cfg.exists()){
             config = new Config();
             cfg.writeString(gson.toJson(config));
+            Log.info("Config created...");
         }
         config = gson.fromJson(cfg.reader(), Config.class);
         bundle = new Bundle();
@@ -149,16 +150,18 @@ public class PandorumPlugin extends Plugin{
 
         Events.on(GameOverEvent.class, event -> votes.clear());
 
-        Timer.schedule(() -> ActionService.get(AdminActionType.ban, actions -> {
-            for(AdminAction a : actions){
-                Log.debug(gson.toJson(a));
-                if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
-                    netServer.admins.unbanPlayerID(a.targetId());
-                    Log.info("Unbanned: @", a.targetId());
-                    ActionService.delete(AdminActionType.ban, a.targetId());
+        if(config.rest()){
+            Timer.schedule(() -> ActionService.get(AdminActionType.ban, actions -> {
+                for(AdminAction a : actions){
+                    Log.debug(gson.toJson(a));
+                    if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
+                        netServer.admins.unbanPlayerID(a.targetId());
+                        Log.info("Unbanned: @", a.targetId());
+                        ActionService.delete(AdminActionType.ban, a.targetId());
+                    }
                 }
-            }
-        }), 5, 20);
+            }), 5, 20);
+        }
     }
 
     @Override
@@ -180,19 +183,21 @@ public class PandorumPlugin extends Plugin{
             Log.info(bundle.get("commands.despw.log"));
         });
 
-        handler.register("ban-sync", bundle.get("commands.ban-sync.description"), args -> {
-            ActionService.get(AdminActionType.ban, actions -> {
-                int pre = netServer.admins.getBanned().size;
-                actions.forEach(action -> {
-                    try{
-                        PlayerInfo playerInfo = netServer.admins.getInfo(action.targetId());
-                        netServer.admins.banPlayerID(playerInfo.id);
-                        netServer.admins.banPlayerIP(playerInfo.lastIP);
-                    }catch(Throwable ignored){}
+        if(config.rest()){
+            handler.register("ban-sync", bundle.get("commands.ban-sync.description"), args -> {
+                ActionService.get(AdminActionType.ban, actions -> {
+                    int pre = netServer.admins.getBanned().size;
+                    actions.forEach(action -> {
+                        try{
+                            PlayerInfo playerInfo = netServer.admins.getInfo(action.targetId());
+                            netServer.admins.banPlayerID(playerInfo.id);
+                            netServer.admins.banPlayerIP(playerInfo.lastIP);
+                        }catch(Throwable ignored){}
+                    });
+                    Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
                 });
-                Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
             });
-        });
+        }
 
         handler.register("kicks", bundle.get("commands.kicks.description"), args -> {
             Log.info("Kicks: @", netServer.admins.kickedIPs.isEmpty() ? "<none>" : "");
@@ -215,61 +220,63 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        handler.<Player>register("ban", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.ban.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-                return;
-            }
-            if(!Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.id-not-int");
-                return;
-            }
-            Instant delay = CommonUtil.parseTime(args[1]);
-            if(delay == null){
-                Info.bundled(player, "commands.admin.delay-not-int");
-                return;
-            }
+        if(config.rest()){
+            handler.<Player>register("ban", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.ban.description"), (args, player) -> {
+                if(!player.admin){
+                    Info.bundled(player, "commands.permission-denied");
+                    return;
+                }
+                if(!Strings.canParseInt(args[0])){
+                    Info.bundled(player, "commands.id-not-int");
+                    return;
+                }
+                Instant delay = CommonUtil.parseTime(args[1]);
+                if(delay == null){
+                    Info.bundled(player, "commands.admin.delay-not-int");
+                    return;
+                }
 
-            int id = Strings.parseInt(args[0]);
-            Player target = Groups.player.find(p -> p.id() == id);
-            if(target == null){
-                Info.bundled(player, "commands.player-not-found");
-                return;
-            }
-            if(Objects.equals(target, player) || target.admin()){
-                Info.bundled(player, "commands.not-allowed-target");
-                return;
-            }
-            Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[0]) : Optional.empty();
+                int id = Strings.parseInt(args[0]);
+                Player target = Groups.player.find(p -> p.id() == id);
+                if(target == null){
+                    Info.bundled(player, "commands.player-not-found");
+                    return;
+                }
+                if(Objects.equals(target, player) || target.admin()){
+                    Info.bundled(player, "commands.not-allowed-target");
+                    return;
+                }
+                Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[0]) : Optional.empty();
 
-            AdminAction action = new AdminAction();
-            action.targetId(target.uuid());
-            action.adminId(player.uuid());
-            action.type(AdminActionType.ban);
-            reason.ifPresent(action::reason);
-            action.timestamp(Instant.now());
-            action.endTimestamp(delay);
+                AdminAction action = new AdminAction();
+                action.targetId(target.uuid());
+                action.adminId(player.uuid());
+                action.type(AdminActionType.ban);
+                reason.ifPresent(action::reason);
+                action.timestamp(Instant.now());
+                action.endTimestamp(delay);
 
-            ActionService.save(action);
-            if(netServer.admins.banPlayer(target.uuid())){
-                reason.ifPresentOrElse(target::kick, () -> target.kick(KickReason.banned));
-            }
-        });
+                ActionService.save(action);
+                if(netServer.admins.banPlayer(target.uuid())){
+                    reason.ifPresentOrElse(target::kick, () -> target.kick(KickReason.banned));
+                }
+            });
 
-        handler.<Player>register("unban", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unban.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-                return;
-            }
+            handler.<Player>register("unban", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unban.description"), (args, player) -> {
+                if(!player.admin){
+                    Info.bundled(player, "commands.permission-denied");
+                    return;
+                }
 
-            if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
-                Info.bundled(player, "commands.admin.unban.successful");
-                PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
-                ActionService.delete(AdminActionType.ban, target.id);
-            }else{
-                Info.bundled(player, "commands.admin.unban.not-banned");
-            }
-        });
+                if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
+                    Info.bundled(player, "commands.admin.unban.successful");
+                    PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
+                    ActionService.delete(AdminActionType.ban, target.id);
+                }else{
+                    Info.bundled(player, "commands.admin.unban.not-banned");
+                }
+            });
+        }
 
         handler.<Player>register("pl", bundle.get("commands.pl.params"), bundle.get("commands.pl.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
