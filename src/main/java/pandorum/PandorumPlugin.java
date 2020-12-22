@@ -11,7 +11,7 @@ import arc.util.io.Streams;
 import com.google.gson.*;
 import com.google.gson.stream.*;
 import mindustry.content.*;
-import mindustry.core.NetClient;
+import mindustry.core.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Teams.TeamData;
@@ -180,6 +180,15 @@ public class PandorumPlugin extends Plugin{
                 votes.clear();
                 surrendered.clear();
             });
+        }
+
+        if(config.type == PluginType.sandbox){
+            Timer.schedule(() -> {
+                if(state.is(GameState.State.playing)){
+                    Groups.unit.each(Unitc::kill);
+                    Call.sendMessage(bundle.get("events.autokill"));
+                }
+            }, 1800, 1800);
         }
 
         if(config.rest()){
