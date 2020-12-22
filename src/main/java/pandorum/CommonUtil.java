@@ -13,7 +13,7 @@ import java.util.regex.*;
 import static java.util.regex.Pattern.compile;
 import static mindustry.Vars.*;
 
-public class CommonUtil{
+public abstract class CommonUtil{
 
     private CommonUtil(){}
 
@@ -50,7 +50,7 @@ public class CommonUtil{
     public static Map findMap(String text){
         for(int i = 0; i < maps.all().size; i++){
             Map m = maps.all().get(i);
-            if(Strings.canParseInt(text) ? i == Strings.parseInt(text) - 1 : m.name().equals(text)){
+            if((Strings.canParseInt(text) && i == Strings.parseInt(text) - 1) || m.name().equals(text)){
                 return m;
             }
         }
@@ -60,7 +60,7 @@ public class CommonUtil{
     public static Fi findSave(String text){
         for(int i = 0; i < saveDirectory.list().length; i++){
             Fi save = saveDirectory.list()[i];
-            if(Strings.canParseInt(text) ? i == Strings.parseInt(text) - 1 : Objects.equals(save.nameWithoutExtension(), text)){
+            if((Strings.canParseInt(text) && i == Strings.parseInt(text) - 1) || Objects.equals(save.nameWithoutExtension(), text)){
                 return save;
             }
         }

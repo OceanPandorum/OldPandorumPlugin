@@ -10,7 +10,7 @@ import arc.util.*;
 import arc.util.io.Streams;
 import com.google.gson.*;
 import com.google.gson.stream.*;
-import mindustry.content.Blocks;
+import mindustry.content.*;
 import mindustry.core.NetClient;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
@@ -89,7 +89,7 @@ public class PandorumPlugin extends Plugin{
             String lower = text.toLowerCase();
             if(current[0] != null && (lower.equals("y") || lower.equals("n"))){
                 if((current[0].voted().contains(target.uuid()) || current[0].voted().contains(netServer.admins.getInfo(target.uuid()).lastIP))){
-                    Info.bundled(target, "commands.nominate.already-voted");
+                    Info.bundled(target, "commands.already-voted");
                     return null;
                 }
 
@@ -116,9 +116,18 @@ public class PandorumPlugin extends Plugin{
             });
         });
 
+        Events.on(DepositEvent.class, event -> {
+            Building building = event.tile;
+            Player target = event.player;
+            if(Objects.equals(building.block(), Blocks.thoriumReactor) && Objects.equals(event.item, Items.thorium) &&
+               target.team().cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
+                Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.withdraw-thorium", target.name, building.tileX(), building.tileY())));
+            }
+        });
+
         Events.on(BuildSelectEvent.class, event -> {
             if(!event.breaking && event.builder != null && event.builder.buildPlan() != null &&
-               event.builder.buildPlan().block == Blocks.thoriumReactor && event.builder.isPlayer() &&
+               Objects.equals(event.builder.buildPlan().block, Blocks.thoriumReactor) && event.builder.isPlayer() &&
                event.team.cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
                 Player target = event.builder.getPlayer();
 
@@ -296,7 +305,7 @@ public class PandorumPlugin extends Plugin{
         // слегка переделанный rtv
         handler.<Player>register("rtv", bundle.get("commands.rtv.description"), (args, player) -> {
             if(player.uuid() != null && votes.contains(player.uuid())){
-                Info.bundled(player, "commands.rtv.contains");
+                Info.bundled(player, "commands.already-voted");
                 return;
             }
 

@@ -6,7 +6,7 @@ import mindustry.gen.Player;
 
 import static pandorum.PandorumPlugin.bundle;
 
-public class Info{
+public abstract class Info{
 
     private Info(){
         // Util class
