@@ -40,17 +40,7 @@ public class PandorumPlugin extends Plugin{
 
     protected static final Gson gson = new GsonBuilder() // для моих нужд больше уже подойдёт джексон
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
-            .registerTypeAdapter(Instant.class, new TypeAdapter<Instant>(){
-                @Override
-                public void write(JsonWriter out, Instant value) throws IOException{
-                    out.value(value.toString());
-                }
-
-                @Override
-                public Instant read(JsonReader in) throws IOException{
-                    return Instant.parse(in.nextString());
-                }
-            })
+            .registerTypeAdapter(Instant.class, new InstantTypeAdapter())
             .disableHtmlEscaping()
             .serializeNulls()
             .setPrettyPrinting()
@@ -261,10 +251,12 @@ public class PandorumPlugin extends Plugin{
                     Info.bundled(player, "commands.permission-denied");
                     return;
                 }
+
                 if(!Strings.canParseInt(args[0])){
                     Info.bundled(player, "commands.id-not-int");
                     return;
                 }
+
                 Instant delay = CommonUtil.parseTime(args[1]);
                 if(delay == null){
                     Info.bundled(player, "commands.admin.delay-not-int");
@@ -277,10 +269,12 @@ public class PandorumPlugin extends Plugin{
                     Info.bundled(player, "commands.player-not-found");
                     return;
                 }
+
                 if(Objects.equals(target, player) || target.admin()){
                     Info.bundled(player, "commands.not-allowed-target");
                     return;
                 }
+
                 Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[0]) : Optional.empty();
 
                 AdminAction action = new AdminAction();
@@ -431,6 +425,7 @@ public class PandorumPlugin extends Plugin{
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
+
             if(!Strings.canParseInt(args[1])){
                 Info.bundled(player, "commands.count-not-int");
                 return;
@@ -453,6 +448,7 @@ public class PandorumPlugin extends Plugin{
             for(int i = 0; i < count; i++){
                 unit.spawn(team, player.x, player.y);
             }
+
             Info.bundled(player, "commands.admin.spawn.success", count, unit.name);
             if(unit.equals(UnitTypes.oct) || unit.equals(UnitTypes.horizon) || unit.equals(UnitTypes.quad)){
                 Call.sendMessage("[scarlet]KIROV REPORTING");
@@ -486,6 +482,7 @@ public class PandorumPlugin extends Plugin{
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
+
             Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[0]));
             if(team == null){
                 Info.bundled(player, "commands.admin.team.teams");
@@ -518,6 +515,7 @@ public class PandorumPlugin extends Plugin{
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
+
             if(!Strings.canParseInt(args[0])){
                 Info.bundled(player, "commands.count-not-int");
                 return;
@@ -536,11 +534,13 @@ public class PandorumPlugin extends Plugin{
                 Info.bundled(player, "commands.admin.give.core-not-found");
                 return;
             }
+
             CoreBuild core = team.cores.first();
 
             for(int i = 0; i < count; i++){
                 core.items.set(item, count);
             }
+
             Info.bundled(player, "commands.admin.give.success");
         });
 
@@ -561,6 +561,7 @@ public class PandorumPlugin extends Plugin{
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
+
             if(!Strings.canParseInt(args[0])){
                 Info.bundled(player, "commands.id-not-int");
                 return;
@@ -581,6 +582,7 @@ public class PandorumPlugin extends Plugin{
                 Info.bundled(player, "commands.permission-denied");
                 return;
             }
+
             if(args.length > 0 && !Strings.canParseInt(args[0])){
                 Info.bundled(player, "commands.id-not-int");
                 return;
@@ -615,6 +617,7 @@ public class PandorumPlugin extends Plugin{
             for(int i = 6 * page; i < Math.min(6 * (page + 1), mapList.size); i++){
                 result.append("[lightgray] ").append(i + 1).append("[orange] ").append(mapList.get(i).name()).append("[white] ").append("\n");
             }
+
             player.sendMessage(result.toString());
         });
 
@@ -638,6 +641,7 @@ public class PandorumPlugin extends Plugin{
             for(int i = 6 * page; i < Math.min(6 * (page + 1), saves.size); i++){
                 result.append("[lightgray] ").append(i + 1).append("[orange] ").append(saves.get(i).nameWithoutExtension()).append("[white] ").append("\n");
             }
+
             player.sendMessage(result.toString());
         });
 
