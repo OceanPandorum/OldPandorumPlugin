@@ -103,7 +103,7 @@ public class PandorumPlugin extends Plugin{
 
         // история
 
-        Events.on(WorldLoadEvent.class, worldLoadEvent -> {
+        Events.on(WorldLoadEvent.class, event -> {
             worldHistory = new LimitedQueue[Vars.world.width()][Vars.world.height()];
 
             for(int x = 0; x < Vars.world.width(); x++){
@@ -113,10 +113,10 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        Events.on(BlockBuildEndEvent.class, blockBuildEndEvent -> {
-            HistoryEntry historyEntry = new BlockEntry(blockBuildEndEvent);
+        Events.on(BlockBuildEndEvent.class, event -> {
+            HistoryEntry historyEntry = new BlockEntry(event);
 
-            Seq<Tile> linkedTile = blockBuildEndEvent.tile.getLinkedTiles(new Seq<>());
+            Seq<Tile> linkedTile = event.tile.getLinkedTiles(new Seq<>());
             for(Tile tile : linkedTile){
                 worldHistory[tile.x][tile.y].add(historyEntry);
             }
@@ -143,25 +143,25 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        Events.on(TapEvent.class, tapEvent -> {
-            if(activeHistoryPlayers.contains(tapEvent.player.uuid()) ){
-                LimitedQueue<HistoryEntry> entries = worldHistory[tapEvent.tile.x][tapEvent.tile.y];
+        Events.on(TapEvent.class, event -> {
+            if(activeHistoryPlayers.contains(event.player.uuid()) ){
+                LimitedQueue<HistoryEntry> entries = worldHistory[event.tile.x][event.tile.y];
 
-                StringBuilder message = new StringBuilder("[yellow]History of Block (" + tapEvent.tile.x + "," + tapEvent.tile.y + ")");
+                StringBuilder message = new StringBuilder("[yellow]History of Block (" + event.tile.x + "," + event.tile.y + ")");
 
                 if(entries.isOverflown()){
                     message.append("\n[white]... too many entries");
                 }
 
                 for(HistoryEntry historyEntry : entries){
-                    message.append("\n").append(historyEntry.getMessage(tapEvent.player.admin));
+                    message.append("\n").append(historyEntry.getMessage(event.player.admin));
                 }
 
                 if(entries.isEmpty()){
                     message.append("\n[royal]* [white]no entries");
                 }
 
-                tapEvent.player.sendMessage(message.toString());
+                event.player.sendMessage(message.toString());
             }
         });
 
