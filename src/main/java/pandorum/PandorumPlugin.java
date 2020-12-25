@@ -125,7 +125,6 @@ public class PandorumPlugin extends Plugin{
         Events.on(ConfigEvent.class, event -> {
             if(event.player == null) return;
 
-            Log.info(event.value);
             LimitedQueue<HistoryEntry> entries = worldHistory[event.tile.tileX()][event.tile.tileY()];
             boolean connect = true;
 

@@ -1,19 +1,17 @@
 package pandorum.entry;
 
 import arc.struct.StringMap;
-import arc.util.Log;
-import mindustry.content.*;
+import mindustry.content.Blocks;
 import mindustry.entities.units.UnitCommand;
-import mindustry.game.EventType;
-import mindustry.game.EventType.*;
+import mindustry.game.EventType.ConfigEvent;
 import mindustry.gen.Player;
 import mindustry.type.*;
 import mindustry.world.*;
 
-import static mindustry.Vars.*;
+import static mindustry.Vars.world;
 
 public class ConfigEntry implements HistoryEntry{
-    private static final StringMap itemAndFluidIcons = StringMap.of(
+    private static final StringMap icons = StringMap.of(
         "copper", "\uF838",
         "lead", "\uF837",
         "metaglass", "\uF836",
@@ -30,6 +28,7 @@ public class ConfigEntry implements HistoryEntry{
         "spore-pod", "\uF82B",
         "blast-compound", "\uF82A",
         "pyratite", "\uF829",
+
         "water", "\uF828",
         "slag", "\uF827",
         "oil", "\uF826",
@@ -66,9 +65,19 @@ public class ConfigEntry implements HistoryEntry{
         }else if(block == Blocks.commandCenter){
             return "[orange]~ [white]" + player.name + " commanded units to " + commands[((UnitCommand)value).ordinal()] + "[white]";
         }else if(block == Blocks.liquidSource){
-            return "[orange]~ [white]" + player.name + " changed config to " + itemAndFluidIcons.get(((Liquid)value).name);
+            Liquid liquid = (Liquid)value;
+            if(liquid == null){
+                return "[orange]~ [white]" + player.name + " changed config to default";
+            }
+
+            return "[orange]~ [white]" + player.name + " changed config to " + icons.get(liquid.name);
         }else{
-            return "[orange]~ [white]" + player.name + " changed config to " + itemAndFluidIcons.get(((Item)value).name);
+            Item item = (Item)value;
+            if(item == null){
+                return "[orange]~ [white]" + player.name + " changed config to default";
+            }
+
+            return "[orange]~ [white]" + player.name + " changed config to " + icons.get(item.name);
         }
     }
 }

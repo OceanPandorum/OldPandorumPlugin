@@ -17,6 +17,8 @@ public class BlockEntry implements HistoryEntry{
 
     @Override
     public String getMessage(boolean admin){
-        return breaking ? "[red]- [white]" + player.name + " broke this tile" : "[green]+ [white]" + player.name + " placed [purple]" + block + "[white]";
+        return breaking
+        ? "[red]- [white]" + player.name + " broke this tile"
+        : "[green]+ [white]" + player.name + " placed [purple]" + block + "[white]";
     }
 }
