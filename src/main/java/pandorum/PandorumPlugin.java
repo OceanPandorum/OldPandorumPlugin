@@ -10,8 +10,10 @@ import arc.util.*;
 import arc.util.io.Streams;
 import com.google.gson.*;
 import com.google.gson.stream.*;
+import mindustry.Vars;
 import mindustry.content.*;
 import mindustry.core.*;
+import mindustry.entities.units.UnitCommand;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Teams.TeamData;
@@ -23,8 +25,10 @@ import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
+import mindustry.world.blocks.units.CommandCenter;
 import pandorum.components.*;
 import pandorum.components.Config.PluginType;
+import pandorum.entry.*;
 
 import java.io.IOException;
 import java.time.*;
@@ -33,6 +37,7 @@ import java.util.*;
 
 import static mindustry.Vars.*;
 
+@SuppressWarnings("unchecked")
 public class PandorumPlugin extends Plugin{
     public static VoteSession[] current = {null};
     public static Config config;
@@ -47,10 +52,13 @@ public class PandorumPlugin extends Plugin{
             .create();
 
     private final ObjectMap<Team, ObjectSet<String>> surrendered = new ObjectMap<>();
-    private final ObjectSet<String> votes = new ObjectSet<>();
-    private final ObjectSet<String> alertIgnores = new ObjectSet<>();
+    private final ObjectSet<String> votes = new ObjectSet<>();                //
+    private final ObjectSet<String> alertIgnores = new ObjectSet<>();         // Соединить
+    private final ObjectSet<String> activeHistoryPlayers = new ObjectSet<>(); //
     private final Seq<IpInfo> forbiddenIps;
     private final Interval alertInterval = new Interval();
+
+    private LimitedQueue<HistoryEntry>[][] worldHistory;
 
     private final DateTimeFormatter formatter;
 
@@ -93,13 +101,81 @@ public class PandorumPlugin extends Plugin{
             return text;
         });
 
+        // история
+
+        Events.on(WorldLoadEvent.class, worldLoadEvent -> {
+            worldHistory = new LimitedQueue[Vars.world.width()][Vars.world.height()];
+
+            for(int x = 0; x < Vars.world.width(); x++){
+                for(int y = 0; y < Vars.world.height(); y++){
+                    worldHistory[x][y] = new LimitedQueue<>(config.historyLimit);
+                }
+            }
+        });
+
+        Events.on(BlockBuildEndEvent.class, blockBuildEndEvent -> {
+            HistoryEntry historyEntry = new BlockEntry(blockBuildEndEvent);
+
+            Seq<Tile> linkedTile = blockBuildEndEvent.tile.getLinkedTiles(new Seq<>());
+            for(Tile tile : linkedTile){
+                worldHistory[tile.x][tile.y].add(historyEntry);
+            }
+        });
+
+        Events.on(ConfigEvent.class, event -> {
+            if(event.player == null) return;
+
+            Log.info(event.value);
+            LimitedQueue<HistoryEntry> entries = worldHistory[event.tile.tileX()][event.tile.tileY()];
+            boolean connect = true;
+
+            if(!entries.isEmpty() && entries.getLast() instanceof ConfigEntry){
+                ConfigEntry lastConfigEntry = ((ConfigEntry)entries.getLast());
+
+                connect = !(lastConfigEntry.value instanceof Integer && (int)lastConfigEntry.value == (int)event.value && lastConfigEntry.connect);
+            }
+
+            HistoryEntry entry = new ConfigEntry(event, connect);
+
+            Seq<Tile> linkedTile = event.tile.tile.getLinkedTiles(new Seq<>());
+            for(Tile tile : linkedTile){
+                worldHistory[tile.x][tile.y].add(entry);
+            }
+        });
+
+        Events.on(TapEvent.class, tapEvent -> {
+            if(activeHistoryPlayers.contains(tapEvent.player.uuid()) ){
+                LimitedQueue<HistoryEntry> entries = worldHistory[tapEvent.tile.x][tapEvent.tile.y];
+
+                StringBuilder message = new StringBuilder("[yellow]History of Block (" + tapEvent.tile.x + "," + tapEvent.tile.y + ")");
+
+                if(entries.isOverflown()){
+                    message.append("\n[white]... too many entries");
+                }
+
+                for(HistoryEntry historyEntry : entries){
+                    message.append("\n").append(historyEntry.getMessage(tapEvent.player.admin));
+                }
+
+                if(entries.isEmpty()){
+                    message.append("\n[royal]* [white]no entries");
+                }
+
+                tapEvent.player.sendMessage(message.toString());
+            }
+        });
+
+        Events.on(PlayerLeave.class, event -> activeHistoryPlayers.remove(event.player.uuid()));
+
+        //
+
         Events.on(PlayerConnect.class, event -> {
             Player player = event.player;
             if(config.bannedNames.contains(player.name())){
                 player.con.kick(bundle.get("events.unofficial-mindustry"), 60000);
             }
 
-            forbiddenIps.each(i -> i.matchIp(player.con.address), i -> player.con.kick(bundle.get("events.vpn-ip")));;
+            forbiddenIps.each(i -> i.matchIp(player.con.address), i -> player.con.kick(bundle.get("events.vpn-ip")));
 
             if(config.rest()){
                 ActionService.get(AdminActionType.ban, player.uuid(), actions -> {
@@ -137,8 +213,7 @@ public class PandorumPlugin extends Plugin{
             int req = (int) Math.ceil(config.voteRatio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
-                Call.sendMessage(bundle.format("commands.rtv.left", NetClient.colorizeName(event.player.id, event.player.name),
-                                               cur - 1, req));
+                Call.sendMessage(bundle.format("commands.rtv.left", NetClient.colorizeName(event.player.id, event.player.name), cur - 1, req));
             }
         });
 
@@ -702,6 +777,17 @@ public class PandorumPlugin extends Plugin{
                     current[0] = session;
                     session.vote(player, 1);
                 }
+            }
+        });
+
+        handler.<Player>register("history", bundle.get("commands.history.description"), (args, player) -> {
+            String uuid = player.uuid();
+            if(activeHistoryPlayers.contains(uuid)){
+                activeHistoryPlayers.remove(uuid);
+                Info.bundled(player, "commands.history.off");
+            }else{
+                activeHistoryPlayers.add(uuid);
+                Info.bundled(player, "commands.history.on");
             }
         });
     }

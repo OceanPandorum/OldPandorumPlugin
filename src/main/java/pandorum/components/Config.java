@@ -8,6 +8,8 @@ public class Config{
 
     public float voteRatio = 0.6F;
 
+    public int historyLimit = 16;
+
     public int hubPort = 8000;
 
     public PluginType type = PluginType.def;
