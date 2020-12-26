@@ -497,7 +497,7 @@ public class PandorumPlugin extends Plugin{
                 return;
             }
 
-            if(!Strings.canParseInt(args[1])){
+            if(args.length > 1 && !Strings.canParseInt(args[1])){
                 Info.bundled(player, "commands.count-not-int");
                 return;
             }
@@ -508,7 +508,7 @@ public class PandorumPlugin extends Plugin{
                 return;
             }
 
-            int count = Strings.parseInt(args[1]);
+            int count = args.length > 1 ? Strings.parseInt(args[1]) : 1;
 
             Team team = args.length > 2 ? Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2])) : player.team();
             if(team == null){
