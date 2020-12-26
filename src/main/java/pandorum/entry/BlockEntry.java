@@ -28,6 +28,11 @@ public class BlockEntry implements HistoryEntry{
     }
 
     @Override
+    public long expire(){
+        return timestamp;
+    }
+
+    @Override
     public long getDelay(TimeUnit unit){
         long diff = timestamp - Time.millis();
         return unit.convert(diff, TimeUnit.MILLISECONDS);
@@ -35,7 +40,7 @@ public class BlockEntry implements HistoryEntry{
 
     @Override
     public int compareTo(Delayed o){
-        BlockEntry e = (BlockEntry)o;
-        return Long.compare(timestamp, e.timestamp);
+        HistoryEntry e = (HistoryEntry)o;
+        return Long.compare(expire(), e.expire());
     }
 }

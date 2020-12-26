@@ -90,6 +90,10 @@ public class ConfigEntry implements HistoryEntry{
         }
     }
 
+    public long expire(){
+        return timestamp;
+    }
+
     @Override
     public long getDelay(TimeUnit unit){
         long diff = timestamp - Time.millis();
@@ -98,7 +102,7 @@ public class ConfigEntry implements HistoryEntry{
 
     @Override
     public int compareTo(Delayed o){
-        ConfigEntry e = (ConfigEntry)o;
-        return Long.compare(timestamp, e.timestamp);
+        HistoryEntry e = (HistoryEntry)o;
+        return Long.compare(expire(), e.expire());
     }
 }
