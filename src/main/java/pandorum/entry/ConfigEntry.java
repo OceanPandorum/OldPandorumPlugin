@@ -8,7 +8,7 @@ import mindustry.gen.Player;
 import mindustry.type.*;
 import mindustry.world.*;
 
-import static mindustry.Vars.world;
+import static mindustry.Vars.*;
 import static pandorum.PandorumPlugin.*;
 
 public class ConfigEntry implements HistoryEntry{
@@ -36,7 +36,11 @@ public class ConfigEntry implements HistoryEntry{
         "cryofluid", "\uF825"
     );
 
-    private static final String[] commands = {"[red]attack[white]", "[yellow]retreat[white]", "[orange]rally[white]"};
+    private static final String[] commands;
+
+    static{
+        commands = bundle.get("events.history.config.command-center.all").split(", ");
+    }
 
     public Player player;
     public Block block;
@@ -62,7 +66,7 @@ public class ConfigEntry implements HistoryEntry{
             }
 
             return bundle.format("events.history.config.power-node.disconnect", player.name, block.name, tile.x, tile.y);
-        }else if(block == Blocks.commandCenter){ // todo
+        }else if(block == Blocks.commandCenter){
             return bundle.format("events.history.config.command-center", player.name, commands[((UnitCommand)value).ordinal()]);
         }else if(block == Blocks.liquidSource){
             Liquid liquid = (Liquid)value;
