@@ -10,6 +10,8 @@ public class Config{
 
     public int historyLimit = 16;
 
+    public long expireDelay = 10800000; // 3 часа
+
     public int hubPort = 8000;
 
     public PluginType type = PluginType.def;

@@ -146,11 +146,11 @@ public class PandorumPlugin extends Plugin{
 
                 StringBuilder message = new StringBuilder(bundle.format("events.history.title", event.tile.x, event.tile.y));
 
+                entries.poll();
                 if(entries.isOverflown()){
                     message.append(bundle.get("events.history.overflow"));
                 }
 
-                entries.poll();
                 for(HistoryEntry historyEntry : entries){
                     message.append("\n").append(historyEntry.getMessage());
                 }

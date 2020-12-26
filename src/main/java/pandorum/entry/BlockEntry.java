@@ -1,6 +1,6 @@
 package pandorum.entry;
 
-import arc.util.Log;
+import arc.util.Time;
 import mindustry.game.EventType.BlockBuildEndEvent;
 import mindustry.gen.Player;
 import mindustry.world.Block;
@@ -10,16 +10,16 @@ import java.util.concurrent.*;
 import static pandorum.PandorumPlugin.*;
 
 public class BlockEntry implements HistoryEntry{
-    public Player player;
-    public Block block;
-    public boolean breaking;
-    public long timestamp;
+    public final Player player;
+    public final Block block;
+    public final boolean breaking;
+    public final long timestamp;
 
     public BlockEntry(BlockBuildEndEvent event){
         this.player = event.unit.getPlayer();
         this.block = event.tile.block();
         this.breaking = event.breaking;
-        this.timestamp = System.currentTimeMillis() + 30000;
+        this.timestamp = Time.millis() + config.expireDelay;
     }
 
     @Override
@@ -29,8 +29,7 @@ public class BlockEntry implements HistoryEntry{
 
     @Override
     public long getDelay(TimeUnit unit){
-        Log.info("req");
-        long diff = timestamp - System.currentTimeMillis();
+        long diff = timestamp - Time.millis();
         return unit.convert(diff, TimeUnit.MILLISECONDS);
     }
 

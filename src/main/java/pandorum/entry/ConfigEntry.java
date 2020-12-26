@@ -1,7 +1,7 @@
 package pandorum.entry;
 
 import arc.struct.StringMap;
-import arc.util.*;
+import arc.util.Time;
 import mindustry.content.Blocks;
 import mindustry.entities.units.UnitCommand;
 import mindustry.game.EventType.ConfigEvent;
@@ -45,18 +45,18 @@ public class ConfigEntry implements HistoryEntry{
         commands = bundle.get("events.history.config.command-center.all").split(", ");
     }
 
-    public Player player;
-    public Block block;
-    public Object value;
-    public long timestamp;
-    public boolean connect;
+    public final Player player;
+    public final Block block;
+    public final Object value;
+    public final long timestamp;
+    public final boolean connect;
 
     public ConfigEntry(ConfigEvent event, boolean connect){
         this.player = event.player;
         this.block = event.tile.block();
         this.value = event.value;
         this.connect = connect;
-        this.timestamp = System.currentTimeMillis() + 30000;
+        this.timestamp = Time.millis() + config.expireDelay;
     }
 
     @Override
@@ -92,8 +92,7 @@ public class ConfigEntry implements HistoryEntry{
 
     @Override
     public long getDelay(TimeUnit unit){
-        Log.info("req");
-        long diff = timestamp - System.currentTimeMillis();
+        long diff = timestamp - Time.millis();
         return unit.convert(diff, TimeUnit.MILLISECONDS);
     }
 
