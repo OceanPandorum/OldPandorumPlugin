@@ -6,7 +6,7 @@ import arc.util.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.*;
 
 import static arc.Core.net;
 import static pandorum.PandorumPlugin.*;
@@ -17,10 +17,23 @@ public class ActionService{
 
     public static final Type array = new TypeToken<List<AdminAction>>(){}.getType();
 
+    private static String escape(String str){
+        return str.replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#x27;")
+        .replaceAll("/", "&#x2F;");
+    }
+
     public static void get(AdminActionType type, String targetId, Cons<List<AdminAction>> cons){
         net.httpGet(
-                Strings.format("@/@/@", config.url, type, targetId),
-                res -> cons.get(gson.fromJson(res.getResultAsString(), array)),
+                Strings.format("@/@/@", config.url, type, escape(targetId)),
+                res -> {
+                    String str = res.getResultAsString();
+                    Log.info(str);
+                    cons.get(gson.fromJson(str, array));
+                },
                 Log::err
         );
     }
