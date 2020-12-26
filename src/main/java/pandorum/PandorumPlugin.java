@@ -146,18 +146,18 @@ public class PandorumPlugin extends Plugin{
             if(activeHistoryPlayers.contains(event.player.uuid()) ){
                 LimitedQueue<HistoryEntry> entries = worldHistory[event.tile.x][event.tile.y];
 
-                StringBuilder message = new StringBuilder("[yellow]History of Block (" + event.tile.x + "," + event.tile.y + ")");
+                StringBuilder message = new StringBuilder(bundle.format("events.history.title", event.tile.x, event.tile.y));
 
                 if(entries.isOverflown()){
-                    message.append("\n[white]... too many entries");
+                    message.append(bundle.get("events.history.overflow"));
                 }
 
                 for(HistoryEntry historyEntry : entries){
-                    message.append("\n").append(historyEntry.getMessage(event.player.admin));
+                    message.append("\n").append(historyEntry.getMessage());
                 }
 
                 if(entries.isEmpty()){
-                    message.append("\n[royal]* [white]no entries");
+                    message.append(bundle.get("events.history.empty"));
                 }
 
                 event.player.sendMessage(message.toString());

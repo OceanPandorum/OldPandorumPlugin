@@ -9,6 +9,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 
 import static mindustry.Vars.world;
+import static pandorum.PandorumPlugin.*;
 
 public class ConfigEntry implements HistoryEntry{
     private static final StringMap icons = StringMap.of(
@@ -50,34 +51,33 @@ public class ConfigEntry implements HistoryEntry{
     }
 
     @Override
-    public String getMessage(boolean admin){
+    public String getMessage(){
         if(block == Blocks.powerNode || block == Blocks.powerNodeLarge || block == Blocks.powerSource ||
            block == Blocks.powerVoid || block == Blocks.surgeTower || block == Blocks.phaseConduit || block == Blocks.phaseConveyor ||
            block == Blocks.bridgeConduit || block == Blocks.itemBridge || block == Blocks.massDriver){
             int data = (int)value;
             Tile tile = world.tile(data);
-            String pos = "x: " + tile.x + ", y: " + tile.y;
             if(connect){
-                return "[orange]~ [white]" + player.name + " [green]connected[white] this " + block.name + " to [purple]" + pos + "[white]";
+                return bundle.format("events.history.config.power-node.connect", player.name, block.name, tile.x, tile.y);
             }
 
-            return "[orange]~ [white]" + player.name + " [red]disconnected[white] this " + block.name + " from [purple]" + pos + "[white]";
-        }else if(block == Blocks.commandCenter){
-            return "[orange]~ [white]" + player.name + " commanded units to " + commands[((UnitCommand)value).ordinal()] + "[white]";
+            return bundle.format("events.history.config.power-node.disconnect", player.name, block.name, tile.x, tile.y);
+        }else if(block == Blocks.commandCenter){ // todo
+            return bundle.format("events.history.config.command-center", player.name, commands[((UnitCommand)value).ordinal()]);
         }else if(block == Blocks.liquidSource){
             Liquid liquid = (Liquid)value;
             if(liquid == null){
-                return "[orange]~ [white]" + player.name + " changed config to default";
+                return bundle.format("events.history.config.default", player.name);
             }
 
-            return "[orange]~ [white]" + player.name + " changed config to " + icons.get(liquid.name);
+            return bundle.format("events.history.config.liquid", player.name, icons.get(liquid.name));
         }else{
             Item item = (Item)value;
             if(item == null){
-                return "[orange]~ [white]" + player.name + " changed config to default";
+                return bundle.format("events.history.config.default", player.name);
             }
 
-            return "[orange]~ [white]" + player.name + " changed config to " + icons.get(item.name);
+            return bundle.format("events.history.config.item", player.name, icons.get(item.name));
         }
     }
 }

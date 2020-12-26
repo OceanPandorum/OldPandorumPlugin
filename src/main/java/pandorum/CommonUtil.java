@@ -49,9 +49,9 @@ public abstract class CommonUtil{
 
     public static Map findMap(String text){
         for(int i = 0; i < maps.all().size; i++){
-            Map m = maps.all().get(i);
-            if((Strings.canParseInt(text) && i == Strings.parseInt(text) - 1) || m.name().equals(text)){
-                return m;
+            Map map = maps.all().get(i);
+            if((Strings.canParseInt(text) && i == Strings.parseInt(text) - 1) || map.name().equals(text)){
+                return map;
             }
         }
         return null;
