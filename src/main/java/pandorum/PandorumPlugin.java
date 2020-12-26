@@ -3,19 +3,17 @@ package pandorum;
 import arc.Events;
 import arc.files.Fi;
 import arc.math.Mathf;
-import arc.struct.ObjectMap.Entry;
 import arc.struct.*;
+import arc.struct.ObjectMap.Entry;
 import arc.util.Timer;
 import arc.util.*;
 import arc.util.io.Streams;
 import com.google.gson.*;
-import com.google.gson.stream.*;
 import mindustry.Vars;
 import mindustry.content.*;
 import mindustry.core.*;
-import mindustry.entities.units.UnitCommand;
-import mindustry.game.*;
 import mindustry.game.EventType.*;
+import mindustry.game.Team;
 import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
 import mindustry.maps.Map;
@@ -25,7 +23,6 @@ import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
-import mindustry.world.blocks.units.CommandCenter;
 import pandorum.components.*;
 import pandorum.components.Config.PluginType;
 import pandorum.entry.*;
@@ -209,7 +206,7 @@ public class PandorumPlugin extends Plugin{
 
         Events.on(PlayerLeave.class, event -> {
             int cur = votes.size;
-            int req = (int) Math.ceil(config.voteRatio * Groups.player.size());
+            int req = (int)Math.ceil(config.voteRatio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
                 Call.sendMessage(bundle.format("commands.rtv.left", NetClient.colorizeName(event.player.id, event.player.name), cur - 1, req));
