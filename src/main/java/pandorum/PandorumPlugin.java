@@ -22,6 +22,7 @@ import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
 import pandorum.components.Config.PluginType;
@@ -141,7 +142,7 @@ public class PandorumPlugin extends Plugin{
         });
 
         Events.on(TapEvent.class, event -> {
-            if(activeHistoryPlayers.contains(event.player.uuid()) ){
+            if(activeHistoryPlayers.contains(event.player.uuid())){
                 LimitedDelayQueue<HistoryEntry> entries = worldHistory[event.tile.x][event.tile.y];
 
                 StringBuilder message = new StringBuilder(bundle.format("events.history.title", event.tile.x, event.tile.y));
@@ -788,5 +789,44 @@ public class PandorumPlugin extends Plugin{
                 Info.bundled(player, "commands.history.on");
             }
         });
+
+        if(config.type == PluginType.sandbox){
+            handler.<Player>register("fill", bundle.get("commands.fill.params"), bundle.get("commands.fill.description"), (args, player) -> {
+                if(!player.admin){
+                    Info.bundled(player, "commands.permission-denied");
+                    return;
+                }
+
+                if(!Strings.canParseInt(args[0])){
+                    Info.bundled(player, "commands.fill.incorrect-width");
+                    return;
+                }
+
+                if(!Strings.canParseInt(args[1])){
+                    Info.bundled(player, "commands.fill.incorrect-height");
+                    return;
+                }
+
+                int w = Mathf.clamp(Strings.parseInt(args[0]), 0, 5) + player.tileX();
+                int h = Mathf.clamp(Strings.parseInt(args[1]), 0, 5) + player.tileY();
+
+                Floor floor = (Floor)content.blocks().find(b -> b.isFloor() && b.name.equals(args[2]));
+                if(floor == null){
+                    Info.bundled(player, "commands.fill.incorrect-floor");
+                    return;
+                }
+
+                for(int i = player.tileX(); i < w; i++){
+                    for(int j = player.tileY(); j < h; j++){
+                        Call.setFloor(world.tile(i, j), floor, Blocks.air);
+                    }
+                }
+
+                Groups.player.each(p -> {
+                    Call.worldDataBegin(p.con);
+                    Vars.netServer.sendWorldData(p);
+                });
+            });
+        }
     }
 }
