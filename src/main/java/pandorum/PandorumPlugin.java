@@ -55,7 +55,7 @@ public class PandorumPlugin extends Plugin{
     private final Seq<IpInfo> forbiddenIps;
     private final Interval alertInterval = new Interval();
 
-    private LimitedQueue<HistoryEntry>[][] worldHistory;
+    private LimitedDelayQueue<HistoryEntry>[][] worldHistory;
 
     private final DateTimeFormatter formatter;
 
@@ -101,11 +101,11 @@ public class PandorumPlugin extends Plugin{
         // история
 
         Events.on(WorldLoadEvent.class, event -> {
-            worldHistory = new LimitedQueue[Vars.world.width()][Vars.world.height()];
+            worldHistory = new LimitedDelayQueue[Vars.world.width()][Vars.world.height()];
 
             for(int x = 0; x < Vars.world.width(); x++){
                 for(int y = 0; y < Vars.world.height(); y++){
-                    worldHistory[x][y] = new LimitedQueue<>(config.historyLimit);
+                    worldHistory[x][y] = new LimitedDelayQueue<>(config.historyLimit);
                 }
             }
         });
@@ -122,11 +122,12 @@ public class PandorumPlugin extends Plugin{
         Events.on(ConfigEvent.class, event -> {
             if(event.player == null) return;
 
-            LimitedQueue<HistoryEntry> entries = worldHistory[event.tile.tileX()][event.tile.tileY()];
+            LimitedDelayQueue<HistoryEntry> entries = worldHistory[event.tile.tileX()][event.tile.tileY()];
             boolean connect = true;
 
-            if(!entries.isEmpty() && entries.getLast() instanceof ConfigEntry){
-                ConfigEntry lastConfigEntry = ((ConfigEntry)entries.getLast());
+            HistoryEntry last = entries.poll();
+            if(!entries.isEmpty() && last instanceof ConfigEntry){
+                ConfigEntry lastConfigEntry = (ConfigEntry)last;
 
                 connect = !(lastConfigEntry.value instanceof Integer && (int)lastConfigEntry.value == (int)event.value && lastConfigEntry.connect);
             }
@@ -141,7 +142,7 @@ public class PandorumPlugin extends Plugin{
 
         Events.on(TapEvent.class, event -> {
             if(activeHistoryPlayers.contains(event.player.uuid()) ){
-                LimitedQueue<HistoryEntry> entries = worldHistory[event.tile.x][event.tile.y];
+                LimitedDelayQueue<HistoryEntry> entries = worldHistory[event.tile.x][event.tile.y];
 
                 StringBuilder message = new StringBuilder(bundle.format("events.history.title", event.tile.x, event.tile.y));
 
@@ -149,6 +150,7 @@ public class PandorumPlugin extends Plugin{
                     message.append(bundle.get("events.history.overflow"));
                 }
 
+                entries.poll();
                 for(HistoryEntry historyEntry : entries){
                     message.append("\n").append(historyEntry.getMessage());
                 }

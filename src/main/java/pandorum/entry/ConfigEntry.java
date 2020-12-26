@@ -1,12 +1,15 @@
 package pandorum.entry;
 
 import arc.struct.StringMap;
+import arc.util.*;
 import mindustry.content.Blocks;
 import mindustry.entities.units.UnitCommand;
 import mindustry.game.EventType.ConfigEvent;
 import mindustry.gen.Player;
 import mindustry.type.*;
 import mindustry.world.*;
+
+import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
 import static pandorum.PandorumPlugin.*;
@@ -45,6 +48,7 @@ public class ConfigEntry implements HistoryEntry{
     public Player player;
     public Block block;
     public Object value;
+    public long timestamp;
     public boolean connect;
 
     public ConfigEntry(ConfigEvent event, boolean connect){
@@ -52,6 +56,7 @@ public class ConfigEntry implements HistoryEntry{
         this.block = event.tile.block();
         this.value = event.value;
         this.connect = connect;
+        this.timestamp = System.currentTimeMillis() + 30000;
     }
 
     @Override
@@ -83,5 +88,18 @@ public class ConfigEntry implements HistoryEntry{
 
             return bundle.format("events.history.config.item", player.name, icons.get(item.name));
         }
+    }
+
+    @Override
+    public long getDelay(TimeUnit unit){
+        Log.info("req");
+        long diff = timestamp - System.currentTimeMillis();
+        return unit.convert(diff, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public int compareTo(Delayed o){
+        ConfigEntry e = (ConfigEntry)o;
+        return Long.compare(timestamp, e.timestamp);
     }
 }

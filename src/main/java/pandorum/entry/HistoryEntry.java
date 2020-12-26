@@ -1,6 +1,8 @@
 package pandorum.entry;
 
-public interface HistoryEntry{
+import java.util.concurrent.Delayed;
+
+public interface HistoryEntry extends Delayed{
 
     String getMessage();
 }
