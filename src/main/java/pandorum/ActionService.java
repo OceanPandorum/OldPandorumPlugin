@@ -29,11 +29,7 @@ public class ActionService{
     public static void get(AdminActionType type, String targetId, Cons<List<AdminAction>> cons){
         net.httpGet(
                 Strings.format("@/@/@", config.url, type, escape(targetId)),
-                res -> {
-                    String str = res.getResultAsString();
-                    Log.info(str);
-                    cons.get(gson.fromJson(str, array));
-                },
+                res -> cons.get(gson.fromJson(res.getResultAsString(), array)),
                 Log::err
         );
     }
