@@ -2,7 +2,7 @@ package pandorum.entry;
 
 import arc.util.Time;
 import mindustry.game.EventType.BlockBuildEndEvent;
-import mindustry.gen.Player;
+import mindustry.gen.*;
 import mindustry.world.Block;
 
 import java.util.concurrent.*;
@@ -10,13 +10,13 @@ import java.util.concurrent.*;
 import static pandorum.PandorumPlugin.*;
 
 public class BlockEntry implements HistoryEntry{
-    public final Player player;
+    public final Unit unit;
     public final Block block;
     public final boolean breaking;
     public final long timestamp;
 
     public BlockEntry(BlockBuildEndEvent event){
-        this.player = event.unit.getPlayer();
+        this.unit = event.unit;
         this.block = event.tile.block();
         this.breaking = event.breaking;
         this.timestamp = Time.millis() + config.expireDelay;
@@ -24,7 +24,13 @@ public class BlockEntry implements HistoryEntry{
 
     @Override
     public String getMessage(){
-        return breaking ? bundle.format("events.history.block.destroy", player.name) : bundle.format("events.history.block.construct", player.name, block.name);
+        if(breaking){
+            return unit.isPlayer() ? bundle.format("events.history.block.destroy.player", unit.getPlayer().name) :
+            bundle.format("events.history.block.destroy.unit", unit.type.name);
+        }
+
+        return unit.isPlayer() ? bundle.format("events.history.block.construct.player", unit.getPlayer().name, block.name) :
+        bundle.format("events.history.block.construct.unit", unit.type.name, block.name);
     }
 
     @Override
