@@ -8,9 +8,7 @@ import static pandorum.PandorumPlugin.bundle;
 
 public abstract class Info{
 
-    private Info(){
-        // Util class
-    }
+    private Info(){}
 
     public static void broadCast(Player player, String[] args){
         String text = Strings.format("\uE805@\uE805\n\n@\n", bundle.get("commands.admin.bc.text"), Strings.join(" ", args[1].split("\n"))); // ????

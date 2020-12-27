@@ -10,7 +10,7 @@ public class Config{
 
     public int historyLimit = 16;
 
-    public long expireDelay = 10800000; // 3 часа
+    public long expireDelay = 5400000; // 1.5 час
 
     public int hubPort = 8000;
 

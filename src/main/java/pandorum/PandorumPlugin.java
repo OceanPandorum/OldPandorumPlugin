@@ -37,7 +37,7 @@ import java.util.*;
 import static mindustry.Vars.*;
 
 @SuppressWarnings("unchecked")
-public class PandorumPlugin extends Plugin{
+public final class PandorumPlugin extends Plugin{
     public static VoteSession[] current = {null};
     public static Config config;
     public static Bundle bundle;
@@ -57,11 +57,10 @@ public class PandorumPlugin extends Plugin{
     private final Seq<IpInfo> forbiddenIps;
     private final Interval alertInterval = new Interval();
 
-    private LimitedDelayQueue<HistoryEntry>[][] worldHistory;
+    private LimitedDelayQueue<HistoryEntry>[][] history;
 
     private final DateTimeFormatter formatter;
 
-    private final Router router;
     private final ActionService actionService;
 
     public PandorumPlugin(){
@@ -73,7 +72,7 @@ public class PandorumPlugin extends Plugin{
         }
         config = gson.fromJson(cfg.reader(), Config.class);
         bundle = new Bundle();
-        router = new DefaultRouter();
+        Router router = new DefaultRouter();
         actionService = new ActionService(router);
         formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
                 .withLocale(Locale.forLanguageTag("ru"))
@@ -92,7 +91,7 @@ public class PandorumPlugin extends Plugin{
             List<AdminAction> actions = actionService.getActions(AdminActionType.mute, target.uuid());
             AdminAction action = !actions.isEmpty() ? actions.get(0) : null;
             if(action != null){
-                target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>"));
+                target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo
                 return null;
             }
 
@@ -117,12 +116,10 @@ public class PandorumPlugin extends Plugin{
         // история
 
         Events.on(WorldLoadEvent.class, event -> {
-            worldHistory = new LimitedDelayQueue[world.width()][world.height()];
+            history = new LimitedDelayQueue[world.width()][world.height()];
 
-            for(int x = 0; x < world.width(); x++){
-                for(int y = 0; y < world.height(); y++){
-                    worldHistory[x][y] = new LimitedDelayQueue<>(config.historyLimit);
-                }
+            for(Tile tile : world.tiles){
+                history[tile.x][tile.y] = new LimitedDelayQueue<>(config.historyLimit);
             }
         });
 
@@ -131,14 +128,14 @@ public class PandorumPlugin extends Plugin{
 
             Seq<Tile> linkedTile = event.tile.getLinkedTiles(new Seq<>());
             for(Tile tile : linkedTile){
-                worldHistory[tile.x][tile.y].add(historyEntry);
+                history[tile.x][tile.y].add(historyEntry);
             }
         });
 
         Events.on(ConfigEvent.class, event -> {
             if(event.player == null) return;
 
-            LimitedDelayQueue<HistoryEntry> entries = worldHistory[event.tile.tileX()][event.tile.tileY()];
+            LimitedDelayQueue<HistoryEntry> entries = history[event.tile.tileX()][event.tile.tileY()];
             boolean connect = true;
 
             HistoryEntry last = entries.poll();
@@ -152,13 +149,13 @@ public class PandorumPlugin extends Plugin{
 
             Seq<Tile> linkedTile = event.tile.tile.getLinkedTiles(new Seq<>());
             for(Tile tile : linkedTile){
-                worldHistory[tile.x][tile.y].add(entry);
+                history[tile.x][tile.y].add(entry);
             }
         });
 
         Events.on(TapEvent.class, event -> {
             if(activeHistoryPlayers.contains(event.player.uuid())){
-                LimitedDelayQueue<HistoryEntry> entries = worldHistory[event.tile.x][event.tile.y];
+                LimitedDelayQueue<HistoryEntry> entries = history[event.tile.x][event.tile.y];
 
                 StringBuilder message = new StringBuilder(bundle.format("events.history.title", event.tile.x, event.tile.y));
 
@@ -342,9 +339,9 @@ public class PandorumPlugin extends Plugin{
                     return;
                 }
 
-                int mouseX = Mathf.clamp(Mathf.round(player.mouseX / 8), 1, worldHistory.length);
-                int mouseY = Mathf.clamp(Mathf.round(player.mouseY / 8), 1, worldHistory.length);
-                Seq<HistoryEntry> entries = Seq.with(worldHistory[mouseX][mouseY]);
+                int mouseX = Mathf.clamp(Mathf.round(player.mouseX / 8), 1, history.length);
+                int mouseY = Mathf.clamp(Mathf.round(player.mouseY / 8), 1, history.length);
+                Seq<HistoryEntry> entries = Seq.with(history[mouseX][mouseY]);
                 int page = Strings.parseInt(args[0]);
                 int pages = Mathf.ceil((float)entries.size / 6);
 

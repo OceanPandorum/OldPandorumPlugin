@@ -7,6 +7,7 @@ import java.util.ResourceBundle;
 import static pandorum.PandorumPlugin.config;
 
 public class Bundle{
+
     private final ResourceBundle bundle;
 
     public Bundle(){
@@ -16,7 +17,7 @@ public class Bundle{
     public String get(String key){
         try{
             return bundle.getString(key);
-        }catch(Exception e){
+        }catch(Throwable t){
             return "???" + key + "???";
         }
     }
