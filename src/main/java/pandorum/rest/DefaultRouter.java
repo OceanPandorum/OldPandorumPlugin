@@ -23,11 +23,11 @@ public class DefaultRouter implements Router{
 
             if(method == HttpMethod.GET){
                 String queryString = "";
-                String value = serializeBody(request.body); // todo в RouteUtil перенести
+                String value = serializeBody(request.body()); // todo в RouteUtil перенести
                 if(value != null && !"".equals(value)) queryString = "?" + value;
-                url = new URL(Routes.BASE_URL + request.uri + queryString);
+                url = new URL(Routes.BASE_URL + request.uri() + queryString);
             }else{
-                url = new URL(Routes.BASE_URL + request.uri);
+                url = new URL(Routes.BASE_URL + request.uri());
             }
 
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
@@ -47,7 +47,7 @@ public class DefaultRouter implements Router{
             return asyncExecutor.submit(() -> {
                 try{
                     if(doingOutput){
-                        String contentAsString = serializeBody(request.body);
+                        String contentAsString = serializeBody(request.body());
                         if(contentAsString != null){
                             OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
                             try{

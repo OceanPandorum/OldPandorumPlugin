@@ -6,9 +6,9 @@ public class HttpRequest{
 
     private final Route route;
 
-    public final String uri;
+    private final String uri;
 
-    public Object body;
+    private Object body;
 
     private Map<String, String> headers;
 
