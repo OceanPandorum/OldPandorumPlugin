@@ -1,6 +1,5 @@
 package pandorum.rest;
 
-import arc.func.Cons;
 import arc.struct.*;
 import arc.util.io.Streams;
 

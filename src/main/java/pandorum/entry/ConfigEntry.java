@@ -90,6 +90,7 @@ public class ConfigEntry implements HistoryEntry{
         }
     }
 
+    @Override
     public long expire(){
         return timestamp;
     }

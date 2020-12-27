@@ -334,9 +334,38 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        handler.<Player>register("history", bundle.get("commands.history.description"), (args, player) -> {
+        handler.<Player>register("history", bundle.get("commands.history.params"), bundle.get("commands.history.description"), (args, player) -> {
             String uuid = player.uuid();
-            if(activeHistoryPlayers.contains(uuid)){
+            if(args.length > 0 && activeHistoryPlayers.contains(uuid)){
+                if(!Strings.canParseInt(args[0])){
+                    Info.bundled(player, "commands.page-not-int");
+                    return;
+                }
+
+                int mouseX = Mathf.clamp(Mathf.round(player.mouseX / 8), 1, worldHistory.length);
+                int mouseY = Mathf.clamp(Mathf.round(player.mouseY / 8), 1, worldHistory.length);
+                Seq<HistoryEntry> entries = Seq.with(worldHistory[mouseX][mouseY]);
+                int page = Strings.parseInt(args[0]);
+                int pages = Mathf.ceil((float)entries.size / 6);
+
+                page--;
+
+                if(page >= pages || page < 0){
+                    Info.bundled(player, "commands.under-page", pages);
+                    return;
+                }
+
+                StringBuilder result = new StringBuilder();
+                result.append(bundle.format("commands.history.page", mouseX, mouseY, page + 1, pages)).append("\n");
+
+                for(int i = 6 * page; i < Math.min(6 * (page + 1), entries.size); i++){
+                    HistoryEntry e = entries.get(i);
+
+                    result.append("\n").append(e.getMessage());
+                }
+                player.sendMessage(result.toString());
+
+            }else if(activeHistoryPlayers.contains(uuid)){
                 activeHistoryPlayers.remove(uuid);
                 Info.bundled(player, "commands.history.off");
             }else{

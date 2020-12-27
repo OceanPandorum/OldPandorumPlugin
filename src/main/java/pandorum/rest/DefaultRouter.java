@@ -24,7 +24,10 @@ public class DefaultRouter implements Router{
             if(method == HttpMethod.GET){
                 String queryString = "";
                 String value = serializeBody(request.body()); // todo в RouteUtil перенести
-                if(value != null && !"".equals(value)) queryString = "?" + value;
+                if(value != null && !value.isEmpty()){
+                    queryString = "?" + value;
+                }
+
                 url = new URL(Routes.BASE_URL + request.uri() + queryString);
             }else{
                 url = new URL(Routes.BASE_URL + request.uri());
