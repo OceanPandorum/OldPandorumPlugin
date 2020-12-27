@@ -6,7 +6,7 @@ public abstract class Routes{
 
     private Routes(){}
 
-    public static final Route BASE_URL = Route.get(config.url);
+    public static final String BASE_URL = config.url;
 
     public static final Route ACTIONS_GET = Route.get("/actions/{type}");
 

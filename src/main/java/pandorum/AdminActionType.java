@@ -1,5 +1,6 @@
 package pandorum;
 
 public enum AdminActionType{
-    ban
+    ban,
+    mute
 }
