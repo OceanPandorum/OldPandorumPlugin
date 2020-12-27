@@ -323,6 +323,7 @@ public class PandorumPlugin extends Plugin{
 
     @Override
     public void registerClientCommands(CommandHandler handler){
+
         handler.<Player>register("alert", bundle.get("commands.alert.description"), (args, player) -> {
             if(alertIgnores.contains(player.uuid())){
                 alertIgnores.remove(player.uuid());
@@ -330,6 +331,17 @@ public class PandorumPlugin extends Plugin{
             }else{
                 alertIgnores.add(player.uuid());
                 Info.bundled(player, "commands.alert.off");
+            }
+        });
+
+        handler.<Player>register("history", bundle.get("commands.history.description"), (args, player) -> {
+            String uuid = player.uuid();
+            if(activeHistoryPlayers.contains(uuid)){
+                activeHistoryPlayers.remove(uuid);
+                Info.bundled(player, "commands.history.off");
+            }else{
+                activeHistoryPlayers.add(uuid);
+                Info.bundled(player, "commands.history.on");
             }
         });
 
@@ -488,6 +500,45 @@ public class PandorumPlugin extends Plugin{
             });
         }
 
+        if(config.type == PluginType.sandbox){
+            handler.<Player>register("fill", bundle.get("commands.fill.params"), bundle.get("commands.fill.description"), (args, player) -> {
+                if(!player.admin){
+                    Info.bundled(player, "commands.permission-denied");
+                    return;
+                }
+
+                if(!Strings.canParseInt(args[0])){
+                    Info.bundled(player, "commands.fill.incorrect-width");
+                    return;
+                }
+
+                if(!Strings.canParseInt(args[1])){
+                    Info.bundled(player, "commands.fill.incorrect-height");
+                    return;
+                }
+
+                int w = Mathf.clamp(Strings.parseInt(args[0]), 0, 5) + player.tileX();
+                int h = Mathf.clamp(Strings.parseInt(args[1]), 0, 5) + player.tileY();
+
+                Floor floor = (Floor)content.blocks().find(b -> b.isFloor() && b.name.equals(args[2]));
+                if(floor == null){
+                    Info.bundled(player, "commands.fill.incorrect-floor");
+                    return;
+                }
+
+                for(int i = player.tileX(); i < w; i++){
+                    for(int j = player.tileY(); j < h; j++){
+                        Call.setFloor(world.tile(i, j), floor, Blocks.air);
+                    }
+                }
+
+                Groups.player.each(p -> {
+                    Call.worldDataBegin(p.con);
+                    Vars.netServer.sendWorldData(p);
+                });
+            });
+        }
+
         handler.<Player>register("pl", bundle.get("commands.pl.params"), bundle.get("commands.pl.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
                 Info.bundled(player, "commands.page-not-int");
@@ -519,7 +570,6 @@ public class PandorumPlugin extends Plugin{
             player.sendMessage(result.toString());
         });
 
-        // слегка переделанный rtv
         handler.<Player>register("rtv", bundle.get("commands.rtv.description"), (args, player) -> {
             if(player.uuid() != null && votes.contains(player.uuid())){
                 Info.bundled(player, "commands.already-voted");
@@ -540,7 +590,6 @@ public class PandorumPlugin extends Plugin{
             Events.fire(new GameOverEvent(Team.crux));
         });
 
-        //Отправка сообщения для всех в отдельном окне
         handler.<Player>register("bc", bundle.get("commands.admin.bc.params"), bundle.get("commands.admin.bc.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
@@ -555,7 +604,6 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        //Конец игры
         handler.<Player>register("go", bundle.get("commands.admin.go.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
@@ -564,7 +612,6 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        //Заспавнить юнитов
         handler.<Player>register("spawn", bundle.get("commands.admin.spawn.params"), bundle.get("commands.admin.spawn.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
@@ -600,7 +647,6 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        //Заспавнить ядро (попытка искоренить шнеки)
         handler.<Player>register("core", bundle.get("commands.admin.core.params"), bundle.get("commands.admin.core.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
@@ -618,10 +664,8 @@ public class PandorumPlugin extends Plugin{
             Info.bundled(player, player.tileOn().block() == core ? "commands.admin.core.success" : "commands.admin.core.failed");
         });
 
-        //Выход в Хаб
         handler.<Player>register("hub", bundle.get("commands.hub.description"), (args, player) -> Call.connect(player.con, config.hubIp, config.hubPort));
 
-        //cмена команды
         handler.<Player>register("team", bundle.get("commands.admin.team.params"), bundle.get("commands.admin.teamp.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
@@ -644,7 +688,6 @@ public class PandorumPlugin extends Plugin{
             target.team(team);
         });
 
-        //Спект режим ("Ваниш")
         handler.<Player>register("s", bundle.get("commands.admin.vanish.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
@@ -654,7 +697,6 @@ public class PandorumPlugin extends Plugin{
             }
         });
 
-        //Выдача предметов в ядро
         handler.<Player>register("give", bundle.get("commands.admin.give.params"), bundle.get("commands.admin.give.description"), (args, player) -> {
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
@@ -849,55 +891,5 @@ public class PandorumPlugin extends Plugin{
                 }
             }
         });
-
-        handler.<Player>register("history", bundle.get("commands.history.description"), (args, player) -> {
-            String uuid = player.uuid();
-            if(activeHistoryPlayers.contains(uuid)){
-                activeHistoryPlayers.remove(uuid);
-                Info.bundled(player, "commands.history.off");
-            }else{
-                activeHistoryPlayers.add(uuid);
-                Info.bundled(player, "commands.history.on");
-            }
-        });
-
-        if(config.type == PluginType.sandbox){
-            handler.<Player>register("fill", bundle.get("commands.fill.params"), bundle.get("commands.fill.description"), (args, player) -> {
-                if(!player.admin){
-                    Info.bundled(player, "commands.permission-denied");
-                    return;
-                }
-
-                if(!Strings.canParseInt(args[0])){
-                    Info.bundled(player, "commands.fill.incorrect-width");
-                    return;
-                }
-
-                if(!Strings.canParseInt(args[1])){
-                    Info.bundled(player, "commands.fill.incorrect-height");
-                    return;
-                }
-
-                int w = Mathf.clamp(Strings.parseInt(args[0]), 0, 5) + player.tileX();
-                int h = Mathf.clamp(Strings.parseInt(args[1]), 0, 5) + player.tileY();
-
-                Floor floor = (Floor)content.blocks().find(b -> b.isFloor() && b.name.equals(args[2]));
-                if(floor == null){
-                    Info.bundled(player, "commands.fill.incorrect-floor");
-                    return;
-                }
-
-                for(int i = player.tileX(); i < w; i++){
-                    for(int j = player.tileY(); j < h; j++){
-                        Call.setFloor(world.tile(i, j), floor, Blocks.air);
-                    }
-                }
-
-                Groups.player.each(p -> {
-                    Call.worldDataBegin(p.con);
-                    Vars.netServer.sendWorldData(p);
-                });
-            });
-        }
     }
 }
