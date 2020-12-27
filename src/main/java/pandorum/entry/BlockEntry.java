@@ -7,6 +7,7 @@ import mindustry.world.Block;
 
 import java.util.concurrent.*;
 
+import static pandorum.CommonUtil.colorizedName;
 import static pandorum.PandorumPlugin.*;
 
 public class BlockEntry implements HistoryEntry{
@@ -25,11 +26,11 @@ public class BlockEntry implements HistoryEntry{
     @Override
     public String getMessage(){
         if(breaking){
-            return unit.isPlayer() ? bundle.format("events.history.block.destroy.player", unit.getPlayer().name) :
+            return unit.isPlayer() ? bundle.format("events.history.block.destroy.player", colorizedName(unit.getPlayer())) :
             bundle.format("events.history.block.destroy.unit", unit.type.name);
         }
 
-        return unit.isPlayer() ? bundle.format("events.history.block.construct.player", unit.getPlayer().name, block.name) :
+        return unit.isPlayer() ? bundle.format("events.history.block.construct.player", colorizedName(unit.getPlayer()), block.name) :
         bundle.format("events.history.block.construct.unit", unit.type.name, block.name);
     }
 
