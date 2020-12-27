@@ -75,7 +75,9 @@ public class PandorumPlugin extends Plugin{
         bundle = new Bundle();
         router = new DefaultRouter();
         actionService = new ActionService(router);
-        formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss", Locale.forLanguageTag(config.locale));
+        formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
+                .withLocale(Locale.forLanguageTag("ru"))
+                .withZone(ZoneId.systemDefault());
         try{
             forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split("\n")).map(IpInfo::new);
         }catch(IOException e){
@@ -108,10 +110,10 @@ public class PandorumPlugin extends Plugin{
         // история
 
         Events.on(WorldLoadEvent.class, event -> {
-            worldHistory = new LimitedDelayQueue[Vars.world.width()][Vars.world.height()];
+            worldHistory = new LimitedDelayQueue[world.width()][world.height()];
 
-            for(int x = 0; x < Vars.world.width(); x++){
-                for(int y = 0; y < Vars.world.height(); y++){
+            for(int x = 0; x < world.width(); x++){
+                for(int y = 0; y < world.height(); y++){
                     worldHistory[x][y] = new LimitedDelayQueue<>(config.historyLimit);
                 }
             }
