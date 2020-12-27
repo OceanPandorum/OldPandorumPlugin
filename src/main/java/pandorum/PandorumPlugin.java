@@ -27,6 +27,7 @@ import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.components.*;
 import pandorum.components.Config.PluginType;
 import pandorum.entry.*;
+import pandorum.rest.*;
 
 import java.io.IOException;
 import java.time.*;
@@ -41,7 +42,7 @@ public class PandorumPlugin extends Plugin{
     public static Config config;
     public static Bundle bundle;
 
-    protected static final Gson gson = new GsonBuilder() // для моих нужд больше уже подойдёт джексон
+    public static final Gson gson = new GsonBuilder() // для моих нужд больше уже подойдёт джексон
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
             .registerTypeAdapter(Instant.class, new InstantTypeAdapter())
             .disableHtmlEscaping()
@@ -60,6 +61,9 @@ public class PandorumPlugin extends Plugin{
 
     private final DateTimeFormatter formatter;
 
+    private final Router router;
+    private final ActionService actionService;
+
     public PandorumPlugin(){
         Fi cfg = dataDirectory.child("config.json");
         if(!cfg.exists()){
@@ -69,6 +73,8 @@ public class PandorumPlugin extends Plugin{
         }
         config = gson.fromJson(cfg.reader(), Config.class);
         bundle = new Bundle();
+        router = new DefaultRouter();
+        actionService = new ActionService(router);
         formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss", Locale.forLanguageTag(config.locale));
         try{
             forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split("\n")).map(IpInfo::new);
@@ -177,12 +183,11 @@ public class PandorumPlugin extends Plugin{
             forbiddenIps.each(i -> i.matchIp(player.con.address), i -> player.con.kick(bundle.get("events.vpn-ip")));
 
             if(config.rest()){
-                ActionService.get(AdminActionType.ban, player.uuid(), actions -> {
-                    AdminAction action = actions.isEmpty() ? null : actions.get(0);
-                    if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
-                        action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
-                    }
-                });
+                List<AdminAction> actions = actionService.getActions(AdminActionType.ban, player.uuid());
+                AdminAction action = actions == null || actions.isEmpty() ? null : actions.get(0);
+                if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
+                    action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
+                }
             }
         });
 
@@ -256,16 +261,16 @@ public class PandorumPlugin extends Plugin{
         }
 
         if(config.rest()){
-            Timer.schedule(() -> ActionService.get(AdminActionType.ban, actions -> {
-                for(AdminAction a : actions){
-                    Log.debug(gson.toJson(a));
-                    if(a.endTimestamp() != null && Instant.now().isAfter(a.endTimestamp())){
-                        netServer.admins.unbanPlayerID(a.targetId());
-                        Log.info("Unbanned: @", a.targetId());
-                        ActionService.delete(AdminActionType.ban, a.targetId());
+            Timer.schedule(() -> {
+                actionService.getAllActions(AdminActionType.ban).forEach(action -> {
+                    Log.debug(gson.toJson(action));
+                    if(action.endTimestamp() != null && Instant.now().isAfter(action.endTimestamp())){
+                        netServer.admins.unbanPlayerID(action.targetId());
+                        Log.info("Unbanned: @", action.targetId());
+                        actionService.delete(AdminActionType.ban, action.targetId());
                     }
-                }
-            }), 5, 20);
+                });
+            }, 5, 20);
         }
     }
 
@@ -290,9 +295,9 @@ public class PandorumPlugin extends Plugin{
 
         if(config.rest()){
             handler.register("ban-sync", bundle.get("commands.ban-sync.description"), args -> {
-                ActionService.get(AdminActionType.ban, actions -> {
+                actionService.getAllActions(AdminActionType.ban).forEach(action -> {
                     int pre = netServer.admins.getBanned().size;
-                    actions.forEach(action -> netServer.admins.banPlayer(action.targetId()));
+                    netServer.admins.banPlayer(action.targetId());
                     Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
                 });
             });
@@ -359,7 +364,7 @@ public class PandorumPlugin extends Plugin{
                 action.timestamp(Instant.now());
                 action.endTimestamp(delay);
 
-                ActionService.save(action);
+                actionService.save(action);
                 if(netServer.admins.banPlayer(target.uuid())){
                     reason.ifPresentOrElse(target::kick, () -> target.kick(KickReason.banned));
                 }
@@ -374,7 +379,7 @@ public class PandorumPlugin extends Plugin{
                 if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
                     Info.bundled(player, "commands.admin.unban.successful");
                     PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
-                    ActionService.delete(AdminActionType.ban, target.id);
+                    actionService.delete(AdminActionType.ban, target.id);
                 }else{
                     Info.bundled(player, "commands.admin.unban.not-banned");
                 }

@@ -1,61 +1,47 @@
 package pandorum;
 
-import arc.Net.*;
-import arc.func.Cons;
-import arc.util.*;
 import com.google.gson.reflect.TypeToken;
+import pandorum.rest.*;
 
 import java.lang.reflect.Type;
 import java.util.*;
 
-import static arc.Core.net;
-import static pandorum.PandorumPlugin.*;
-
 public class ActionService{
-
-    private ActionService(){}
 
     public static final Type array = new TypeToken<List<AdminAction>>(){}.getType();
 
-    private static String escape(String str){
-        return str.replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll("\"", "&quot;")
-        .replaceAll("'", "&#x27;")
-        .replaceAll("/", "&#x2F;");
+    public static final Type single = new TypeToken<AdminAction>(){}.getType();
+
+    private final Router router;
+
+    public ActionService(Router router){
+        this.router = router;
     }
 
-    public static void get(AdminActionType type, String targetId, Cons<List<AdminAction>> cons){
-        net.httpGet(
-                Strings.format("@/@/@", config.url, type, escape(targetId)),
-                res -> cons.get(gson.fromJson(res.getResultAsString(), array)),
-                Log::err
-        );
+    public List<AdminAction> getActions(AdminActionType type, String targetId){ // todo в этом месте не должен быть массив, надо рефакторить
+        return Routes.ACTION_GET.newRequest(type, targetId)
+                .exchange(router)
+                .defaultValue(Collections.emptyList())
+                .bodyTo(array);
     }
 
-    public static void get(AdminActionType type, Cons<List<AdminAction>> cons){
-        net.httpGet(
-                Strings.format("@/@", config.url, type),
-                res -> cons.get(gson.fromJson(res.getResultAsString(), array)),
-                Log::err
-        );
+    public List<AdminAction> getAllActions(AdminActionType type){
+        return Routes.ACTIONS_GET.newRequest(type)
+                .exchange(router)
+                .defaultValue(Collections.emptyList())
+                .bodyTo(array);
     }
 
-    public static void delete(AdminActionType type, String targetId){
-        net.http(
-                new HttpRequest().method(HttpMethod.DELETE).url(Strings.format("@/@/@", config.url, type, targetId)),
-                res -> {/* no-op */},
-                Log::err
-        );
+    public void delete(AdminActionType type, String targetId){
+        Routes.ACTION_DELETE.newRequest(type, targetId)
+                .exchange(router);
     }
 
-    public static void save(AdminAction adminAction){
-        net.http(
-                new HttpRequest().method(HttpMethod.POST).content(gson.toJson(adminAction))
-                                 .header("Content-type", "application/json").url(config.url),
-                res -> Log.debug(res.getResultAsString()),
-                Log::err
-        );
+    public AdminAction save(AdminAction adminAction){
+        return Routes.ACTION_POST.newRequest()
+                .header("Content-type", "application/json")
+                .body(adminAction)
+                .exchange(router)
+                .bodyTo(single);
     }
 }
