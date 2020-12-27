@@ -17,7 +17,7 @@ public class DefaultRouter implements Router{
     @Override
     public HttpResponse exchange(HttpRequest request){
         try{
-            Log.info(gson.toJson(request));
+            Log.debug(gson.toJson(request));
             HttpMethod method = request.method();
             URL url;
 

@@ -1,7 +1,6 @@
 package pandorum.rest;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 public class HttpRequest{
 
