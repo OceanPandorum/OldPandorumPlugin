@@ -28,6 +28,7 @@ import pandorum.components.*;
 import pandorum.components.Config.PluginType;
 import pandorum.entry.*;
 import pandorum.rest.*;
+import pandorum.struct.LimitedDelayQueue;
 
 import java.io.IOException;
 import java.time.*;
@@ -223,7 +224,7 @@ public final class PandorumPlugin extends Plugin{
             int req = (int)Math.ceil(config.voteRatio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
-                Call.sendMessage(bundle.format("commands.rtv.left", NetClient.colorizeName(event.player.id, event.player.name), cur - 1, req));
+                Call.sendMessage(bundle.format("commands.rtv.left", CommonUtil.colorizedName(player), cur - 1, req));
             }
         });
 
@@ -293,7 +294,6 @@ public final class PandorumPlugin extends Plugin{
             Log.info(bundle.format("commands.tell.log", target.name(), args[1]));
         });
 
-        // на всякий
         handler.register("despw", bundle.get("commands.despw.description"), args -> {
             Groups.unit.each(Unit::kill);
             Log.info(bundle.get("commands.despw.log"));
@@ -509,7 +509,7 @@ public final class PandorumPlugin extends Plugin{
                 int req = (int)Math.ceil(config.voteRatio * players.size);
                 Call.sendMessage(bundle.format("commands.surrender.ok",
                                                Strings.format("[#@](@)[green]", team.color, team),
-                                               NetClient.colorizeName(player.id, player.name), cur, req));
+                                               CommonUtil.colorizedName(player), cur, req));
 
                 if(cur < req){
                     return;

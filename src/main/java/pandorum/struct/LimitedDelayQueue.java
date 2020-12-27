@@ -1,4 +1,4 @@
-package pandorum;
+package pandorum.struct;
 
 import java.util.concurrent.*;
 
