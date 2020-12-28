@@ -224,7 +224,7 @@ public final class PandorumPlugin extends Plugin{
             int req = (int)Math.ceil(config.voteRatio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
-                Call.sendMessage(bundle.format("commands.rtv.left", CommonUtil.colorizedName(player), cur - 1, req));
+                Call.sendMessage(bundle.format("commands.rtv.left", CommonUtil.colorizedName(event.player), cur - 1, req));
             }
         });
 
