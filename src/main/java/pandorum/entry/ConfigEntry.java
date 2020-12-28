@@ -73,6 +73,9 @@ public class ConfigEntry implements HistoryEntry{
             }
 
             return bundle.format("events.history.config.power-node.disconnect", colorizedName(player), block.name, tile.x, tile.y);
+        }else if(block == Blocks.switchBlock){
+            boolean data = (boolean)value;
+            return data ? bundle.format("events.history.config.switch.on", colorizedName(player)) : bundle.format("events.history.config.switch.off", colorizedName(player));
         }else if(block == Blocks.commandCenter){
             return bundle.format("events.history.config.command-center", colorizedName(player), commands[((UnitCommand)value).ordinal()]);
         }else if(block == Blocks.liquidSource){
@@ -82,7 +85,7 @@ public class ConfigEntry implements HistoryEntry{
             }
 
             return bundle.format("events.history.config.liquid", colorizedName(player), icons.get(liquid.name));
-        }else{
+        }else{ // todo
             Item item = (Item)value;
             if(item == null){
                 return bundle.format("events.history.config.default", colorizedName(player));
