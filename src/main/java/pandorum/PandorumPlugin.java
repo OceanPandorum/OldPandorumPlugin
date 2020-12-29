@@ -203,7 +203,7 @@ public final class PandorumPlugin extends Plugin{
             Player target = event.player;
             if(Objects.equals(building.block(), Blocks.thoriumReactor) && Objects.equals(event.item, Items.thorium) &&
                target.team().cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
-                Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.withdraw-thorium", target.name, building.tileX(), building.tileY())));
+                Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.withdraw-thorium", CommonUtil.colorizedName(target), building.tileX(), building.tileY())));
             }
         });
 
@@ -277,12 +277,18 @@ public final class PandorumPlugin extends Plugin{
                         actionService.delete(AdminActionType.ban, action.targetId());
                     }
                 });
-            }, 5, 20);
+            }, 5, 3600);
         }
     }
 
     @Override
     public void registerServerCommands(CommandHandler handler){
+
+        handler.register("reload-config", "reload configuration", args -> {
+            config = gson.fromJson(dataDirectory.child("config.json").readString(), Config.class);
+            Log.info("Reloaded");
+        });
+
         handler.register("tell", bundle.get("commands.tell.params"), bundle.get("commands.tell.description"), args -> {
             Player target = Groups.player.find(p -> p.name().equalsIgnoreCase(args[0]) || p.uuid().equalsIgnoreCase(args[0]));
             if(target == null){
@@ -313,7 +319,9 @@ public final class PandorumPlugin extends Plugin{
             Log.info("Kicks: @", netServer.admins.kickedIPs.isEmpty() ? "<none>" : "");
             for(Entry<String, Long> e : netServer.admins.kickedIPs){
                 PlayerInfo info = netServer.admins.findByIPs(e.key).first();
-                Log.info("  @ / ID: '@' / IP: '@' / END: @", info.lastName, info.id, info.lastIP, formatter.format(Instant.ofEpochMilli(e.value).atZone(ZoneId.systemDefault())));
+                Log.info("  @ / ID: '@' / IP: '@' / END: @",
+                         info.lastName, info.id, info.lastIP,
+                         formatter.format(Instant.ofEpochMilli(e.value).atZone(ZoneId.systemDefault())));
             }
         });
     }
@@ -360,8 +368,8 @@ public final class PandorumPlugin extends Plugin{
 
                     result.append("\n").append(e.getMessage());
                 }
-                player.sendMessage(result.toString());
 
+                player.sendMessage(result.toString());
             }else if(activeHistoryPlayers.contains(uuid)){
                 activeHistoryPlayers.remove(uuid);
                 Info.bundled(player, "commands.history.off");
@@ -605,7 +613,7 @@ public final class PandorumPlugin extends Plugin{
             votes.add(player.uuid());
             int cur = votes.size;
             int req = (int)Math.ceil(config.voteRatio * Groups.player.size());
-            Call.sendMessage(bundle.format("commands.rtv.ok", NetClient.colorizeName(player.id, player.name), cur, req));
+            Call.sendMessage(bundle.format("commands.rtv.ok", CommonUtil.colorizedName(player), cur, req));
 
             if(cur < req){
                 return;

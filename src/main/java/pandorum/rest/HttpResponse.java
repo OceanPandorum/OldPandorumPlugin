@@ -1,6 +1,7 @@
 package pandorum.rest;
 
 import arc.struct.*;
+import arc.util.Log;
 import arc.util.io.Streams;
 
 import java.io.*;
@@ -12,13 +13,18 @@ import static pandorum.PandorumPlugin.gson;
 
 @SuppressWarnings("unchecked")
 public class HttpResponse{
-    private final HttpURLConnection connection;
     private final HttpStatus status;
+    private HttpURLConnection connection;
     private Object defaultValue;
+
+    public HttpResponse(HttpStatus status){
+        this.status = status;
+    }
 
     public HttpResponse(HttpURLConnection connection) throws IOException{
         this.connection = connection;
         this.status = HttpStatus.byCode(connection.getResponseCode());
+        Log.info("> status @", status);
     }
 
     public HttpResponse defaultValue(Object defaultValue){
@@ -39,7 +45,7 @@ public class HttpResponse{
         }
 
         try{
-            return Streams.copyBytes(input, connection.getContentLength());
+            return Streams.copyBytes(input, getContentLength());
         }catch(IOException e){
             return Streams.EMPTY_BYTES;
         }finally{
@@ -55,7 +61,7 @@ public class HttpResponse{
         }
 
         try{
-            return Streams.copyString(input, connection.getContentLength());
+            return Streams.copyString(input, getContentLength());
         }catch(IOException e){
             return "";
         }finally{
@@ -71,26 +77,30 @@ public class HttpResponse{
         return status;
     }
 
-    public String getHeader(String name){
-        return connection.getHeaderField(name);
-    }
-
     public ObjectMap<String, Seq<String>> getHeaders(){
         ObjectMap<String, Seq<String>> out = new ObjectMap<>();
+        if(connection == null){
+            return out;
+        }
+
         Map<String, List<String>> fields = connection.getHeaderFields();
         for(String key : fields.keySet()){
             if(key != null){
-                out.put(key, Seq.with(fields.get(key).toArray(new String[0])));
+                out.put(key, Seq.with(fields.get(key)));
             }
         }
         return out;
     }
 
+    private int getContentLength(){
+        return connection != null ? connection.getContentLength() : 0;
+    }
+
     private InputStream getInputStream(){
         try{
             return connection.getInputStream();
-        }catch(IOException e){
-            return connection.getErrorStream();
+        }catch(Throwable t){
+            return connection != null ? connection.getErrorStream() : InputStream.nullInputStream();
         }
     }
 }

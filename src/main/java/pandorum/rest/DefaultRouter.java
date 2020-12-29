@@ -1,6 +1,6 @@
 package pandorum.rest;
 
-import arc.util.Log;
+import arc.util.*;
 import arc.util.io.Streams;
 import pandorum.async.AsyncExecutor;
 
@@ -10,7 +10,7 @@ import java.net.*;
 import static pandorum.PandorumPlugin.gson;
 
 public class DefaultRouter implements Router{
-    private static final int timeout = 4000;
+    private static final int timeout = 5000;
 
     private final AsyncExecutor asyncExecutor = new AsyncExecutor(6);
 
@@ -38,7 +38,7 @@ public class DefaultRouter implements Router{
             connection.setDoOutput(doingOutput);
             connection.setDoInput(true);
             connection.setRequestMethod(method.toString());
-            HttpURLConnection.setFollowRedirects(true);
+            HttpURLConnection.setFollowRedirects(false);
 
             if(request.getHeaders() != null){
                 request.getHeaders().forEach(connection::addRequestProperty);
@@ -70,15 +70,14 @@ public class DefaultRouter implements Router{
                     }
 
                 }catch(Throwable e){
-                    Log.err(e);
-                    return new HttpResponse(connection);
+                    return new HttpResponse(HttpStatus.byCode(connection.getResponseCode()));
                 }finally{
                     connection.disconnect();
                 }
             }).get();
-        }catch(Throwable e){
-            Log.err(e);
-            return null;
+        }catch(Throwable t){
+            Log.debug("NetException: @", Strings.neatError(t));
+            return new HttpResponse(HttpStatus.UNKNOWN_STATUS);
         }
     }
 
