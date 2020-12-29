@@ -181,7 +181,7 @@ public final class PandorumPlugin extends Plugin{
 
         //
 
-        Events.on(PlayerJoin.class, event -> forbiddenIps.each(i -> i.matchIp(player.con.address), i -> player.con.kick(bundle.get("events.vpn-ip"))));
+        Events.on(PlayerJoin.class, event -> forbiddenIps.each(i -> i.matchIp(player.con.address), i -> event.player.con.kick(bundle.get("events.vpn-ip"))));
 
         Events.on(PlayerConnect.class, event -> {
             Player player = event.player;
