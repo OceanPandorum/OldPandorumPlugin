@@ -88,16 +88,16 @@ public final class PandorumPlugin extends Plugin{
     @Override
     public void init(){
 
-        netServer.admins.addChatFilter((target, text) -> {
-            List<AdminAction> actions = actionService.getActions(AdminActionType.mute, target.uuid());
-            AdminAction action = !actions.isEmpty() ? actions.get(0) : null;
-            if(action != null){
-                target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo
-                return null;
-            }
-
-            return text;
-        });
+        // netServer.admins.addChatFilter((target, text) -> {
+        //     List<AdminAction> actions = actionService.getActions(AdminActionType.mute, target.uuid());
+        //     AdminAction action = !actions.isEmpty() ? actions.get(0) : null;
+        //     if(action != null){
+        //         target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo
+        //         return null;
+        //     }
+        //
+        //     return text;
+        // });
 
         netServer.admins.addChatFilter((target, text) -> {
             String lower = text.toLowerCase();
