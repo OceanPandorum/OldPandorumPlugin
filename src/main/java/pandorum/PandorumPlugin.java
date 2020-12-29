@@ -270,7 +270,6 @@ public final class PandorumPlugin extends Plugin{
         if(config.rest()){
             Timer.schedule(() -> {
                 actionService.getAllActions(AdminActionType.ban).forEach(action -> {
-                    Log.debug(gson.toJson(action));
                     if(action.endTimestamp() != null && Instant.now().isAfter(action.endTimestamp())){
                         netServer.admins.unbanPlayerID(action.targetId());
                         Log.info("Unbanned: @", action.targetId());
@@ -605,7 +604,7 @@ public final class PandorumPlugin extends Plugin{
         });
 
         handler.<Player>register("rtv", bundle.get("commands.rtv.description"), (args, player) -> {
-            if(player.uuid() != null && votes.contains(player.uuid())){
+            if(player.uuid() != null && votes.contains(player.uuid())){ // oh no а как а главное почему ююид может быть ничем
                 Info.bundled(player, "commands.already-voted");
                 return;
             }
@@ -619,7 +618,6 @@ public final class PandorumPlugin extends Plugin{
                 return;
             }
 
-            votes.clear();
             Call.sendMessage(bundle.get("commands.rtv.successful"));
             Events.fire(new GameOverEvent(Team.crux));
         });
