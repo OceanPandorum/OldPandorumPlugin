@@ -10,7 +10,7 @@ import java.net.*;
 import static pandorum.PandorumPlugin.gson;
 
 public class DefaultRouter implements Router{
-    private static final int timeout = 2000;
+    private static final int timeout = 1500;
 
     private final AsyncExecutor asyncExecutor = new AsyncExecutor(6);
 

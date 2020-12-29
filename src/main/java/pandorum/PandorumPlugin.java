@@ -181,13 +181,13 @@ public final class PandorumPlugin extends Plugin{
 
         //
 
+        Events.on(PlayerJoin.class, event -> forbiddenIps.each(i -> i.matchIp(player.con.address), i -> player.con.kick(bundle.get("events.vpn-ip"))));
+
         Events.on(PlayerConnect.class, event -> {
             Player player = event.player;
             if(config.bannedNames.contains(player.name())){
                 player.con.kick(bundle.get("events.unofficial-mindustry"), 60000);
             }
-
-            forbiddenIps.each(i -> i.matchIp(player.con.address), i -> player.con.kick(bundle.get("events.vpn-ip")));
 
             if(config.rest()){
                 List<AdminAction> actions = actionService.getActions(AdminActionType.ban, player.uuid());
@@ -276,7 +276,7 @@ public final class PandorumPlugin extends Plugin{
                         actionService.delete(AdminActionType.ban, action.targetId());
                     }
                 });
-            }, 5, 3600);
+            }, 10, 3600);
         }
     }
 
