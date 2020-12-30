@@ -136,7 +136,7 @@ public final class PandorumPlugin extends Plugin{
         Events.on(ConfigEvent.class, event -> {
             if(event.player == null) return;
 
-            Log.debug("@ > @", event.tile.block, event.value);
+            Log.debug("@ > @", event.tile.block, event.value instanceof byte[] ? Arrays.toString((byte[])event.value) : alertInterval);
             LimitedDelayQueue<HistoryEntry> entries = history[event.tile.tileX()][event.tile.tileY()];
             boolean connect = true;
 
@@ -425,6 +425,7 @@ public final class PandorumPlugin extends Plugin{
                 }
             });
 
+            //todo
             handler.<Player>register("mute", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.mute.description"), (args, player) -> {
                 if(!player.admin){
                     Info.bundled(player, "commands.permission-denied");

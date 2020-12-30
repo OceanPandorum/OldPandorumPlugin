@@ -1,20 +1,17 @@
 package pandorum.entry;
 
 import arc.struct.StringMap;
-import arc.util.*;
+import arc.util.Time;
 import mindustry.content.Blocks;
-import mindustry.core.NetClient;
-import mindustry.ctype.Content;
 import mindustry.entities.units.UnitCommand;
 import mindustry.game.EventType.ConfigEvent;
 import mindustry.gen.Player;
 import mindustry.type.*;
 import mindustry.world.*;
 
-import java.util.Arrays;
 import java.util.concurrent.*;
 
-import static mindustry.Vars.*;
+import static mindustry.Vars.world;
 import static pandorum.CommonUtil.colorizedName;
 import static pandorum.PandorumPlugin.*;
 
@@ -107,10 +104,6 @@ public class ConfigEntry implements HistoryEntry{
             }
 
             return bundle.format("events.history.config.item", colorizedName(player), icons.get(item.name));
-        }
-
-        if(value instanceof byte[]){
-            Log.info(Arrays.toString((byte[])value));
         }
 
         return bundle.get("events.history.unknown"); // ага да
