@@ -92,7 +92,7 @@ public final class PandorumPlugin extends Plugin{
         //     List<AdminAction> actions = actionService.getActions(AdminActionType.mute, target.uuid());
         //     AdminAction action = !actions.isEmpty() ? actions.get(0) : null;
         //     if(action != null){
-        //         target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo
+        //         target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo проседает тпс
         //         return null;
         //     }
         //
@@ -136,6 +136,7 @@ public final class PandorumPlugin extends Plugin{
         Events.on(ConfigEvent.class, event -> {
             if(event.player == null) return;
 
+            Log.debug("@ > @", event.tile.block, event.value);
             LimitedDelayQueue<HistoryEntry> entries = history[event.tile.tileX()][event.tile.tileY()];
             boolean connect = true;
 
@@ -143,7 +144,8 @@ public final class PandorumPlugin extends Plugin{
             if(!entries.isEmpty() && last instanceof ConfigEntry){
                 ConfigEntry lastConfigEntry = (ConfigEntry)last;
 
-                connect = !(lastConfigEntry.value instanceof Integer && (int)lastConfigEntry.value == (int)event.value && lastConfigEntry.connect);
+                connect = !(lastConfigEntry.value instanceof Integer && event.value instanceof Integer &&
+                            (int)lastConfigEntry.value == (int)event.value && lastConfigEntry.connect);
             }
 
             HistoryEntry entry = new ConfigEntry(event, connect);

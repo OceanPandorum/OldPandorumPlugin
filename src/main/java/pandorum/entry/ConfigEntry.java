@@ -1,15 +1,17 @@
 package pandorum.entry;
 
 import arc.struct.StringMap;
-import arc.util.Time;
+import arc.util.*;
 import mindustry.content.Blocks;
 import mindustry.core.NetClient;
+import mindustry.ctype.Content;
 import mindustry.entities.units.UnitCommand;
 import mindustry.game.EventType.ConfigEvent;
 import mindustry.gen.Player;
 import mindustry.type.*;
 import mindustry.world.*;
 
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
@@ -69,23 +71,36 @@ public class ConfigEntry implements HistoryEntry{
             int data = (int)value;
             Tile tile = world.tile(data);
             if(connect){
-                return bundle.format("events.history.config.power-node.connect", colorizedName(player), block.name, tile.x, tile.y);
+                return bundle.format("events.history.config.power-node.connect", colorizedName(player), block, tile.x, tile.y);
             }
 
-            return bundle.format("events.history.config.power-node.disconnect", colorizedName(player), block.name, tile.x, tile.y);
-        }else if(block == Blocks.switchBlock){
+            return bundle.format("events.history.config.power-node.disconnect", colorizedName(player), block, tile.x, tile.y);
+        }
+
+        if(block == Blocks.door || block == Blocks.doorLarge){
+            boolean data = (boolean)value;
+            return data ? bundle.format("events.history.config.door.on", colorizedName(player), block) : bundle.format("events.history.config.door.off", colorizedName(player), block);
+        }
+
+        if(block == Blocks.switchBlock){
             boolean data = (boolean)value;
             return data ? bundle.format("events.history.config.switch.on", colorizedName(player)) : bundle.format("events.history.config.switch.off", colorizedName(player));
-        }else if(block == Blocks.commandCenter){
+        }
+
+        if(block == Blocks.commandCenter){
             return bundle.format("events.history.config.command-center", colorizedName(player), commands[((UnitCommand)value).ordinal()]);
-        }else if(block == Blocks.liquidSource){
+        }
+
+        if(block == Blocks.liquidSource){
             Liquid liquid = (Liquid)value;
             if(liquid == null){
                 return bundle.format("events.history.config.default", colorizedName(player));
             }
 
             return bundle.format("events.history.config.liquid", colorizedName(player), icons.get(liquid.name));
-        }else{ // todo
+        }
+
+        if(block == Blocks.blockUnloader || block == Blocks.sorter || block == Blocks.invertedSorter || block == Blocks.itemSource){
             Item item = (Item)value;
             if(item == null){
                 return bundle.format("events.history.config.default", colorizedName(player));
@@ -93,6 +108,12 @@ public class ConfigEntry implements HistoryEntry{
 
             return bundle.format("events.history.config.item", colorizedName(player), icons.get(item.name));
         }
+
+        if(value instanceof byte[]){
+            Log.info(Arrays.toString((byte[])value));
+        }
+
+        return bundle.get("events.history.unknown"); // ага да
     }
 
     @Override
