@@ -190,8 +190,7 @@ public final class PandorumPlugin extends Plugin{
             }
 
             if(config.rest()){
-                List<AdminAction> actions = actionService.getActions(AdminActionType.ban, player.uuid());
-                AdminAction action = actions == null || actions.isEmpty() ? null : actions.get(0);
+                AdminAction action = actionService.getActions(AdminActionType.ban, player.uuid());
                 if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
                     action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
                 }

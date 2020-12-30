@@ -18,11 +18,10 @@ public class ActionService{
         this.router = router;
     }
 
-    public List<AdminAction> getActions(AdminActionType type, String targetId){ // todo в этом месте не должен быть массив, надо рефакторить
+    public AdminAction getActions(AdminActionType type, String targetId){
         return Routes.ACTION_GET.newRequest(type, targetId)
                 .exchange(router)
-                .defaultValue(Collections.emptyList())
-                .bodyTo(array);
+                .bodyTo(single);
     }
 
     public List<AdminAction> getAllActions(AdminActionType type){
