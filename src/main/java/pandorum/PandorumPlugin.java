@@ -307,11 +307,9 @@ public final class PandorumPlugin extends Plugin{
 
         if(config.rest()){
             handler.register("ban-sync", bundle.get("commands.ban-sync.description"), args -> {
-                actionService.getAllActions(AdminActionType.ban).forEach(action -> {
-                    int pre = netServer.admins.getBanned().size;
-                    netServer.admins.banPlayer(action.targetId());
-                    Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
-                });
+                int pre = netServer.admins.getBanned().size;
+                actionService.getAllActions(AdminActionType.ban).forEach(action -> netServer.admins.banPlayer(action.targetId()));
+                Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
             });
         }
 
