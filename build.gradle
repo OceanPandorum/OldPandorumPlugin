@@ -25,6 +25,6 @@ allprojects{
 }
 
 jar{
-    archiveFileName = "${project.archivesBaseName}-hub.jar"
+    archiveFileName = "PandorumHub.jar"
     from{configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}}
 }

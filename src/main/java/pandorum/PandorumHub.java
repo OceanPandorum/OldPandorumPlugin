@@ -103,6 +103,11 @@ public class PandorumHub extends Plugin{
             Log.info("threads: @", Thread.activeCount());
             Log.info("players: @", Core.settings.getInt("totalPlayers"));
         });
+
+        handler.register("reload-cfg", "Reload config.", args -> {
+            config = gson.fromJson(dataDirectory.child("config-hub.json").readString(), Config.class);
+            Log.info("Reloaded");
+        });
     }
 
     @Override
