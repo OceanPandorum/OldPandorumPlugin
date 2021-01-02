@@ -1,7 +1,6 @@
 package pandorum.rest;
 
 import arc.struct.*;
-import arc.util.Log;
 import arc.util.io.Streams;
 
 import java.io.*;
@@ -24,7 +23,6 @@ public class HttpResponse{
     public HttpResponse(HttpURLConnection connection) throws IOException{
         this.connection = connection;
         this.status = HttpStatus.byCode(connection.getResponseCode());
-        Log.info("> status @", status);
     }
 
     public HttpResponse defaultValue(Object defaultValue){
