@@ -389,16 +389,16 @@ public final class PandorumPlugin extends Plugin{
                     return;
                 }
 
-                Instant delay = CommonUtil.parseTime(args[1]);
-                if(delay == null){
-                    Info.bundled(player, "commands.admin.delay-not-int");
-                    return;
-                }
-
                 int id = Strings.parseInt(args[0]);
                 Player target = Groups.player.find(p -> p.id() == id);
                 if(target == null){
                     Info.bundled(player, "commands.player-not-found");
+                    return;
+                }
+
+                Instant delay = CommonUtil.parseTime(args[1]);
+                if(delay == null){
+                    Info.bundled(player, "commands.admin.delay-not-int");
                     return;
                 }
 
@@ -407,7 +407,7 @@ public final class PandorumPlugin extends Plugin{
                     return;
                 }
 
-                Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[0]) : Optional.empty();
+                Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[2]) : Optional.empty();
 
                 AdminAction action = new AdminAction();
                 action.targetId(target.uuid());
