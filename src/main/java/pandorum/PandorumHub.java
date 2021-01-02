@@ -28,7 +28,7 @@ public class PandorumHub extends Plugin{
 
     private final AtomicInteger allPlayers = new AtomicInteger();
     private final Func<Host, String> formatter = h -> Strings.format("\uE837 [accent]Online @", h.players);
-    private final String offline = "[red]Offline";
+    private final String offline = "[scarlet]Offline";
 
     private final Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
@@ -47,10 +47,10 @@ public class PandorumHub extends Plugin{
 
         Fi cfg = dataDirectory.child("config-hub.json");
         if(!cfg.exists()){
-            config = new Config();
-            cfg.writeString(gson.toJson(config));
+            cfg.writeString(gson.toJson(config = new Config()));
+        }else{
+            config = gson.fromJson(cfg.reader(), Config.class);
         }
-        config = gson.fromJson(cfg.reader(), Config.class);
     }
 
     public static void teleport(Player player, Tile tile){
@@ -99,6 +99,7 @@ public class PandorumHub extends Plugin{
 
     @Override
     public void registerServerCommands(CommandHandler handler){
+
         handler.register("stat", "Debug command", args -> {
             Log.info("threads: @", Thread.activeCount());
             Log.info("players: @", Core.settings.getInt("totalPlayers"));
@@ -112,6 +113,7 @@ public class PandorumHub extends Plugin{
 
     @Override
     public void registerClientCommands(CommandHandler handler){
+
         handler.<Player>register("bc", "<all/player> <text...>", "Broad cast", (args, player) -> {
             if(player.admin){
                 if(Strings.canParseInt(args[0])){
