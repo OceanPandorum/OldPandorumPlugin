@@ -1,16 +1,18 @@
 package pandorum.entry;
 
-import arc.util.Time;
+import arc.util.*;
 import mindustry.game.EventType.BlockBuildEndEvent;
 import mindustry.gen.*;
 import mindustry.world.Block;
+import pandorum.CommonUtil;
 
 import java.util.concurrent.*;
 
-import static pandorum.CommonUtil.colorizedName;
 import static pandorum.PandorumPlugin.*;
 
 public class BlockEntry implements HistoryEntry{
+    @Nullable
+    public final String name;
     public final Unit unit;
     public final Block block;
     public final boolean breaking;
@@ -18,6 +20,7 @@ public class BlockEntry implements HistoryEntry{
 
     public BlockEntry(BlockBuildEndEvent event){
         this.unit = event.unit;
+        this.name = unit.isPlayer() ? CommonUtil.colorizedName(unit.getPlayer()) : unit.controller() instanceof Player ? CommonUtil.colorizedName(unit.getPlayer()) : null;
         this.block = event.tile.block();
         this.breaking = event.breaking;
         this.timestamp = Time.millis() + config.expireDelay;
@@ -26,12 +29,12 @@ public class BlockEntry implements HistoryEntry{
     @Override
     public String getMessage(){
         if(breaking){
-            return unit.isPlayer() ? bundle.format("events.history.block.destroy.player", colorizedName(unit.getPlayer())) :
-            bundle.format("events.history.block.destroy.unit", unit.type.name);
+            return name != null ? bundle.format("events.history.block.destroy.player", name) :
+            bundle.format("events.history.block.destroy.unit", unit.type);
         }
 
-        return unit.isPlayer() ? bundle.format("events.history.block.construct.player", colorizedName(unit.getPlayer()), block.name) :
-        bundle.format("events.history.block.construct.unit", unit.type.name, block.name);
+        return name != null ? bundle.format("events.history.block.construct.player", name, block) :
+        bundle.format("events.history.block.construct.unit", unit.type, block);
     }
 
     @Override

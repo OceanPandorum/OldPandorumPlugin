@@ -10,7 +10,8 @@ public class Config{
 
     public int historyLimit = 16;
 
-    public long expireDelay = 5400000; // 1.5 час
+    /** Время через которое запись в истории тайла будет удалена. По умолчанию 30 минут. Записывается в миллисекундах */
+    public long expireDelay = 1800000;
 
     public int hubPort = 8000;
 
@@ -30,7 +31,7 @@ public class Config{
     );
 
     public boolean rest(){
-        return url != null;
+        return url != null && !url.isEmpty();
     }
 
     public enum PluginType{

@@ -1,13 +1,14 @@
 package pandorum.entry;
 
 import arc.struct.StringMap;
-import arc.util.Time;
+import arc.util.*;
 import mindustry.content.Blocks;
 import mindustry.entities.units.UnitCommand;
 import mindustry.game.EventType.ConfigEvent;
 import mindustry.gen.Player;
 import mindustry.type.*;
 import mindustry.world.*;
+import pandorum.CommonUtil;
 
 import java.util.concurrent.*;
 
@@ -46,14 +47,14 @@ public class ConfigEntry implements HistoryEntry{
         commands = bundle.get("events.history.config.command-center.all").split(", ");
     }
 
-    public final Player player;
+    public final String name;
     public final Block block;
     public final Object value;
     public final long timestamp;
     public final boolean connect;
 
     public ConfigEntry(ConfigEvent event, boolean connect){
-        this.player = event.player;
+        this.name = CommonUtil.colorizedName(event.player);
         this.block = event.tile.block();
         this.value = event.value;
         this.connect = connect;
@@ -68,42 +69,42 @@ public class ConfigEntry implements HistoryEntry{
             int data = (int)value;
             Tile tile = world.tile(data);
             if(connect){
-                return bundle.format("events.history.config.power-node.connect", colorizedName(player), block, tile.x, tile.y);
+                return bundle.format("events.history.config.power-node.connect", name, block, tile.x, tile.y);
             }
 
-            return bundle.format("events.history.config.power-node.disconnect", colorizedName(player), block, tile.x, tile.y);
+            return bundle.format("events.history.config.power-node.disconnect", name, block, tile.x, tile.y);
         }
 
         if(block == Blocks.door || block == Blocks.doorLarge){
             boolean data = (boolean)value;
-            return data ? bundle.format("events.history.config.door.on", colorizedName(player), block) : bundle.format("events.history.config.door.off", colorizedName(player), block);
+            return data ? bundle.format("events.history.config.door.on", name, block) : bundle.format("events.history.config.door.off", name, block);
         }
 
         if(block == Blocks.switchBlock){
             boolean data = (boolean)value;
-            return data ? bundle.format("events.history.config.switch.on", colorizedName(player)) : bundle.format("events.history.config.switch.off", colorizedName(player));
+            return data ? bundle.format("events.history.config.switch.on", name) : bundle.format("events.history.config.switch.off", name);
         }
 
         if(block == Blocks.commandCenter){
-            return bundle.format("events.history.config.command-center", colorizedName(player), commands[((UnitCommand)value).ordinal()]);
+            return bundle.format("events.history.config.command-center", name, commands[((UnitCommand)value).ordinal()]);
         }
 
         if(block == Blocks.liquidSource){
             Liquid liquid = (Liquid)value;
             if(liquid == null){
-                return bundle.format("events.history.config.default", colorizedName(player));
+                return bundle.format("events.history.config.default", name);
             }
 
-            return bundle.format("events.history.config.liquid", colorizedName(player), icons.get(liquid.name));
+            return bundle.format("events.history.config.liquid", name, icons.get(liquid.name));
         }
 
         if(block == Blocks.blockUnloader || block == Blocks.sorter || block == Blocks.invertedSorter || block == Blocks.itemSource){
             Item item = (Item)value;
             if(item == null){
-                return bundle.format("events.history.config.default", colorizedName(player));
+                return bundle.format("events.history.config.default", name);
             }
 
-            return bundle.format("events.history.config.item", colorizedName(player), icons.get(item.name));
+            return bundle.format("events.history.config.item", name, icons.get(item.name));
         }
 
         return bundle.get("events.history.unknown"); // ага да

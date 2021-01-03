@@ -67,11 +67,12 @@ public final class PandorumPlugin extends Plugin{
     public PandorumPlugin(){
         Fi cfg = dataDirectory.child("config.json");
         if(!cfg.exists()){
-            config = new Config();
-            cfg.writeString(gson.toJson(config));
+            cfg.writeString(gson.toJson(config = new Config()));
             Log.info("Config created...");
+        }else{
+          config = gson.fromJson(cfg.reader(), Config.class);
         }
-        config = gson.fromJson(cfg.reader(), Config.class);
+
         bundle = new Bundle();
         Router router = new DefaultRouter();
         actionService = new ActionService(router);
