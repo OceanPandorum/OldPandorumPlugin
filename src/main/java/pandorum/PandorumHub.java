@@ -26,13 +26,15 @@ import static mindustry.game.EventType.ServerLoadEvent;
 public class PandorumHub extends Plugin{
     public static Config config;
 
-    private final AtomicInteger allPlayers = new AtomicInteger();
+    private final AtomicInteger counter = new AtomicInteger();
     private final Func<Host, String> formatter = h -> Strings.format("\uE837 [accent]Online @", h.players);
     private final String offline = "[scarlet]Offline";
 
     private final Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
             .setPrettyPrinting()
+            .serializeNulls()
+            .disableHtmlEscaping()
             .create();
 
     public static ExecutorService executor = Executors.newCachedThreadPool();
@@ -48,6 +50,7 @@ public class PandorumHub extends Plugin{
         Fi cfg = dataDirectory.child("config-hub.json");
         if(!cfg.exists()){
             cfg.writeString(gson.toJson(config = new Config()));
+            Log.info("Config created...");
         }else{
             config = gson.fromJson(cfg.reader(), Config.class);
         }
@@ -84,15 +87,14 @@ public class PandorumHub extends Plugin{
         Timer.schedule(() -> {
             for(HostData h : config.servers){
                 net.pingHost(h.ip, h.port, host -> {
-                    allPlayers.addAndGet(host.players);
+                    counter.addAndGet(host.players);
                     Call.label(formatter.get(host), 10, h.labelX, h.labelY);
                 }, e -> Call.label(offline, 10, h.labelX, h.labelY));
             }
 
             Timer.schedule(() -> {
-                Log.debug("all: @", allPlayers.get());
-                Core.settings.put("totalPlayers", allPlayers.get());
-                allPlayers.set(0);
+                Core.settings.put("totalPlayers", counter.get());
+                counter.set(0);
             }, 3);
         }, 3, 10);
     }

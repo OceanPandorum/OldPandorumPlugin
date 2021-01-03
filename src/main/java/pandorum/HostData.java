@@ -3,6 +3,7 @@ package pandorum;
 public class HostData{
     public String ip = "pandorum.su";
     public int port;
+    public int size = 3;
 
     public int teleportX;
     public int teleportY;
@@ -25,7 +26,7 @@ public class HostData{
     }
 
     public boolean teleport(int x, int y){
-        return x <= this.teleportX + 3 && x >= this.teleportX &&
-               y >= this.teleportY && y <= this.teleportY + 3;
+        return x <= teleportX + size && x >= teleportX &&
+               y >= teleportY && y <= teleportY + size;
     }
 }
