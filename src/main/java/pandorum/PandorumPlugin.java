@@ -89,16 +89,20 @@ public final class PandorumPlugin extends Plugin{
     @Override
     public void init(){
 
-        // netServer.admins.addChatFilter((target, text) -> {
-        //     List<AdminAction> actions = actionService.getActions(AdminActionType.mute, target.uuid());
-        //     AdminAction action = !actions.isEmpty() ? actions.get(0) : null;
-        //     if(action != null){
-        //         target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo проседает тпс
-        //         return null;
-        //     }
-        //
-        //     return text;
-        // });
+/* TODO
+
+         netServer.admins.addChatFilter((target, text) -> {
+             List<AdminAction> actions = actionService.getActions(AdminActionType.mute, target.uuid());
+             AdminAction action = !actions.isEmpty() ? actions.get(0) : null;
+             if(action != null){
+                 target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo проседает тпс
+                 return null;
+             }
+
+             return text;
+         });
+
+ */
 
         netServer.admins.addChatFilter((target, text) -> {
             String lower = text.toLowerCase();
@@ -425,63 +429,66 @@ public final class PandorumPlugin extends Plugin{
                 }
             });
 
-            //todo
-            // handler.<Player>register("mute", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.mute.description"), (args, player) -> {
-            //     if(!player.admin){
-            //         Info.bundled(player, "commands.permission-denied");
-            //         return;
-            //     }
-            //
-            //     if(!Strings.canParseInt(args[0])){
-            //         Info.bundled(player, "commands.id-not-int");
-            //         return;
-            //     }
-            //
-            //     Instant delay = CommonUtil.parseTime(args[1]);
-            //     if(delay == null){
-            //         Info.bundled(player, "commands.admin.delay-not-int");
-            //         return;
-            //     }
-            //
-            //     int id = Strings.parseInt(args[0]);
-            //     Player target = Groups.player.find(p -> p.id() == id);
-            //     if(target == null){
-            //         Info.bundled(player, "commands.player-not-found");
-            //         return;
-            //     }
-            //
-            //     if(Objects.equals(target, player) || target.admin()){
-            //         Info.bundled(player, "commands.not-allowed-target");
-            //         return;
-            //     }
-            //
-            //     Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[0]) : Optional.empty();
-            //
-            //     AdminAction action = new AdminAction();
-            //     action.targetId(target.uuid());
-            //     action.adminId(player.uuid());
-            //     action.type(AdminActionType.mute);
-            //     reason.ifPresent(action::reason);
-            //     action.timestamp(Instant.now());
-            //     action.endTimestamp(delay);
-            //
-            //     actionService.save(action);
-            // });
+ /* TODO
 
-            // handler.<Player>register("unmute", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unmute.description"), (args, player) -> {
-            //     if(!player.admin){
-            //         Info.bundled(player, "commands.permission-denied");
-            //         return;
-            //     }
-            //
-            //     if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
-            //         Info.bundled(player, "commands.admin.unmute.successful");
-            //         PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
-            //         actionService.delete(AdminActionType.mute, target.id);
-            //     }else{
-            //         Info.bundled(player, "commands.admin.unban.not-banned");
-            //     }
-            // });
+             handler.<Player>register("mute", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.mute.description"), (args, player) -> {
+                 if(!player.admin){
+                     Info.bundled(player, "commands.permission-denied");
+                     return;
+                 }
+
+                 if(!Strings.canParseInt(args[0])){
+                     Info.bundled(player, "commands.id-not-int");
+                     return;
+                 }
+
+                 Instant delay = CommonUtil.parseTime(args[1]);
+                 if(delay == null){
+                     Info.bundled(player, "commands.admin.delay-not-int");
+                     return;
+                 }
+
+                 int id = Strings.parseInt(args[0]);
+                 Player target = Groups.player.find(p -> p.id() == id);
+                 if(target == null){
+                     Info.bundled(player, "commands.player-not-found");
+                     return;
+                 }
+
+                 if(Objects.equals(target, player) || target.admin()){
+                     Info.bundled(player, "commands.not-allowed-target");
+                     return;
+                 }
+
+                 Optional<String> reason = args.length > 2 ? Optional.ofNullable(args[0]) : Optional.empty();
+
+                 AdminAction action = new AdminAction();
+                 action.targetId(target.uuid());
+                 action.adminId(player.uuid());
+                 action.type(AdminActionType.mute);
+                 reason.ifPresent(action::reason);
+                 action.timestamp(Instant.now());
+                 action.endTimestamp(delay);
+
+                 actionService.save(action);
+             });
+
+             handler.<Player>register("unmute", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unmute.description"), (args, player) -> {
+                 if(!player.admin){
+                     Info.bundled(player, "commands.permission-denied");
+                     return;
+                 }
+
+                 if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
+                     Info.bundled(player, "commands.admin.unmute.successful");
+                     PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
+                     actionService.delete(AdminActionType.mute, target.id);
+                 }else{
+                     Info.bundled(player, "commands.admin.unban.not-banned");
+                 }
+             });
+
+*/
 
             handler.<Player>register("unban", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unban.description"), (args, player) -> {
                 if(!player.admin){
