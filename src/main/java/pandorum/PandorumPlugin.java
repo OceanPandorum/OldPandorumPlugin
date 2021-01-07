@@ -1,6 +1,6 @@
 package pandorum;
 
-import arc.Events;
+import arc.*;
 import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.*;
@@ -24,6 +24,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
+import pandorum.async.AsyncExecutor;
 import pandorum.components.*;
 import pandorum.components.Config.PluginType;
 import pandorum.entry.*;
@@ -61,7 +62,7 @@ public final class PandorumPlugin extends Plugin{
     private LimitedDelayQueue<HistoryEntry>[][] history;
 
     private final DateTimeFormatter formatter;
-
+    private final AsyncExecutor executor = new AsyncExecutor(2);
     private final ActionService actionService;
 
     public PandorumPlugin(){
@@ -194,10 +195,12 @@ public final class PandorumPlugin extends Plugin{
             }
 
             if(config.rest()){
-                AdminAction action = actionService.getActions(AdminActionType.ban, player.uuid());
-                if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
-                    action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
-                }
+                executor.submit(() -> {
+                    AdminAction action = actionService.getActions(AdminActionType.ban, player.uuid());
+                    if(action != null && action.endTimestamp() != null && !Instant.now().isAfter(action.endTimestamp())){
+                        action.reason().ifPresentOrElse(player::kick, () -> player.kick(KickReason.banned));
+                    }
+                });
             }
         });
 
