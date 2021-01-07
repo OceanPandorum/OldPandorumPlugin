@@ -143,7 +143,7 @@ public final class PandorumPlugin extends Plugin{
             if(event.player == null) return;
             if(event.tile.tileX() > world.width() || event.tile.tileX() > world.height()) return;
 
-            Log.debug("@ > @", event.tile.block, event.value instanceof byte[] ? Arrays.toString((byte[])event.value) : alertInterval);
+            Log.debug("@ > @", event.tile.block, event.value instanceof byte[] ? Arrays.toString((byte[])event.value) : event.value);
             LimitedDelayQueue<HistoryEntry> entries = history[event.tile.tileX()][event.tile.tileY()];
             boolean connect = true;
 
