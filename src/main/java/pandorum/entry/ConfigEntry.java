@@ -1,11 +1,11 @@
 package pandorum.entry;
 
 import arc.struct.StringMap;
-import arc.util.*;
+import arc.util.Time;
 import mindustry.content.Blocks;
 import mindustry.entities.units.UnitCommand;
 import mindustry.game.EventType.ConfigEvent;
-import mindustry.gen.Player;
+import mindustry.gen.Groups;
 import mindustry.type.*;
 import mindustry.world.*;
 import pandorum.CommonUtil;
@@ -13,7 +13,6 @@ import pandorum.CommonUtil;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.world;
-import static pandorum.CommonUtil.colorizedName;
 import static pandorum.PandorumPlugin.*;
 
 public class ConfigEntry implements HistoryEntry{
@@ -54,7 +53,7 @@ public class ConfigEntry implements HistoryEntry{
     public final boolean connect;
 
     public ConfigEntry(ConfigEvent event, boolean connect){
-        this.name = CommonUtil.colorizedName(event.player);
+        this.name = Groups.player.contains(p -> event.player == p) ? CommonUtil.colorizedName(event.player) : bundle.get("events.unknown");
         this.block = event.tile.block();
         this.value = event.value;
         this.connect = connect;

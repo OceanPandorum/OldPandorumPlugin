@@ -9,7 +9,7 @@ import static mindustry.Vars.netServer;
 import static pandorum.PandorumPlugin.config;
 
 public abstract class VoteSession{
-    protected static final float voteDuration = 60f;
+    protected static final float voteDuration = 75f;
 
     protected ObjectSet<String> voted = new ObjectSet<>();
     protected VoteSession[] map;
