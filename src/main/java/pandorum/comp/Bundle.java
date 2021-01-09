@@ -1,4 +1,4 @@
-package pandorum.components;
+package pandorum.comp;
 
 import java.text.MessageFormat;
 import java.util.Locale;

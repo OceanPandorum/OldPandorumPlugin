@@ -1,4 +1,4 @@
-package pandorum.components;
+package pandorum.comp;
 
 import arc.util.Timer;
 import arc.util.Timer.Task;

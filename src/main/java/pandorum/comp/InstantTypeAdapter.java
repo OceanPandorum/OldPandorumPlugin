@@ -1,4 +1,4 @@
-package pandorum.components;
+package pandorum.comp;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.*;

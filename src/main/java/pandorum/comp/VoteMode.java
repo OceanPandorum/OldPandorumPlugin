@@ -1,4 +1,4 @@
-package pandorum.components;
+package pandorum.comp;
 
 public enum VoteMode{
     map,

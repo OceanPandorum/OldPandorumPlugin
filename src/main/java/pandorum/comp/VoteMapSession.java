@@ -1,4 +1,4 @@
-package pandorum.components;
+package pandorum.comp;
 
 import arc.util.*;
 import arc.util.Timer.Task;
@@ -6,7 +6,6 @@ import mindustry.game.Gamemode;
 import mindustry.gen.*;
 import mindustry.maps.*;
 import mindustry.net.WorldReloader;
-import pandorum.PandorumPlugin;
 
 import static mindustry.Vars.*;
 import static pandorum.PandorumPlugin.*;

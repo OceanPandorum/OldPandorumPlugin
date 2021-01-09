@@ -1,4 +1,4 @@
-package pandorum.components;
+package pandorum.comp;
 
 import arc.struct.ObjectSet;
 import arc.util.*;

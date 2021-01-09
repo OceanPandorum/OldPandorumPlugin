@@ -25,8 +25,8 @@ import mindustry.world.*;
 import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.async.AsyncExecutor;
-import pandorum.components.*;
-import pandorum.components.Config.PluginType;
+import pandorum.comp.*;
+import pandorum.comp.Config.PluginType;
 import pandorum.entry.*;
 import pandorum.rest.*;
 import pandorum.struct.LimitedDelayQueue;
@@ -90,9 +90,7 @@ public final class PandorumPlugin extends Plugin{
     @Override
     public void init(){
 
-/* TODO
-
-         netServer.admins.addChatFilter((target, text) -> {
+        /*netServer.admins.addChatFilter((target, text) -> {
              List<AdminAction> actions = actionService.getActions(AdminActionType.mute, target.uuid());
              AdminAction action = !actions.isEmpty() ? actions.get(0) : null;
              if(action != null){
@@ -101,9 +99,7 @@ public final class PandorumPlugin extends Plugin{
              }
 
              return text;
-         });
-
- */
+         });*/
 
         netServer.admins.addChatFilter((target, text) -> {
             String lower = text.toLowerCase();
