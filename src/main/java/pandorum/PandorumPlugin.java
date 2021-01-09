@@ -534,7 +534,7 @@ public final class PandorumPlugin extends Plugin{
 
                 surrendered.remove(team);
                 Call.sendMessage(bundle.format("commands.surrender.successful", Strings.format("[#@]@[green]", team.color, team)));
-                players.each(p -> p.unit().kill());
+                players.map(Player::unit).each(u -> Time.run(Mathf.random(360), u::kill));
                 for(Tile tile : world.tiles){
                     if(tile.build != null && Objects.equals(tile.team(), team)){
                         Time.run(Mathf.random(360), tile.build::kill);

@@ -98,7 +98,7 @@ public class ConfigEntry implements HistoryEntry{
             return bundle.format("events.history.config.liquid", name, icons.get(liquid.name));
         }
 
-        if(block == Blocks.blockUnloader || block == Blocks.sorter || block == Blocks.invertedSorter || block == Blocks.itemSource){
+        if(block == Blocks.unloader || block == Blocks.sorter || block == Blocks.invertedSorter || block == Blocks.itemSource){
             Item item = (Item)value;
             if(item == null){
                 return bundle.format("events.history.config.default", name);
