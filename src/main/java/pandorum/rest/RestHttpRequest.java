@@ -2,7 +2,7 @@ package pandorum.rest;
 
 import java.util.*;
 
-public class HttpRequest{
+public class RestHttpRequest{
 
     private final Route route;
 
@@ -12,7 +12,7 @@ public class HttpRequest{
 
     private Map<String, String> headers;
 
-    public HttpRequest(Route route, Object... uriVars){
+    public RestHttpRequest(Route route, Object... uriVars){
         this.route = route;
         this.uri = RouteUtil.expand(route.uriTemplate, uriVars);
     }
@@ -34,15 +34,18 @@ public class HttpRequest{
     }
 
     public Map<String, String> getHeaders(){
+        if(headers == null){
+            headers = new LinkedHashMap<>();
+        }
         return headers;
     }
 
-    public HttpRequest body(Object body){
+    public RestHttpRequest body(Object body){
         this.body = body;
         return this;
     }
 
-    public HttpRequest header(String key, String value){
+    public RestHttpRequest header(String key, String value){
         if(headers == null){
             headers = new LinkedHashMap<>();
         }
@@ -50,11 +53,11 @@ public class HttpRequest{
         return this;
     }
 
-    public HttpRequest optionalHeader(String key, String value){
+    public RestHttpRequest optionalHeader(String key, String value){
         return value == null ? this : header(key, value);
     }
 
-    public HttpResponse exchange(Router router){
+    public RestHttpResponse exchange(Router router){
         return router.exchange(this);
     }
 

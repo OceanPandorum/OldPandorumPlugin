@@ -71,11 +71,11 @@ public final class PandorumPlugin extends Plugin{
             cfg.writeString(gson.toJson(config = new Config()));
             Log.info("Config created...");
         }else{
-          config = gson.fromJson(cfg.reader(), Config.class);
+            config = gson.fromJson(cfg.reader(), Config.class);
         }
 
         bundle = new Bundle();
-        Router router = new DefaultRouter();
+        Router router = new ForwardRouter();
         actionService = new ActionService(router);
         formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
                 .withLocale(Locale.forLanguageTag("ru"))
@@ -312,9 +312,11 @@ public final class PandorumPlugin extends Plugin{
 
         if(config.rest()){
             handler.register("ban-sync", bundle.get("commands.ban-sync.description"), args -> {
-                int pre = netServer.admins.getBanned().size;
-                actionService.getAllActions(AdminActionType.ban).forEach(action -> netServer.admins.banPlayer(action.targetId()));
-                Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
+                executor.submit(() -> {
+                    int pre = netServer.admins.getBanned().size;
+                    actionService.getAllActions(AdminActionType.ban).forEach(action -> netServer.admins.banPlayer(action.targetId()));
+                    Log.info(bundle.format("commands.ban-sync.count", netServer.admins.getBanned().size - pre));
+                });
             });
         }
 
@@ -428,7 +430,7 @@ public final class PandorumPlugin extends Plugin{
                 }
             });
 
- /* TODO
+            /* TODO
 
              handler.<Player>register("mute", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.mute.description"), (args, player) -> {
                  if(!player.admin){
@@ -487,7 +489,7 @@ public final class PandorumPlugin extends Plugin{
                  }
              });
 
-*/
+            */
 
             handler.<Player>register("unban", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unban.description"), (args, player) -> {
                 if(!player.admin){

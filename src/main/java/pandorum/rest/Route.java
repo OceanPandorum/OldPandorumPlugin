@@ -23,8 +23,8 @@ public class Route{
         return new Route(HttpMethod.DELETE, uri);
     }
 
-    public HttpRequest newRequest(Object... uriVars){
-        return new HttpRequest(this, uriVars);
+    public RestHttpRequest newRequest(Object... uriVars){
+        return new RestHttpRequest(this, uriVars);
     }
 
     @Override
