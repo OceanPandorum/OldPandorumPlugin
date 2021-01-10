@@ -104,7 +104,7 @@ public final class PandorumPlugin extends Plugin{
         netServer.admins.addChatFilter((target, text) -> {
             String lower = text.toLowerCase();
             if(current[0] != null && (lower.equals("y") || lower.equals("n"))){
-                if((current[0].voted().contains(target.uuid()) || current[0].voted().contains(netServer.admins.getInfo(target.uuid()).lastIP))){
+                if(current[0].voted().contains(target.uuid()) || current[0].voted().contains(netServer.admins.getInfo(target.uuid()).lastIP)){
                     Info.bundled(target, "commands.already-voted");
                     return null;
                 }
@@ -137,7 +137,9 @@ public final class PandorumPlugin extends Plugin{
 
         Events.on(ConfigEvent.class, event -> {
             if(event.player == null) return;
-            if(event.tile.tileX() > world.width() || event.tile.tileX() > world.height()) return;
+            if(event.tile.tileX() > world.width() || event.tile.tileX() > world.height()){
+                return;
+            }
 
             Log.debug("@ > @", event.tile.block, event.value instanceof byte[] ? Arrays.toString((byte[])event.value) : event.value);
             LimitedDelayQueue<HistoryEntry> entries = history[event.tile.tileX()][event.tile.tileY()];
@@ -215,7 +217,7 @@ public final class PandorumPlugin extends Plugin{
 
         Events.on(BuildSelectEvent.class, event -> {
             if(!event.breaking && event.builder != null && event.builder.buildPlan() != null &&
-               Objects.equals(event.builder.buildPlan().block, Blocks.thoriumReactor) && event.builder.isPlayer() &&
+               event.builder.buildPlan().block == Blocks.thoriumReactor && event.builder.isPlayer() &&
                event.team.cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
                 Player target = event.builder.getPlayer();
 

@@ -37,6 +37,7 @@ public class ActionService{
     }
 
     public AdminAction save(AdminAction adminAction){
+        Objects.requireNonNull(adminAction, "adminAction");
         return Routes.ACTION_POST.newRequest()
                 .header("Content-type", "application/json")
                 .body(adminAction)
