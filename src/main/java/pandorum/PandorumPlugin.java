@@ -82,7 +82,7 @@ public final class PandorumPlugin extends Plugin{
                 .withLocale(Locale.forLanguageTag("ru"))
                 .withZone(ZoneId.systemDefault());
         try{
-            forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split("\n")).map(IpInfo::new);
+            forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split(System.lineSeparator())).map(IpInfo::new);
         }catch(IOException e){
             throw new ArcRuntimeException(e);
         }

@@ -10,7 +10,7 @@ import mindustry.maps.MapException;
 import mindustry.net.WorldReloader;
 
 import static mindustry.Vars.*;
-import static pandorum.PandorumPlugin.bundle;
+import static pandorum.PandorumPlugin.*;
 
 public class VoteLoadSession extends VoteSession{
     private final Fi target;
@@ -29,7 +29,7 @@ public class VoteLoadSession extends VoteSession{
                 map[0] = null;
                 task.cancel();
             }
-        }, voteDuration);
+        }, config.voteDuration);
     }
 
     @Override

@@ -27,7 +27,7 @@ public class VoteMapSession extends VoteSession{
                 map[0] = null;
                 task.cancel();
             }
-        }, voteDuration);
+        }, config.voteDuration);
     }
 
     @Override

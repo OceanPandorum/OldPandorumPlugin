@@ -6,7 +6,7 @@ import mindustry.gen.*;
 import mindustry.io.SaveIO;
 
 import static mindustry.Vars.*;
-import static pandorum.PandorumPlugin.bundle;
+import static pandorum.PandorumPlugin.*;
 
 public class VoteSaveSession extends VoteSession{
     private final String target;
@@ -25,7 +25,7 @@ public class VoteSaveSession extends VoteSession{
                 map[0] = null;
                 task.cancel();
             }
-        }, voteDuration);
+        }, config.voteDuration);
     }
 
     @Override

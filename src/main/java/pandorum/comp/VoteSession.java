@@ -9,8 +9,6 @@ import static mindustry.Vars.netServer;
 import static pandorum.PandorumPlugin.config;
 
 public abstract class VoteSession{
-    protected static final float voteDuration = 75f;
-
     protected ObjectSet<String> voted = new ObjectSet<>();
     protected VoteSession[] map;
     protected Task task;
@@ -31,7 +29,7 @@ public abstract class VoteSession{
                 map[0] = null;
                 task.cancel();
             }
-        }, voteDuration);
+        }, config.voteDuration);
     }
 
     public void vote(Player player, int d){

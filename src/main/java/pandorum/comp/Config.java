@@ -13,14 +13,18 @@ public class Config{
     /** Время через которое запись в истории тайла будет удалена. По умолчанию 30 минут. Записывается в миллисекундах */
     public long expireDelay = 1800000;
 
+    /** Время голосования. В секундах */
+    public float voteDuration = 75f;
+
+    public String hubIp = "pandorum.su";
+
     public int hubPort = 8000;
 
     public PluginType type = PluginType.def;
 
-    public String hubIp = "pandorum.su";
+    public String locale = "ru";
 
-    public String locale = "ru_RU";
-
+    /** Ссылка на REST сервер */
     public String url;
 
     public Set<String> bannedNames = Set.of(
