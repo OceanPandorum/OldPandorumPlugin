@@ -60,6 +60,7 @@ public final class PandorumPlugin extends Plugin{
     private final Interval alertInterval = new Interval();
 
     private LimitedDelayQueue<HistoryEntry>[][] history;
+    private long delay;
 
     private final DateTimeFormatter formatter;
     private final ActionService actionService;
@@ -120,6 +121,7 @@ public final class PandorumPlugin extends Plugin{
         // история
 
         Events.on(WorldLoadEvent.class, event -> {
+            delay = Time.millis();
             history = new LimitedDelayQueue[world.width()][world.height()];
 
             for(Tile tile : world.tiles){
@@ -272,6 +274,10 @@ public final class PandorumPlugin extends Plugin{
                 }
             }, 1800, 1800);
         }
+
+        Timer.schedule(() -> {
+            Call.infoPopup(bundle.format("misc.delay", TimeUnit.MILLISECONDS.toMinutes(Time.timeSinceMillis(delay))), 5f, 20, 50, 20, 450, 0);
+        }, Mathf.random(720), Mathf.random(720));
 
         if(config.rest()){
             scheduler.scheduleAtFixedRate(() -> {
