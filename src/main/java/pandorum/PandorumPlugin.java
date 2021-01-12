@@ -24,7 +24,6 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.Floor;
 import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
-import pandorum.async.AsyncExecutor;
 import pandorum.comp.*;
 import pandorum.comp.Config.PluginType;
 import pandorum.entry.*;
@@ -35,15 +34,12 @@ import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
 
 @SuppressWarnings("unchecked")
 public final class PandorumPlugin extends Plugin{
-    public static VoteSession[] current = {null};
-    public static Config config;
-    public static Bundle bundle;
-
     public static final Gson gson = new GsonBuilder() // для моих нужд больше уже подойдёт джексон
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
             .registerTypeAdapter(Instant.class, new InstantTypeAdapter())
@@ -51,6 +47,10 @@ public final class PandorumPlugin extends Plugin{
             .serializeNulls()
             .setPrettyPrinting()
             .create();
+
+    public static VoteSession[] current = {null};
+    public static Config config;
+    public static Bundle bundle;
 
     private final ObjectMap<Team, ObjectSet<String>> surrendered = new ObjectMap<>();
     private final ObjectSet<String> votes = new ObjectSet<>();                //
@@ -62,8 +62,9 @@ public final class PandorumPlugin extends Plugin{
     private LimitedDelayQueue<HistoryEntry>[][] history;
 
     private final DateTimeFormatter formatter;
-    private final AsyncExecutor executor = new AsyncExecutor(2);
     private final ActionService actionService;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
+    private final ExecutorService executor = Executors.newFixedThreadPool(3);
 
     public PandorumPlugin(){
         Fi cfg = dataDirectory.child("config.json");
@@ -244,10 +245,7 @@ public final class PandorumPlugin extends Plugin{
                 netServer.kickAll(KickReason.gameover);
             });
 
-            Events.on(GameOverEvent.class, event -> {
-                votes.clear();
-                netServer.kickAll(KickReason.gameover);
-            });
+            Events.on(GameOverEvent.class, __ -> netServer.kickAll(KickReason.gameover));
         }
 
         if(config.type == PluginType.pvp){
@@ -276,7 +274,7 @@ public final class PandorumPlugin extends Plugin{
         }
 
         if(config.rest()){
-            Timer.schedule(() -> {
+            scheduler.scheduleAtFixedRate(() -> {
                 actionService.getAllActions(AdminActionType.ban).forEach(action -> {
                     if(action.endTimestamp() != null && Instant.now().isAfter(action.endTimestamp())){
                         netServer.admins.unbanPlayerID(action.targetId());
@@ -284,7 +282,7 @@ public final class PandorumPlugin extends Plugin{
                         actionService.delete(AdminActionType.ban, action.targetId());
                     }
                 });
-            }, 10, 3600);
+            }, 10, 1800, TimeUnit.SECONDS);
         }
     }
 
