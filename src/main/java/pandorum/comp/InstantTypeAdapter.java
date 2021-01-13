@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.time.Instant;
 
 public final class InstantTypeAdapter extends TypeAdapter<Instant>{
-
     @Override
     public void write(JsonWriter out, Instant value) throws IOException{
         out.value(value.toString());
