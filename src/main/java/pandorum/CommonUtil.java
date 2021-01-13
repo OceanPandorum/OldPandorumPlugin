@@ -1,9 +1,9 @@
 package pandorum;
 
 import arc.files.Fi;
-import arc.util.*;
-import mindustry.Vars;
+import arc.util.Strings;
 import mindustry.core.NetClient;
+import mindustry.game.Team;
 import mindustry.gen.Player;
 import mindustry.maps.Map;
 
@@ -47,6 +47,10 @@ public abstract class CommonUtil{
 
     private static <T extends Temporal> T addUnit(T instant, ChronoUnit unit, String amount){
         return Strings.canParseInt(amount) ? unit.addTo(instant, Long.parseLong(amount)) : instant;
+    }
+
+    public static String colorizedTeam(Team team){
+        return Strings.format("[#@]@", team.color, team);
     }
 
     public static String colorizedName(Player player){

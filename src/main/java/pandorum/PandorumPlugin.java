@@ -242,10 +242,7 @@ public final class PandorumPlugin extends Plugin{
         Events.on(GameOverEvent.class, event -> votes.clear());
 
         if(config.type == PluginType.duel){
-            Events.on(PlayerLeave.class, event -> {
-                Events.fire(new GameOverEvent(Team.crux));
-                netServer.kickAll(KickReason.gameover);
-            });
+            Events.on(PlayerLeave.class, event -> Events.fire(new GameOverEvent(Team.crux)));
 
             Events.on(GameOverEvent.class, __ -> netServer.kickAll(KickReason.gameover));
         }
@@ -257,7 +254,6 @@ public final class PandorumPlugin extends Plugin{
                 if(uuids.contains(uuid)){
                     uuids.remove(uuid);
                 }
-                surrendered.put(event.player.team(), uuids);
             });
 
             Events.on(GameOverEvent.class, event -> {
@@ -518,7 +514,7 @@ public final class PandorumPlugin extends Plugin{
                 String uuid = player.uuid();
                 Team team = player.team();
                 ObjectSet<String> uuids = surrendered.get(team, ObjectSet::new);
-                if(uuid != null && uuids.contains(uuid)){
+                if(uuids.contains(uuid)){
                     Info.bundled(player, "commands.already-voted");
                     return;
                 }
@@ -527,11 +523,9 @@ public final class PandorumPlugin extends Plugin{
                 surrendered.put(team, uuids);
                 int cur = uuids.size;
 
-                Seq<Player> players = new Seq<>();
-                Groups.player.each(p -> p.team() == team, players::add);
-                int req = (int)Math.ceil(config.voteRatio * players.size);
+                int req = (int)Math.ceil(config.voteRatio * Groups.player.count(p -> p.team() == team));
                 Call.sendMessage(bundle.format("commands.surrender.ok",
-                                               Strings.format("[#@](@)[green]", team.color, team),
+                                               CommonUtil.colorizedTeam(team),
                                                CommonUtil.colorizedName(player), cur, req));
 
                 if(cur < req){
@@ -539,10 +533,10 @@ public final class PandorumPlugin extends Plugin{
                 }
 
                 surrendered.remove(team);
-                Call.sendMessage(bundle.format("commands.surrender.successful", Strings.format("[#@]@[green]", team.color, team)));
-                players.map(Player::unit).each(u -> Time.run(Mathf.random(360), u::kill));
+                Call.sendMessage(bundle.format("commands.surrender.successful", CommonUtil.colorizedTeam(team)));
+                Groups.unit.each(u -> u.team == team, Unit::kill);
                 for(Tile tile : world.tiles){
-                    if(tile.build != null && Objects.equals(tile.team(), team)){
+                    if(tile.build != null && tile.team() == team){
                         Time.run(Mathf.random(360), tile.build::kill);
                     }
                 }
@@ -620,7 +614,7 @@ public final class PandorumPlugin extends Plugin{
         });
 
         handler.<Player>register("rtv", bundle.get("commands.rtv.description"), (args, player) -> {
-            if(player.uuid() != null && votes.contains(player.uuid())){ // oh no а как а главное почему ююид может быть ничем
+            if(votes.contains(player.uuid())){
                 Info.bundled(player, "commands.already-voted");
                 return;
             }
@@ -720,13 +714,13 @@ public final class PandorumPlugin extends Plugin{
                 return;
             }
 
-            Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[0]));
+            Team team = Structs.find(Team.all, t -> t.name.toLowerCase().equals(args[0].toLowerCase()));
             if(team == null){
                 Info.bundled(player, "commands.admin.team.teams");
                 return;
             }
 
-            Player target = args.length > 1 ? Groups.player.find(p -> p.name.equalsIgnoreCase(args[1])) : player;
+            Player target = args.length > 1 ? Groups.player.find(p -> p.name.toLowerCase().equals(args[1].toLowerCase())) : player;
             if(target == null){
                 Info.bundled(player, "commands.player-not-found");
                 return;
