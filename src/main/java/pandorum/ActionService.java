@@ -18,7 +18,7 @@ public class ActionService{
         this.router = router;
     }
 
-    public AdminAction getActions(AdminActionType type, String targetId){
+    public AdminAction getAction(AdminActionType type, String targetId){
         return Routes.ACTION_GET.newRequest(type, targetId)
                 .exchange(router)
                 .bodyTo(single);
