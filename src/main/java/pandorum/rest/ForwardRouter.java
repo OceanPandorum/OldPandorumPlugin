@@ -3,9 +3,7 @@ package pandorum.rest;
 import arc.util.Log;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.http.*;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.concurrent.*;
@@ -31,14 +29,12 @@ public class ForwardRouter implements Router{
             request.getHeaders().forEach(req::header);
             req.method(request.method().toString(), HttpRequest.BodyPublishers.ofString(gson.toJson(request.body())));
 
-            CompletableFuture<HttpResponse<String>> res = httpClient.sendAsync(req.build(), BodyHandlers.ofString());
-            HttpResponse<String> result = res.get(2, TimeUnit.SECONDS);
-
-            return new RestHttpResponse(result.body(), HttpStatus.byCode(result.statusCode()));
+            return httpClient.sendAsync(req.build(), BodyHandlers.ofString())
+                    .thenApply(res -> new RestHttpResponse(res.body(), HttpStatus.byCode(res.statusCode())))
+                    .exceptionally(t -> RestHttpResponse.absent)
+                    .get(2, TimeUnit.SECONDS);
         }catch(Throwable t){
-            if(!(t instanceof java.util.concurrent.TimeoutException)){
-                Log.err(t);
-            }
+            Log.err(t);
             return RestHttpResponse.absent;
         }
     }
