@@ -478,6 +478,7 @@ public final class PandorumPlugin extends Plugin{
                 action.endTimestamp(delay);
 
                 actionService.save(action);
+                Call.sendMessage(bundle.format("commands.admin.mute.text", CommonUtil.colorizedName(target)));
              });
 
             handler.<Player>register("unmute", bundle.get("commands.admin.unmute.params"), bundle.get("commands.admin.unmute.description"), (args, player) -> {
@@ -536,7 +537,7 @@ public final class PandorumPlugin extends Plugin{
 
                 surrendered.remove(team);
                 Call.sendMessage(bundle.format("commands.surrender.successful", CommonUtil.colorizedTeam(team)));
-                Groups.unit.each(u -> u.team == team, Unit::kill);
+                Groups.unit.each(u -> u.team == team, u -> Time.run(Mathf.random(360), u::kill));
                 for(Tile tile : world.tiles){
                     if(tile.build != null && tile.team() == team){
                         Time.run(Mathf.random(360), tile.build::kill);
@@ -571,9 +572,9 @@ public final class PandorumPlugin extends Plugin{
                     return;
                 }
 
-                for(int i = player.tileX(); i < w; i++){
-                    for(int j = player.tileY(); j < h; j++){
-                        Call.setFloor(world.tile(i, j), floor, Blocks.air);
+                for(int x = player.tileX(); x < w; x++){
+                    for(int y = player.tileY(); y < h; y++){
+                        Call.setFloor(world.tile(x, y), floor, Blocks.air);
                     }
                 }
 
@@ -781,10 +782,10 @@ public final class PandorumPlugin extends Plugin{
                 return;
             }
 
-            int x = Mathf.clamp(Strings.parseInt(args[0]), 0, world.width());
-            int y = Mathf.clamp(Strings.parseInt(args[1]), 0, world.height());
+            int x = Mathf.clamp(Strings.parseInt(args[0]), 0, world.width()) * tilesize;
+            int y = Mathf.clamp(Strings.parseInt(args[1]), 0, world.height()) * tilesize;
 
-            Call.setPosition(player.con, x * tilesize, y * tilesize);
+            Call.setPosition(player.con, x, y);
         });
 
         handler.<Player>register("tpp", bundle.get("commands.admin.tpp.params"), bundle.get("commands.admin.tpp.description"), (args, player) -> {
