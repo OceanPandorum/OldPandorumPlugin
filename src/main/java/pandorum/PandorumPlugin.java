@@ -62,6 +62,7 @@ public final class PandorumPlugin extends Plugin{
     private LimitedDelayQueue<HistoryEntry>[][] history;
     private long delay;
 
+    private final DateTimeFormatter shortFormatter;
     private final DateTimeFormatter formatter;
     private final ActionService actionService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
@@ -82,6 +83,10 @@ public final class PandorumPlugin extends Plugin{
         formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
                 .withLocale(Locale.forLanguageTag("ru"))
                 .withZone(ZoneId.systemDefault());
+
+        shortFormatter = DateTimeFormatter.ofPattern("MM dd yyyy HH:mm:ss")
+                .withLocale(Locale.forLanguageTag("ru"))
+                .withZone(ZoneId.systemDefault());
         try{
             forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split(System.lineSeparator())).map(IpInfo::new);
         }catch(IOException e){
@@ -96,8 +101,7 @@ public final class PandorumPlugin extends Plugin{
             netServer.admins.addChatFilter((target, text) -> {
                 AdminAction action = actionService.getAction(AdminActionType.mute, target.uuid());
                 if(action != null){
-                    Log.info(gson.toJson(action));
-                    target.sendMessage("You're muted; Reason " + action.reason().orElse("<no>")); // todo проседает тпс
+                    target.sendMessage(bundle.format("events.mute", shortFormatter.format(action.endTimestamp()), action.reason().orElse(bundle.get("events.mute.reason.unknown"))));
                     return null;
                 }
 
