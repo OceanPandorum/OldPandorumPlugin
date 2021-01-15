@@ -245,10 +245,10 @@ public final class PandorumPlugin extends Plugin{
             }
         });
 
-        Events.on(GameOverEvent.class, event -> votes.clear());
+        Events.on(GameOverEvent.class, __ -> votes.clear());
 
         if(config.type == PluginType.duel){
-            Events.on(PlayerLeave.class, event -> Events.fire(new GameOverEvent(Team.crux)));
+            Events.on(PlayerLeave.class, __ -> Events.fire(new GameOverEvent(Team.crux)));
 
             Events.on(GameOverEvent.class, __ -> netServer.kickAll(KickReason.gameover));
         }
@@ -262,10 +262,7 @@ public final class PandorumPlugin extends Plugin{
                 }
             });
 
-            Events.on(GameOverEvent.class, event -> {
-                votes.clear();
-                surrendered.clear();
-            });
+            Events.on(GameOverEvent.class, __ -> surrendered.clear());
         }
 
         if(config.type == PluginType.sandbox){
