@@ -29,6 +29,7 @@ import pandorum.comp.*;
 import pandorum.comp.Config.PluginType;
 import pandorum.entry.*;
 import pandorum.rest.*;
+import pandorum.struct.Tuple2;
 import pandorum.struct.cache.*;
 
 import java.io.IOException;
@@ -102,7 +103,7 @@ public final class PandorumPlugin extends Plugin{
             if(action.type == Administration.ActionType.rotate){
                 Building building = action.tile.build;
                 CacheSeq<HistoryEntry> entries = history[action.tile.x][action.tile.y];
-                HistoryEntry entry = new RotateEntry(CommonUtil.colorizedName(action.player), building.block, building.rotation);
+                HistoryEntry entry = new RotateEntry(CommonUtil.colorizedName(action.player), building.block, Tuple2.of(action.rotation, building.rotation));
                 entries.add(entry);
             }
             return true;
