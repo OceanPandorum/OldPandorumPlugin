@@ -49,7 +49,6 @@ public class ConfigEntry implements HistoryEntry{
     public final String name;
     public final Block block;
     public final Object value;
-    public final long timestamp;
     public final boolean connect;
 
     public ConfigEntry(ConfigEvent event, boolean connect){
@@ -57,7 +56,6 @@ public class ConfigEntry implements HistoryEntry{
         this.block = event.tile.block();
         this.value = event.value;
         this.connect = connect;
-        this.timestamp = Time.millis() + config.expireDelay;
     }
 
     @Override
@@ -111,22 +109,5 @@ public class ConfigEntry implements HistoryEntry{
         }
 
         return bundle.get("events.history.unknown"); // ага да
-    }
-
-    @Override
-    public long expire(){
-        return timestamp;
-    }
-
-    @Override
-    public long getDelay(TimeUnit unit){
-        long diff = timestamp - Time.millis();
-        return unit.convert(diff, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public int compareTo(Delayed o){
-        HistoryEntry e = (HistoryEntry)o;
-        return Long.compare(expire(), e.expire());
     }
 }

@@ -18,6 +18,7 @@ import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
 import mindustry.maps.Map;
 import mindustry.mod.Plugin;
+import mindustry.net.Administration;
 import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
 import mindustry.type.*;
@@ -97,7 +98,16 @@ public final class PandorumPlugin extends Plugin{
     @Override
     public void init(){
 
-        if(config.rest()){
+        netServer.admins.addActionFilter(action -> {
+            if(action.type == Administration.ActionType.rotate){
+                CacheSeq<HistoryEntry> entries = history[action.tile.x][action.tile.y];
+                HistoryEntry entry = new RotateEntry(CommonUtil.colorizedName(action.player), action.tile.build);
+                entries.add(entry);
+            }
+            return true;
+        });
+
+        if(config.rest() && Administration.Config.debug.bool()){
             netServer.admins.addChatFilter((target, text) -> {
                 AdminAction action = actionService.getAction(AdminActionType.mute, target.uuid());
                 if(action != null){

@@ -1,10 +1,6 @@
 package pandorum.entry;
 
-import java.util.concurrent.Delayed;
-
-public interface HistoryEntry extends Delayed{
+public interface HistoryEntry{
 
     String getMessage();
-
-    long expire();
 }
