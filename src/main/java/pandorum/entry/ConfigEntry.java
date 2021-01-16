@@ -67,6 +67,10 @@ public class ConfigEntry implements HistoryEntry{
            block == Blocks.bridgeConduit || block == Blocks.itemBridge || block == Blocks.massDriver){
             int data = (int)value;
             Tile tile = world.tile(data);
+            if(tile == null){
+                return bundle.get("events.history.unknown");
+            }
+
             if(connect){
                 return bundle.format("events.history.config.power-node.connect", name, block, tile.x, tile.y);
             }

@@ -1,6 +1,6 @@
 package pandorum;
 
-import arc.*;
+import arc.Events;
 import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.*;
@@ -11,7 +11,7 @@ import arc.util.io.Streams;
 import com.google.gson.*;
 import mindustry.Vars;
 import mindustry.content.*;
-import mindustry.core.*;
+import mindustry.core.GameState;
 import mindustry.game.EventType.*;
 import mindustry.game.Team;
 import mindustry.game.Teams.TeamData;
@@ -28,7 +28,7 @@ import pandorum.comp.*;
 import pandorum.comp.Config.PluginType;
 import pandorum.entry.*;
 import pandorum.rest.*;
-import pandorum.struct.LimitedDelayQueue;
+import pandorum.struct.cache.*;
 
 import java.io.IOException;
 import java.time.*;
@@ -59,7 +59,7 @@ public final class PandorumPlugin extends Plugin{
     private final Seq<IpInfo> forbiddenIps;
     private final Interval alertInterval = new Interval();
 
-    private LimitedDelayQueue<HistoryEntry>[][] history;
+    private CacheSeq<HistoryEntry>[][] history;
     private long delay;
 
     private final DateTimeFormatter shortFormatter;
@@ -128,10 +128,13 @@ public final class PandorumPlugin extends Plugin{
 
         Events.on(WorldLoadEvent.class, event -> {
             delay = Time.millis();
-            history = new LimitedDelayQueue[world.width()][world.height()];
+            history = new CacheSeq[world.width()][world.height()];
 
             for(Tile tile : world.tiles){
-                history[tile.x][tile.y] = new LimitedDelayQueue<>(config.historyLimit);
+                history[tile.x][tile.y] = SeqBuilder.newBuilder()
+                        .limit(config.historyLimit)
+                        .expireAfterWrite(Duration.ofMillis(config.expireDelay))
+                        .build();
             }
         });
 
@@ -151,10 +154,10 @@ public final class PandorumPlugin extends Plugin{
             }
 
             Log.debug("@ > @", event.tile.block, event.value instanceof byte[] ? Arrays.toString((byte[])event.value) : event.value);
-            LimitedDelayQueue<HistoryEntry> entries = history[event.tile.tileX()][event.tile.tileY()];
+            CacheSeq<HistoryEntry> entries = history[event.tile.tileX()][event.tile.tileY()];
             boolean connect = true;
 
-            HistoryEntry last = entries.poll();
+            HistoryEntry last = entries.peek();
             if(!entries.isEmpty() && last instanceof ConfigEntry){
                 ConfigEntry lastConfigEntry = (ConfigEntry)last;
 
@@ -172,11 +175,11 @@ public final class PandorumPlugin extends Plugin{
 
         Events.on(TapEvent.class, event -> {
             if(activeHistoryPlayers.contains(event.player.uuid())){
-                LimitedDelayQueue<HistoryEntry> entries = history[event.tile.x][event.tile.y];
+                CacheSeq<HistoryEntry> entries = history[event.tile.x][event.tile.y];
 
                 StringBuilder message = new StringBuilder(bundle.format("events.history.title", event.tile.x, event.tile.y));
 
-                entries.poll();
+                entries.peek();
                 if(entries.isOverflown()){
                     message.append(bundle.get("events.history.overflow"));
                 }
