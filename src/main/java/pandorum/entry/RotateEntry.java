@@ -1,6 +1,6 @@
 package pandorum.entry;
 
-import mindustry.gen.Building;
+import mindustry.world.Block;
 
 import static pandorum.PandorumPlugin.bundle;
 
@@ -12,15 +12,17 @@ public class RotateEntry implements HistoryEntry{
     }
 
     public final String name;
-    public final Building building;
+    public final Block block;
+    public final int rotation;
 
-    public RotateEntry(String name, Building building){
+    public RotateEntry(String name, Block block, int rotation){
         this.name = name;
-        this.building = building;
+        this.block = block;
+        this.rotation = rotation;
     }
 
     @Override
     public String getMessage(){
-        return bundle.format("events.history.rotate", name, building.block.name, sides[building.rotation]);
+        return bundle.format("events.history.rotate", name, block.name, sides[rotation]);
     }
 }

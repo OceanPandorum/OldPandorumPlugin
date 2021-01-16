@@ -100,8 +100,9 @@ public final class PandorumPlugin extends Plugin{
 
         netServer.admins.addActionFilter(action -> {
             if(action.type == Administration.ActionType.rotate){
+                Building building = action.tile.build;
                 CacheSeq<HistoryEntry> entries = history[action.tile.x][action.tile.y];
-                HistoryEntry entry = new RotateEntry(CommonUtil.colorizedName(action.player), action.tile.build);
+                HistoryEntry entry = new RotateEntry(CommonUtil.colorizedName(action.player), building.block, building.rotation);
                 entries.add(entry);
             }
             return true;
