@@ -16,6 +16,8 @@ public class CacheSeq<T> extends Seq<T>{
     private final long expireAfterWriteNanos;
     private final int limit;
 
+    private boolean overflow;
+
     CacheSeq(SeqBuilder<? super T> builder){
         limit = builder.limit;
         expireAfterWriteNanos = builder.expireAfterWriteNanos;
@@ -23,7 +25,10 @@ public class CacheSeq<T> extends Seq<T>{
 
     @Override
     public void add(T e){
-        if(limit != UNSET_INT && size + 1 < limit){
+        if(limit != UNSET_INT && size + 1 > limit){
+            overflow = true;
+        }else{
+            overflow = false;
             expires.put(e, Time.nanos());
             super.add(e);
         }
@@ -50,7 +55,7 @@ public class CacheSeq<T> extends Seq<T>{
     }
 
     public boolean isOverflown(){
-        return size > limit;
+        return overflow || size > limit;
     }
 
     public void cleanup(){
