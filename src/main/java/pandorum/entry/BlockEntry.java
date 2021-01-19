@@ -4,7 +4,7 @@ import arc.util.*;
 import mindustry.game.EventType.BlockBuildEndEvent;
 import mindustry.gen.*;
 import mindustry.world.Block;
-import pandorum.CommonUtil;
+import pandorum.Misc;
 
 import java.util.concurrent.*;
 
@@ -20,7 +20,7 @@ public class BlockEntry implements HistoryEntry{
 
     public BlockEntry(BlockBuildEndEvent event){
         this.unit = event.unit;
-        this.name = unit.isPlayer() ? CommonUtil.colorizedName(unit.getPlayer()) : unit.controller() instanceof Player ? CommonUtil.colorizedName(unit.getPlayer()) : null;
+        this.name = unit.isPlayer() ? Misc.colorizedName(unit.getPlayer()) : unit.controller() instanceof Player ? Misc.colorizedName(unit.getPlayer()) : null;
         this.block = event.tile.block();
         this.breaking = event.breaking;
 

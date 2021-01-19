@@ -8,9 +8,8 @@ import mindustry.game.EventType.ConfigEvent;
 import mindustry.gen.Groups;
 import mindustry.type.*;
 import mindustry.world.*;
-import pandorum.CommonUtil;
+import pandorum.Misc;
 
-import javax.swing.event.MouseInputListener;
 import java.util.concurrent.TimeUnit;
 
 import static mindustry.Vars.world;
@@ -212,7 +211,7 @@ public class ConfigEntry implements HistoryEntry{
     public long lastAccessTime;
 
     public ConfigEntry(ConfigEvent event, boolean connect){
-        this.name = Groups.player.contains(p -> event.player == p) ? CommonUtil.colorizedName(event.player) : bundle.get("events.unknown");
+        this.name = Groups.player.contains(p -> event.player == p) ? Misc.colorizedName(event.player) : bundle.get("events.unknown");
         this.block = event.tile.block();
         this.value = event.value;
         this.connect = connect;

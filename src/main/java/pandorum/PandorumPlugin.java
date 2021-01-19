@@ -59,7 +59,7 @@ public final class PandorumPlugin extends Plugin{
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();         // Соединить
     private final ObjectSet<String> activeHistoryPlayers = new ObjectSet<>(); //
     private final Seq<IpInfo> forbiddenIps;
-    private final Interval alertInterval = new Interval();
+    private final Interval interval = new Interval(2);
 
     private CacheSeq<HistoryEntry>[][] history;
     private long delay;
@@ -103,7 +103,7 @@ public final class PandorumPlugin extends Plugin{
             if(action.type == Administration.ActionType.rotate){
                 Building building = action.tile.build;
                 CacheSeq<HistoryEntry> entries = history[action.tile.x][action.tile.y];
-                HistoryEntry entry = new RotateEntry(CommonUtil.colorizedName(action.player), building.block, Tuple2.of(action.rotation, building.rotation));
+                HistoryEntry entry = new RotateEntry(Misc.colorizedName(action.player), building.block, Tuple2.of(action.rotation, building.rotation));
                 entries.add(entry);
             }
             return true;
@@ -235,7 +235,7 @@ public final class PandorumPlugin extends Plugin{
             Player target = event.player;
             if(Objects.equals(building.block(), Blocks.thoriumReactor) && Objects.equals(event.item, Items.thorium) &&
                target.team().cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
-                Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.withdraw-thorium", CommonUtil.colorizedName(target), building.tileX(), building.tileY())));
+                Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.withdraw-thorium", Misc.colorizedName(target), building.tileX(), building.tileY())));
             }
         });
 
@@ -245,7 +245,7 @@ public final class PandorumPlugin extends Plugin{
                event.team.cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
                 Player target = event.builder.getPlayer();
 
-                if(alertInterval.get(200)){
+                if(interval.get(300)){
                     Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.alert", target.name, event.tile.x, event.tile.y)));
                 }
             }
@@ -256,7 +256,7 @@ public final class PandorumPlugin extends Plugin{
             int req = (int)Math.ceil(config.voteRatio * Groups.player.size());
             if(votes.contains(event.player.uuid())){
                 votes.remove(event.player.uuid());
-                Call.sendMessage(bundle.format("commands.rtv.left", CommonUtil.colorizedName(event.player), cur - 1, req));
+                Call.sendMessage(bundle.format("commands.rtv.left", Misc.colorizedName(event.player), cur - 1, req));
             }
         });
 
@@ -289,9 +289,11 @@ public final class PandorumPlugin extends Plugin{
             }, 1800, 1800);
         }
 
-        Timer.schedule(() -> {
-            Call.infoPopup(bundle.format("misc.delay", TimeUnit.MILLISECONDS.toMinutes(Time.timeSinceMillis(delay))), 5f, 20, 50, 20, 450, 0);
-        }, Mathf.random(720), Mathf.random(720));
+        Events.run(Trigger.update, () -> {
+            if(interval.get(1, 60 * 60 * 3)){
+                Call.infoPopup(bundle.format("misc.delay", TimeUnit.MILLISECONDS.toMinutes(Time.timeSinceMillis(delay))), 3f, 20, 50, 20, 450, 0);
+            }
+        });
 
         if(config.rest()){
             scheduler.scheduleAtFixedRate(() -> {
@@ -367,12 +369,12 @@ public final class PandorumPlugin extends Plugin{
         handler.<Player>register("history", bundle.get("commands.history.params"), bundle.get("commands.history.description"), (args, player) -> {
             String uuid = player.uuid();
             if(args.length > 0 && activeHistoryPlayers.contains(uuid)){
-                if(!Strings.canParseInt(args[0]) && !CommonUtil.bool(args[0])){
+                if(!Strings.canParseInt(args[0]) && !Misc.bool(args[0])){
                     Info.bundled(player, "commands.page-not-int");
                     return;
                 }
 
-                boolean forward = !Strings.canParseInt(args[0]) ? CommonUtil.bool(args[0]) : args.length > 1 && CommonUtil.bool(args[1]);
+                boolean forward = !Strings.canParseInt(args[0]) ? Misc.bool(args[0]) : args.length > 1 && Misc.bool(args[1]);
                 int mouseX = Mathf.clamp(Mathf.round(player.mouseX / 8), 1, world.width());
                 int mouseY = Mathf.clamp(Mathf.round(player.mouseY / 8), 1, world.height());
                 CacheSeq<HistoryEntry> entries = history[mouseX][mouseY];
@@ -429,7 +431,7 @@ public final class PandorumPlugin extends Plugin{
                     return;
                 }
 
-                Instant delay = CommonUtil.parseTime(args[1]);
+                Instant delay = Misc.parseTime(args[1]);
                 if(delay == null){
                     Info.bundled(player, "commands.admin.delay-not-int");
                     return;
@@ -467,7 +469,7 @@ public final class PandorumPlugin extends Plugin{
                     return;
                 }
 
-                Instant delay = CommonUtil.parseTime(args[1]);
+                Instant delay = Misc.parseTime(args[1]);
                 if(delay == null){
                     Info.bundled(player, "commands.admin.delay-not-int");
                     return;
@@ -496,7 +498,7 @@ public final class PandorumPlugin extends Plugin{
                 action.endTimestamp(delay);
 
                 actionService.save(action);
-                Call.sendMessage(bundle.format("commands.admin.mute.text", CommonUtil.colorizedName(target)));
+                Call.sendMessage(bundle.format("commands.admin.mute.text", Misc.colorizedName(target)));
              });
 
             handler.<Player>register("unmute", bundle.get("commands.admin.unmute.params"), bundle.get("commands.admin.unmute.description"), (args, player) -> {
@@ -546,15 +548,15 @@ public final class PandorumPlugin extends Plugin{
 
                 int req = (int)Math.ceil(config.voteRatio * Groups.player.count(p -> p.team() == team));
                 Call.sendMessage(bundle.format("commands.surrender.ok",
-                                               CommonUtil.colorizedTeam(team),
-                                               CommonUtil.colorizedName(player), cur, req));
+                                               Misc.colorizedTeam(team),
+                                               Misc.colorizedName(player), cur, req));
 
                 if(cur < req){
                     return;
                 }
 
                 surrendered.remove(team);
-                Call.sendMessage(bundle.format("commands.surrender.successful", CommonUtil.colorizedTeam(team)));
+                Call.sendMessage(bundle.format("commands.surrender.successful", Misc.colorizedTeam(team)));
                 Groups.unit.each(u -> u.team == team, u -> Time.run(Mathf.random(360), u::kill));
                 for(Tile tile : world.tiles){
                     if(tile.build != null && tile.team() == team){
@@ -643,7 +645,7 @@ public final class PandorumPlugin extends Plugin{
             votes.add(player.uuid());
             int cur = votes.size;
             int req = (int)Math.ceil(config.voteRatio * Groups.player.size());
-            Call.sendMessage(bundle.format("commands.rtv.ok", CommonUtil.colorizedName(player), cur, req));
+            Call.sendMessage(bundle.format("commands.rtv.ok", Misc.colorizedName(player), cur, req));
 
             if(cur < req){
                 return;
@@ -916,7 +918,7 @@ public final class PandorumPlugin extends Plugin{
                         return;
                     }
 
-                    Map map = CommonUtil.findMap(args[1]);
+                    Map map = Misc.findMap(args[1]);
                     if(map == null){
                         Info.bundled(player, "commands.nominate.map.not-found");
                         return;
@@ -942,7 +944,7 @@ public final class PandorumPlugin extends Plugin{
                         return;
                     }
 
-                    Fi save = CommonUtil.findSave(args[1]);
+                    Fi save = Misc.findSave(args[1]);
                     if(save == null){
                         player.sendMessage("commands.nominate.load.not-found");
                         return;

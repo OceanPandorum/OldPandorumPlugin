@@ -17,9 +17,9 @@ import static java.util.regex.Pattern.compile;
 import static mindustry.Vars.*;
 import static pandorum.PandorumPlugin.bundle;
 
-public abstract class CommonUtil{
+public abstract class Misc{
 
-    private CommonUtil(){}
+    private Misc(){}
 
     private static final Seq<String> bools = Seq.with(bundle.get("misc.bools").split(", "));
 
@@ -54,6 +54,7 @@ public abstract class CommonUtil{
     }
 
     public static boolean bool(String text){
+        Objects.requireNonNull(text, "text");
         return bools.contains(text.toLowerCase());
     }
 
