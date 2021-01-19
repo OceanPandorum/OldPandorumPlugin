@@ -25,7 +25,7 @@ public class HostData{
         this.labelY = labelY;
     }
 
-    public boolean teleport(int x, int y){
+    public boolean inDiapason(int x, int y){
         return x <= teleportX + size && x >= teleportX &&
                y >= teleportY && y <= teleportY + size;
     }

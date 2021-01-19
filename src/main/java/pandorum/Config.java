@@ -3,6 +3,11 @@ package pandorum;
 import java.util.*;
 
 public class Config{
+
+    public String offlinePattern = "[scarlet]Offline";
+
+    public String onlinePattern = "\uE837 [accent]Online @";
+
     public List<HostData> servers = Arrays.asList(
             new HostData(9000, 11, 35, 96,312, 96, 272),
             new HostData(1000, 23, 39, 192, 344, 192, 304),
