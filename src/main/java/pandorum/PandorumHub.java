@@ -35,8 +35,8 @@ public class PandorumHub extends Plugin{
 
     public PandorumHub(){
         try{
-            Streams.copy(Objects.requireNonNull(PandorumHub.class.getClassLoader().getResourceAsStream("hub-0.2.msav")),
-                         customMapDirectory.child("hub-0.2.msav").write(false));
+            Streams.copy(Objects.requireNonNull(PandorumHub.class.getClassLoader().getResourceAsStream("hub-0.3.msav")),
+                         customMapDirectory.child("hub-0.3.msav").write(false));
         }catch(IOException e){
             Log.err("Failed to copy hub map. Skipping.");
             Log.err(e);
