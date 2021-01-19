@@ -143,7 +143,7 @@ public final class PandorumPlugin extends Plugin{
             history = new CacheSeq[world.width()][world.height()];
 
             for(Tile tile : world.tiles){
-                history[tile.x][tile.y] = SeqBuilder.newBuilder()
+                history[tile.x][tile.y] = Seqs.newBuilder()
                         .limit(config.historyLimit)
                         .expireAfterWrite(Duration.ofMillis(config.expireDelay))
                         .build();
@@ -196,8 +196,8 @@ public final class PandorumPlugin extends Plugin{
                     message.append(bundle.get("events.history.overflow"));
                 }
 
-                for(HistoryEntry historyEntry : entries){
-                    message.append("\n").append(historyEntry.getMessage());
+                for(HistoryEntry entry : entries){
+                    message.append("\n").append(entry.getMessage());
                 }
 
                 if(entries.isEmpty()){
@@ -367,15 +367,16 @@ public final class PandorumPlugin extends Plugin{
         handler.<Player>register("history", bundle.get("commands.history.params"), bundle.get("commands.history.description"), (args, player) -> {
             String uuid = player.uuid();
             if(args.length > 0 && activeHistoryPlayers.contains(uuid)){
-                if(!Strings.canParseInt(args[0])){
+                if(!Strings.canParseInt(args[0]) && !CommonUtil.bool(args[0])){
                     Info.bundled(player, "commands.page-not-int");
                     return;
                 }
 
-                int mouseX = Mathf.clamp(Mathf.round(player.mouseX / 8), 1, history.length);
-                int mouseY = Mathf.clamp(Mathf.round(player.mouseY / 8), 1, history.length);
-                Seq<HistoryEntry> entries = Seq.with(history[mouseX][mouseY]);
-                int page = Strings.parseInt(args[0]);
+                boolean forward = !Strings.canParseInt(args[0]) ? CommonUtil.bool(args[0]) : args.length > 1 && CommonUtil.bool(args[1]);
+                int mouseX = Mathf.clamp(Mathf.round(player.mouseX / 8), 1, world.width());
+                int mouseY = Mathf.clamp(Mathf.round(player.mouseY / 8), 1, world.height());
+                CacheSeq<HistoryEntry> entries = history[mouseX][mouseY];
+                int page = Strings.canParseInt(args[0]) ? Strings.parseInt(args[0]) : 1;
                 int pages = Mathf.ceil((float)entries.size / 6);
 
                 page--;
@@ -391,7 +392,12 @@ public final class PandorumPlugin extends Plugin{
                 for(int i = 6 * page; i < Math.min(6 * (page + 1), entries.size); i++){
                     HistoryEntry e = entries.get(i);
 
-                    result.append("\n").append(e.getMessage());
+                    result.append(e.getMessage());
+                    if(forward){
+                        result.append(bundle.format("events.history.last-access-time", e.getLastAccessTime(TimeUnit.SECONDS)));
+                    }
+
+                    result.append("\n");
                 }
 
                 player.sendMessage(result.toString());

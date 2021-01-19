@@ -18,7 +18,7 @@ public class CacheSeq<T> extends Seq<T>{
 
     private boolean overflow;
 
-    CacheSeq(SeqBuilder<? super T> builder){
+    CacheSeq(Seqs.SeqBuilder<? super T> builder){
         limit = builder.limit;
         expireAfterWriteNanos = builder.expireAfterWriteNanos;
     }

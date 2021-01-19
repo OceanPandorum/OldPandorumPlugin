@@ -1,7 +1,8 @@
 package pandorum;
 
 import arc.files.Fi;
-import arc.util.Strings;
+import arc.struct.*;
+import arc.util.*;
 import mindustry.core.NetClient;
 import mindustry.game.Team;
 import mindustry.gen.Player;
@@ -14,10 +15,13 @@ import java.util.regex.*;
 
 import static java.util.regex.Pattern.compile;
 import static mindustry.Vars.*;
+import static pandorum.PandorumPlugin.bundle;
 
 public abstract class CommonUtil{
 
     private CommonUtil(){}
+
+    private static final Seq<String> bools = Seq.with(bundle.get("misc.bools").split(", "));
 
     private static final Pattern timeUnitPattern = compile(
             "^" +
@@ -49,11 +53,17 @@ public abstract class CommonUtil{
         return Strings.canParseInt(amount) ? unit.addTo(instant, Long.parseLong(amount)) : instant;
     }
 
+    public static boolean bool(String text){
+        return bools.contains(text.toLowerCase());
+    }
+
     public static String colorizedTeam(Team team){
+        Objects.requireNonNull(team, "team");
         return Strings.format("[#@]@", team.color, team);
     }
 
     public static String colorizedName(Player player){
+        Objects.requireNonNull(player, "player");
         return NetClient.colorizeName(player.id, player.name);
     }
 
