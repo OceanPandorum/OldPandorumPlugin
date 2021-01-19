@@ -257,7 +257,7 @@ public class ConfigEntry implements HistoryEntry{
                 return bundle.format("events.history.config.default", name);
             }
 
-            return bundle.format("events.history.config.liquid", name, icons.get(liquid.name));
+            return bundle.format("events.history.config", name, icons.get(liquid.name));
         }
 
         if(block == Blocks.unloader || block == Blocks.sorter || block == Blocks.invertedSorter || block == Blocks.itemSource){
@@ -266,7 +266,7 @@ public class ConfigEntry implements HistoryEntry{
                 return bundle.format("events.history.config.default", name);
             }
 
-            return bundle.format("events.history.config.item", name, icons.get(item.name));
+            return bundle.format("events.history.config", name, icons.get(item.name));
         }
 
         return bundle.get("events.history.unknown"); // ага да
