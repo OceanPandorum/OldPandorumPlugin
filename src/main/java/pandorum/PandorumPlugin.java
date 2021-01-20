@@ -659,13 +659,14 @@ public final class PandorumPlugin extends Plugin{
             if(!player.admin){
                 Info.bundled(player, "commands.permission-denied");
             }else{
-                String arg = args[0].toLowerCase();
-                Player target = null;
-                if(Strings.canParseInt(arg)){
-                    int id = Strings.parseInt(args[0]);
-                    target = Groups.player.find(p -> p.id == id);
+                Player target = Strings.canParseInt(args[0]) ? Groups.player.find(p -> p.id == Strings.parseInt(args[0])) : null;
+                String text = Strings.format("\uE805@\uE805\n\n@\n", bundle.get("commands.admin.bc.text"), args[1]);
+
+                if(target != null){
+                    Call.infoMessage(target.con, text);
+                }else{
+                    Call.infoMessage(text);
                 }
-                Info.broadCast(target, args);
             }
         });
 
@@ -796,58 +797,58 @@ public final class PandorumPlugin extends Plugin{
             Info.bundled(player, "commands.admin.give.success");
         });
 
-        handler.<Player>register("tp", "<x> <y>", bundle.get("commands.admin.tp.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-                return;
-            }
+        // handler.<Player>register("tp", "<x> <y>", bundle.get("commands.admin.tp.description"), (args, player) -> {
+        //     if(!player.admin){
+        //         Info.bundled(player, "commands.permission-denied");
+        //         return;
+        //     }
+        //
+        //     int x = Mathf.clamp(Strings.parseInt(args[0]), 0, world.width()) * tilesize;
+        //     int y = Mathf.clamp(Strings.parseInt(args[1]), 0, world.height()) * tilesize;
+        //
+        //     Call.setPosition(player.con, x, y);
+        // });
 
-            int x = Mathf.clamp(Strings.parseInt(args[0]), 0, world.width()) * tilesize;
-            int y = Mathf.clamp(Strings.parseInt(args[1]), 0, world.height()) * tilesize;
+        // handler.<Player>register("tpp", bundle.get("commands.admin.tpp.params"), bundle.get("commands.admin.tpp.description"), (args, player) -> {
+        //     if(!player.admin){
+        //         Info.bundled(player, "commands.permission-denied");
+        //         return;
+        //     }
+        //
+        //     if(!Strings.canParseInt(args[0])){
+        //         Info.bundled(player, "commands.id-not-int");
+        //         return;
+        //     }
+        //
+        //     int id = Strings.parseInt(args[0]);
+        //     Player target = Groups.player.find(p -> p.id() == id);
+        //     if(target == null){
+        //         Info.bundled(player, "commands.player-not-found");
+        //         return;
+        //     }
+        //
+        //     Call.setPosition(player.con, target.x(), target.y());
+        // });
 
-            Call.setPosition(player.con, x, y);
-        });
-
-        handler.<Player>register("tpp", bundle.get("commands.admin.tpp.params"), bundle.get("commands.admin.tpp.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-                return;
-            }
-
-            if(!Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.id-not-int");
-                return;
-            }
-
-            int id = Strings.parseInt(args[0]);
-            Player target = Groups.player.find(p -> p.id() == id);
-            if(target == null){
-                Info.bundled(player, "commands.player-not-found");
-                return;
-            }
-
-            Call.setPosition(player.con, target.x(), target.y());
-        });
-
-        handler.<Player>register("tpa", bundle.get("commands.admin.tpa.params"), bundle.get("commands.admin.tpa.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-                return;
-            }
-
-            if(args.length > 0 && !Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.id-not-int");
-                return;
-            }
-
-            Player target = args.length > 0 ? Groups.player.find(p -> p.id() == Strings.parseInt(args[0])) : player;
-            if(target == null){
-                Info.bundled(player, "commands.player-not-found");
-                return;
-            }
-
-            Groups.player.each(p -> Call.setPosition(p.con, target.x(), target.y()));
-        });
+        // handler.<Player>register("tpa", bundle.get("commands.admin.tpa.params"), bundle.get("commands.admin.tpa.description"), (args, player) -> {
+        //     if(!player.admin){
+        //         Info.bundled(player, "commands.permission-denied");
+        //         return;
+        //     }
+        //
+        //     if(args.length > 0 && !Strings.canParseInt(args[0])){
+        //         Info.bundled(player, "commands.id-not-int");
+        //         return;
+        //     }
+        //
+        //     Player target = args.length > 0 ? Groups.player.find(p -> p.id() == Strings.parseInt(args[0])) : player;
+        //     if(target == null){
+        //         Info.bundled(player, "commands.player-not-found");
+        //         return;
+        //     }
+        //
+        //     Groups.player.each(p -> Call.setPosition(p.con, target.x(), target.y()));
+        // });
 
         handler.<Player>register("maps", bundle.get("commands.maps.params"), bundle.get("commands.maps.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){

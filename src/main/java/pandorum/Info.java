@@ -10,16 +10,6 @@ public abstract class Info{
 
     private Info(){}
 
-    public static void broadCast(Player player, String[] args){
-        String text = Strings.format("\uE805@\uE805\n\n@\n", bundle.get("commands.admin.bc.text"), args[1]);
-
-        if(player != null){
-            Call.infoMessage(player.con, text);
-        }else{
-            Call.infoMessage(text);
-        }
-    }
-
     public static void bundled(Player player, String key, Object... values){
         player.sendMessage(bundle.format(key, values));
     }

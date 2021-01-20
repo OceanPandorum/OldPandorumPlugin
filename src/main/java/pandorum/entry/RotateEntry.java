@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import static pandorum.PandorumPlugin.bundle;
 
 public class RotateEntry implements HistoryEntry{
-    private static final String[] sides;
+    protected static final String[] sides;
 
     static{
         sides = bundle.get("events.history.rotate.all").split(", ");
