@@ -34,11 +34,11 @@ public class PandorumHub extends Plugin{
             .disableHtmlEscaping()
             .create();
 
-    public void teleport(Player player){
+    public void teleport(final Player player){
         teleport(player, null);
     }
 
-    public void teleport(Player player, Tile tile){
+    public void teleport(final Player player, Tile tile){
         for(HostData h : config.servers){
             if(h.inDiapason(tile != null ? tile.x : player.tileX(), tile != null ? tile.y : player.tileY())){
                 net.pingHost(h.ip, h.port, host -> {
