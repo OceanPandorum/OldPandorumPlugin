@@ -9,7 +9,7 @@ import com.google.gson.*;
 import mindustry.game.EventType;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindustry.mod.Plugin;
+import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.world.Tile;
 
@@ -21,6 +21,7 @@ import static mindustry.Vars.*;
 
 public class PandorumHub extends Plugin{
     public static Config config;
+    public static Mods.ModMeta info;
 
     private final Interval interval = new Interval();
     private final AtomicInteger counter = new AtomicInteger();
@@ -33,24 +34,6 @@ public class PandorumHub extends Plugin{
             .disableHtmlEscaping()
             .create();
 
-    public PandorumHub(){
-        try{
-            Streams.copy(Objects.requireNonNull(PandorumHub.class.getClassLoader().getResourceAsStream("hub-0.3.msav")),
-                         customMapDirectory.child("hub-0.3.msav").write(false));
-        }catch(IOException e){
-            Log.err("Failed to copy hub map. Skipping.");
-            Log.err(e);
-        }
-
-        Fi cfg = dataDirectory.child("config-hub.json");
-        if(!cfg.exists()){
-            cfg.writeString(gson.toJson(config = new Config()));
-            Log.info("Config created...");
-        }else{
-            config = gson.fromJson(cfg.reader(), Config.class);
-        }
-    }
-
     public void teleport(Player player){
         teleport(player, null);
     }
@@ -59,7 +42,7 @@ public class PandorumHub extends Plugin{
         for(HostData h : config.servers){
             if(h.inDiapason(tile != null ? tile.x : player.tileX(), tile != null ? tile.y : player.tileY())){
                 net.pingHost(h.ip, h.port, host -> {
-                    // пока не знаю нужно ЛИ
+                    // пока не знаю нужно ли
                     Log.debug("[@] @ --> @", player.uuid(), player.name, h.ip + ":" + h.port);
                     Call.connect(player.con, h.ip, h.port);
                 }, e -> {});
@@ -69,6 +52,25 @@ public class PandorumHub extends Plugin{
 
     @Override
     public void init(){
+        info = mods.list().find(m -> m.main instanceof PandorumHub).meta;
+
+        Fi lobby = customMapDirectory.child("hub-" + info.version + ".msav");
+        if(!lobby.exists()){
+            try{
+                Streams.copy(Objects.requireNonNull(PandorumHub.class.getClassLoader().getResourceAsStream(lobby.name())), lobby.write(false));
+            }catch(IOException e){
+                Log.err("Failed to copy hub map. Skipping.");
+                Log.err(e);
+            }
+        }
+
+        Fi cfg = dataDirectory.child("config-hub.json");
+        if(!cfg.exists()){
+            cfg.writeString(gson.toJson(config = new Config()));
+            Log.info("Config created...");
+        }else{
+            config = gson.fromJson(cfg.reader(), Config.class);
+        }
 
         Events.on(ServerLoadEvent.class, event -> netServer.admins.addActionFilter(playerAction -> false));
 
@@ -108,11 +110,6 @@ public class PandorumHub extends Plugin{
 
     @Override
     public void registerServerCommands(CommandHandler handler){
-
-        handler.register("stat", "Debug command", args -> {
-            Log.info("threads: @", Thread.activeCount());
-            Log.info("players: @", Core.settings.getInt("totalPlayers"));
-        });
 
         handler.register("reload-cfg", "Reload config.", args -> {
             config = gson.fromJson(dataDirectory.child("config-hub.json").readString(), Config.class);
