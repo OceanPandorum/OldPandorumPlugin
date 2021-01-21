@@ -233,8 +233,7 @@ public final class PandorumPlugin extends Plugin{
         Events.on(DepositEvent.class, event -> {
             Building building = event.tile;
             Player target = event.player;
-            if(Objects.equals(building.block(), Blocks.thoriumReactor) && Objects.equals(event.item, Items.thorium) &&
-               target.team().cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
+            if(building.block() == Blocks.thoriumReactor && event.item == Items.thorium && target.team().cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
                 Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.withdraw-thorium", Misc.colorizedName(target), building.tileX(), building.tileY())));
             }
         });
@@ -290,7 +289,7 @@ public final class PandorumPlugin extends Plugin{
         }
 
         Events.run(Trigger.update, () -> {
-            if(interval.get(1, 60 * 60 * 3)){
+            if(interval.get(1, 60 * 60 * 3) && state.isPlaying()){
                 Call.infoPopup(bundle.format("misc.delay", TimeUnit.MILLISECONDS.toMinutes(Time.timeSinceMillis(delay))), 3f, 20, 50, 20, 450, 0);
             }
         });
@@ -744,7 +743,7 @@ public final class PandorumPlugin extends Plugin{
                 return;
             }
 
-            Player target = args.length > 1 ? Groups.player.find(p -> p.name.toLowerCase().equals(args[1].toLowerCase())) : player;
+            Player target = args.length > 1 ? Groups.player.find(p -> Strings.stripColors(p.name).toLowerCase().equals(args[1].toLowerCase())) : player;
             if(target == null){
                 Info.bundled(player, "commands.player-not-found");
                 return;
