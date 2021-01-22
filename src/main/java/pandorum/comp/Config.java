@@ -45,12 +45,14 @@ public class Config{
         def,
 
         /** Тип для песочниц */
+        @Deprecated(forRemoval = true)
         sandbox,
 
         /** Тип для PvP серверов */
         pvp,
 
         /** Тип для 1vs1 серверов */
+        @Deprecated(forRemoval = true)
         duel
     }
 }

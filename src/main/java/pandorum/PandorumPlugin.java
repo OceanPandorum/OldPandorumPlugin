@@ -544,7 +544,6 @@ public final class PandorumPlugin extends Plugin{
                 uuids.add(uuid);
                 surrendered.put(team, uuids);
                 int cur = uuids.size;
-
                 int req = (int)Math.ceil(config.voteRatio * Groups.player.count(p -> p.team() == team));
                 Call.sendMessage(bundle.format("commands.surrender.ok",
                                                Misc.colorizedTeam(team),
@@ -677,40 +676,40 @@ public final class PandorumPlugin extends Plugin{
             }
         });
 
-        handler.<Player>register("spawn", bundle.get("commands.admin.spawn.params"), bundle.get("commands.admin.spawn.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-                return;
-            }
-
-            if(args.length > 1 && !Strings.canParseInt(args[1])){
-                Info.bundled(player, "commands.count-not-int");
-                return;
-            }
-
-            UnitType unit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
-            if(unit == null){
-                Info.bundled(player, "commands.admin.spawn.units");
-                return;
-            }
-
-            int count = args.length > 1 ? Strings.parseInt(args[1]) : 1;
-
-            Team team = args.length > 2 ? Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2])) : player.team();
-            if(team == null){
-                Info.bundled(player, "commands.admin.team.teams");
-                return;
-            }
-
-            for(int i = 0; i < count; i++){
-                unit.spawn(team, player.x, player.y);
-            }
-
-            Info.bundled(player, "commands.admin.spawn.success", count, unit.name);
-            if(unit.equals(UnitTypes.oct) || unit.equals(UnitTypes.horizon) || unit.equals(UnitTypes.quad)){
-                Call.sendMessage("[scarlet]KIROV REPORTING");
-            }
-        });
+        // handler.<Player>register("spawn", bundle.get("commands.admin.spawn.params"), bundle.get("commands.admin.spawn.description"), (args, player) -> {
+        //     if(!player.admin){
+        //         Info.bundled(player, "commands.permission-denied");
+        //         return;
+        //     }
+        //
+        //     if(args.length > 1 && !Strings.canParseInt(args[1])){
+        //         Info.bundled(player, "commands.count-not-int");
+        //         return;
+        //     }
+        //
+        //     UnitType unit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
+        //     if(unit == null){
+        //         Info.bundled(player, "commands.admin.spawn.units");
+        //         return;
+        //     }
+        //
+        //     int count = args.length > 1 ? Strings.parseInt(args[1]) : 1;
+        //
+        //     Team team = args.length > 2 ? Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2])) : player.team();
+        //     if(team == null){
+        //         Info.bundled(player, "commands.admin.team.teams");
+        //         return;
+        //     }
+        //
+        //     for(int i = 0; i < count; i++){
+        //         unit.spawn(team, player.x, player.y);
+        //     }
+        //
+        //     Info.bundled(player, "commands.admin.spawn.success", count, unit.name);
+        //     if(unit.equals(UnitTypes.oct) || unit.equals(UnitTypes.horizon) || unit.equals(UnitTypes.quad)){
+        //         Call.sendMessage("[scarlet]KIROV REPORTING");
+        //     }
+        // });
 
         handler.<Player>register("core", bundle.get("commands.admin.core.params"), bundle.get("commands.admin.core.description"), (args, player) -> {
             if(!player.admin){
@@ -762,39 +761,39 @@ public final class PandorumPlugin extends Plugin{
             }
         });
 
-        handler.<Player>register("give", bundle.get("commands.admin.give.params"), bundle.get("commands.admin.give.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-                return;
-            }
-
-            if(!Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.count-not-int");
-                return;
-            }
-
-            int count = Strings.parseInt(args[0]);
-
-            Item item = content.items().find(b -> b.name.equalsIgnoreCase(args[1]));
-            if(item == null){
-                Info.bundled(player, "commands.admin.give.item-not-found");
-                return;
-            }
-
-            TeamData team = state.teams.get(player.team());
-            if(!team.hasCore()){
-                Info.bundled(player, "commands.admin.give.core-not-found");
-                return;
-            }
-
-            CoreBuild core = team.cores.first();
-
-            for(int i = 0; i < count; i++){
-                core.items.set(item, count);
-            }
-
-            Info.bundled(player, "commands.admin.give.success");
-        });
+        // handler.<Player>register("give", bundle.get("commands.admin.give.params"), bundle.get("commands.admin.give.description"), (args, player) -> {
+        //     if(!player.admin){
+        //         Info.bundled(player, "commands.permission-denied");
+        //         return;
+        //     }
+        //
+        //     if(!Strings.canParseInt(args[0])){
+        //         Info.bundled(player, "commands.count-not-int");
+        //         return;
+        //     }
+        //
+        //     int count = Strings.parseInt(args[0]);
+        //
+        //     Item item = content.items().find(b -> b.name.equalsIgnoreCase(args[1]));
+        //     if(item == null){
+        //         Info.bundled(player, "commands.admin.give.item-not-found");
+        //         return;
+        //     }
+        //
+        //     TeamData team = state.teams.get(player.team());
+        //     if(!team.hasCore()){
+        //         Info.bundled(player, "commands.admin.give.core-not-found");
+        //         return;
+        //     }
+        //
+        //     CoreBuild core = team.cores.first();
+        //
+        //     for(int i = 0; i < count; i++){
+        //         core.items.set(item, count);
+        //     }
+        //
+        //     Info.bundled(player, "commands.admin.give.success");
+        // });
 
         // handler.<Player>register("tp", "<x> <y>", bundle.get("commands.admin.tp.description"), (args, player) -> {
         //     if(!player.admin){
