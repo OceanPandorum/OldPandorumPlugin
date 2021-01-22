@@ -1,5 +1,7 @@
 package pandorum.struct.cache;
 
+import arc.util.*;
+
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -9,18 +11,25 @@ public abstract class Seqs{
 
     private Seqs(){}
 
+    static void requireArgument(boolean expression, String template, @Nullable Object... args){
+        if(!expression){
+            throw new IllegalArgumentException(Strings.format(template, args));
+        }
+    }
+
     public static <T> SeqBuilder<T> newBuilder(){
         return new SeqBuilder<>();
     }
 
     public static class SeqBuilder<T>{
         protected long expireAfterWriteNanos = UNSET_INT;
-        protected int limit = UNSET_INT;
+        protected int maximumSize = UNSET_INT;
 
         private SeqBuilder(){}
 
-        public SeqBuilder<T> limit(int limit){
-            this.limit = limit;
+        public SeqBuilder<T> maximumSize(int maximumSize){
+            requireArgument(maximumSize >= 0, "maximum size must not be negative");
+            this.maximumSize = maximumSize;
             return this;
         }
 
@@ -29,6 +38,7 @@ public abstract class Seqs{
         }
 
         public SeqBuilder<T> expireAfterWrite(long duration, TimeUnit unit){
+            requireArgument(duration >= 0, "duration cannot be negative: @ @", duration, unit);
             this.expireAfterWriteNanos = unit.toNanos(duration);
             return this;
         }

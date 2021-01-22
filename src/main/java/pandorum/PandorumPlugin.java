@@ -14,17 +14,14 @@ import mindustry.content.*;
 import mindustry.core.GameState;
 import mindustry.game.EventType.*;
 import mindustry.game.Team;
-import mindustry.game.Teams.TeamData;
 import mindustry.gen.*;
 import mindustry.maps.Map;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration;
 import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
-import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.Floor;
-import mindustry.world.blocks.storage.CoreBlock.CoreBuild;
 import pandorum.comp.*;
 import pandorum.comp.Config.PluginType;
 import pandorum.entry.*;
@@ -144,7 +141,7 @@ public final class PandorumPlugin extends Plugin{
 
             for(Tile tile : world.tiles){
                 history[tile.x][tile.y] = Seqs.newBuilder()
-                        .limit(config.historyLimit)
+                        .maximumSize(config.historyLimit)
                         .expireAfterWrite(Duration.ofMillis(config.expireDelay))
                         .build();
             }

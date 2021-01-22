@@ -14,18 +14,18 @@ public class CacheSeq<T> extends Seq<T>{
 
     private final ObjectMap<T, Long> expires = new ObjectMap<>();
     private final long expireAfterWriteNanos;
-    private final int limit;
+    private final int maximumSize;
 
     private boolean overflow;
 
     CacheSeq(Seqs.SeqBuilder<? super T> builder){
-        limit = builder.limit;
+        maximumSize = builder.maximumSize;
         expireAfterWriteNanos = builder.expireAfterWriteNanos;
     }
 
     @Override
     public void add(T e){
-        if(limit != UNSET_INT && size + 1 > limit){
+        if(maximumSize != UNSET_INT && size + 1 > maximumSize){
             overflow = true;
         }else{
             overflow = false;
@@ -55,7 +55,7 @@ public class CacheSeq<T> extends Seq<T>{
     }
 
     public boolean isOverflown(){
-        return overflow || size > limit;
+        return overflow || size > maximumSize;
     }
 
     public void cleanup(){
