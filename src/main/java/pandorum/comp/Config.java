@@ -6,6 +6,7 @@ public class Config{
 
     public int alertDistance = 300;
 
+    /** Необходимое количество игроков для успешного завершения голосования. В процентах */
     public float voteRatio = 0.6f;
 
     /** Ёмкость массива хранимого информацию о действиях с тайлом. Может сильно влиять на трату ОЗУ */
@@ -44,15 +45,7 @@ public class Config{
         /** Тип для серверов с режимом выживания или атаки */
         def,
 
-        /** Тип для песочниц */
-        @Deprecated(forRemoval = true)
-        sandbox,
-
         /** Тип для PvP серверов */
-        pvp,
-
-        /** Тип для 1vs1 серверов */
-        @Deprecated(forRemoval = true)
-        duel
+        pvp
     }
 }

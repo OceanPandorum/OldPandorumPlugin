@@ -258,12 +258,6 @@ public final class PandorumPlugin extends Plugin{
 
         Events.on(GameOverEvent.class, __ -> votes.clear());
 
-        if(config.type == PluginType.duel){
-            Events.on(PlayerLeave.class, __ -> Events.fire(new GameOverEvent(Team.crux)));
-
-            Events.on(GameOverEvent.class, __ -> netServer.kickAll(KickReason.gameover));
-        }
-
         if(config.type == PluginType.pvp){
             Events.on(PlayerLeave.class, event -> {
                 String uuid = event.player.uuid();
@@ -274,15 +268,6 @@ public final class PandorumPlugin extends Plugin{
             });
 
             Events.on(GameOverEvent.class, __ -> surrendered.clear());
-        }
-
-        if(config.type == PluginType.sandbox){
-            Timer.schedule(() -> {
-                if(state.is(GameState.State.playing)){
-                    Groups.unit.each(Unitc::kill);
-                    Call.sendMessage(bundle.get("events.autokill"));
-                }
-            }, 1800, 1800);
         }
 
         Events.run(Trigger.update, () -> {
@@ -558,45 +543,6 @@ public final class PandorumPlugin extends Plugin{
                         Time.run(Mathf.random(360), tile.build::kill);
                     }
                 }
-            });
-        }
-
-        if(config.type == PluginType.sandbox){
-            handler.<Player>register("fill", bundle.get("commands.fill.params"), bundle.get("commands.fill.description"), (args, player) -> {
-                if(!player.admin){
-                    Info.bundled(player, "commands.permission-denied");
-                    return;
-                }
-
-                if(!Strings.canParseInt(args[0])){
-                    Info.bundled(player, "commands.fill.incorrect-width");
-                    return;
-                }
-
-                if(!Strings.canParseInt(args[1])){
-                    Info.bundled(player, "commands.fill.incorrect-height");
-                    return;
-                }
-
-                int w = Mathf.clamp(Strings.parseInt(args[0]), 0, 5) + player.tileX();
-                int h = Mathf.clamp(Strings.parseInt(args[1]), 0, 5) + player.tileY();
-
-                Floor floor = (Floor)content.blocks().find(b -> b.isFloor() && b.name.equals(args[2]));
-                if(floor == null){
-                    Info.bundled(player, "commands.fill.incorrect-floor");
-                    return;
-                }
-
-                for(int x = player.tileX(); x < w; x++){
-                    for(int y = player.tileY(); y < h; y++){
-                        Call.setFloor(world.tile(x, y), floor, Blocks.air);
-                    }
-                }
-
-                Groups.player.each(p -> {
-                    Call.worldDataBegin(p.con);
-                    Vars.netServer.sendWorldData(p);
-                });
             });
         }
 
