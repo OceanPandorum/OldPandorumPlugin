@@ -1,5 +1,6 @@
 package pandorum.struct.cache;
 
+import arc.struct.Queue;
 import arc.util.*;
 
 import java.time.Duration;
@@ -19,6 +20,43 @@ public abstract class Seqs{
 
     public static <T> SeqBuilder<T> newBuilder(){
         return new SeqBuilder<>();
+    }
+
+    public static <T> SafeQueue<T> safeQueue(){
+        return new SafeQueue<>();
+    }
+
+    private static class SafeQueue<T> extends Queue<T>{
+
+        @Override
+        public T removeFirst(){
+            return isEmpty() ? null : super.removeFirst();
+        }
+
+        @Override
+        public T removeLast(){
+            return isEmpty() ? null : super.removeLast();
+        }
+
+        @Override
+        public T removeIndex(int index){
+            return index < 0 || index >= size ? null : super.removeIndex(index);
+        }
+
+        @Override
+        public T first(){
+            return isEmpty() ? null : super.first();
+        }
+
+        @Override
+        public T last(){
+            return isEmpty() ? null : super.last();
+        }
+
+        @Override
+        public T get(int index){
+            return index < 0 || index >= size ? null : super.get(index);
+        }
     }
 
     public static class SeqBuilder<T>{

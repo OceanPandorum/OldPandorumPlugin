@@ -13,7 +13,7 @@ public class RestHttpRequest{
     private Map<String, String> headers;
 
     public RestHttpRequest(Route route, Object... uriVars){
-        this.route = route;
+        this.route = Objects.requireNonNull(route, "route");
         this.uri = RouteUtil.expand(route.uriTemplate, uriVars);
     }
 

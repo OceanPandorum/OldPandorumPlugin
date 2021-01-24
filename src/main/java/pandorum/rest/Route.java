@@ -7,8 +7,8 @@ public class Route{
     public final String uriTemplate;
 
     private Route(HttpMethod method, String uriTemplate){
-        this.method = method;
-        this.uriTemplate = uriTemplate;
+        this.method = Objects.requireNonNull(method, "method");
+        this.uriTemplate = Objects.requireNonNull(uriTemplate, "uriTemplate");
     }
 
     public static Route get(String uri){

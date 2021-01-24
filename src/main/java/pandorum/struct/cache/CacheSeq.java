@@ -1,7 +1,10 @@
 package pandorum.struct.cache;
 
 import arc.struct.*;
-import arc.util.Time;
+import arc.util.*;
+import pandorum.struct.Tuple2;
+
+import java.util.Objects;
 
 /**
  * Последовательность с некоторыми функциями кеш-карт. <br>
@@ -12,7 +15,7 @@ import arc.util.Time;
 public class CacheSeq<T> extends Seq<T>{
     protected static final int UNSET_INT = -1;
 
-    private final ObjectMap<T, Long> expires = new ObjectMap<>();
+    private final Queue<Tuple2<T, Long>> writeQueue;
     private final long expireAfterWriteNanos;
     private final int maximumSize;
 
@@ -21,6 +24,7 @@ public class CacheSeq<T> extends Seq<T>{
     CacheSeq(Seqs.SeqBuilder<? super T> builder){
         maximumSize = builder.maximumSize;
         expireAfterWriteNanos = builder.expireAfterWriteNanos;
+        writeQueue = Seqs.safeQueue();
     }
 
     @Override
@@ -29,7 +33,7 @@ public class CacheSeq<T> extends Seq<T>{
             overflow = true;
         }else{
             overflow = false;
-            expires.put(e, Time.nanos());
+            writeQueue.add(Tuple2.of(e, Time.nanos()));
             super.add(e);
         }
 
@@ -54,17 +58,44 @@ public class CacheSeq<T> extends Seq<T>{
         }
     }
 
+    @Override
+    public T first(){
+        try{
+            return isEmpty() ? null : super.first();
+        }finally{
+            cleanup();
+        }
+    }
+
+    @Override
+    public boolean remove(T value){
+        try{
+            int index = writeQueue.indexOf(t -> Objects.equals(t.t1, value));
+            if(index != -1){
+                writeQueue.removeIndex(index);
+            }
+            return super.remove(value);
+        }finally{
+            cleanup();
+        }
+    }
+
     public boolean isOverflown(){
         return overflow || size > maximumSize;
     }
 
+    public boolean expiresAfterWrite(){
+        return expireAfterWriteNanos > 0;
+    }
+
     public void cleanup(){
-        if(expireAfterWriteNanos == UNSET_INT) return;
-        for(T t : this){
-            Long time = expires.get(t);
-            if(time != null && Time.timeSinceNanos(time) >= expireAfterWriteNanos){
-                remove(t);
-            }
+        Tuple2<T, Long> t;
+        while((t = writeQueue.last()) != null && isExpired(t.t2)){
+            remove(t.t1);
         }
+    }
+
+    private boolean isExpired(Long time){
+        return expiresAfterWrite() && time != null && Time.timeSinceNanos(time) >= expireAfterWriteNanos;
     }
 }
