@@ -22,6 +22,7 @@ public class VoteSaveSession extends VoteSession{
         return Timer.schedule(() -> {
             if(!checkPass()){
                 Call.sendMessage(bundle.format("commands.nominate.save.failed", target));
+                voted.clear();
                 map[0] = null;
                 task.cancel();
             }

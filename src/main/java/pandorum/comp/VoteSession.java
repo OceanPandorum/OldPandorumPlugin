@@ -27,6 +27,7 @@ public abstract class VoteSession{
         return Timer.schedule(() -> {
             if(!checkPass()){
                 map[0] = null;
+                voted.clear();
                 task.cancel();
             }
         }, config.voteDuration);

@@ -26,6 +26,7 @@ public class VoteLoadSession extends VoteSession{
         return Timer.schedule(() -> {
             if(!checkPass()){
                 Call.sendMessage(bundle.format("commands.nominate.load.failed", target.nameWithoutExtension()));
+                voted.clear();
                 map[0] = null;
                 task.cancel();
             }

@@ -5,13 +5,10 @@ import arc.files.Fi;
 import arc.math.Mathf;
 import arc.struct.*;
 import arc.struct.ObjectMap.Entry;
-import arc.util.Timer;
 import arc.util.*;
 import arc.util.io.Streams;
 import com.google.gson.*;
-import mindustry.Vars;
 import mindustry.content.*;
-import mindustry.core.GameState;
 import mindustry.game.EventType.*;
 import mindustry.game.Team;
 import mindustry.gen.*;
@@ -21,7 +18,6 @@ import mindustry.net.Administration;
 import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
 import mindustry.world.*;
-import mindustry.world.blocks.environment.Floor;
 import pandorum.comp.*;
 import pandorum.comp.Config.PluginType;
 import pandorum.entry.*;
@@ -64,7 +60,7 @@ public final class PandorumPlugin extends Plugin{
     private final DateTimeFormatter shortFormatter;
     private final DateTimeFormatter formatter;
     private final ActionService actionService;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final ExecutorService executor = Executors.newFixedThreadPool(3);
 
     public PandorumPlugin(){
@@ -157,8 +153,7 @@ public final class PandorumPlugin extends Plugin{
         });
 
         Events.on(ConfigEvent.class, event -> {
-            if(event.player == null) return;
-            if(event.tile.tileX() > world.width() || event.tile.tileX() > world.height()){
+            if(event.player == null || event.tile.tileX() > world.width() || event.tile.tileX() > world.height()){
                 return;
             }
 
@@ -170,8 +165,9 @@ public final class PandorumPlugin extends Plugin{
             if(!entries.isEmpty() && last instanceof ConfigEntry){
                 ConfigEntry lastConfigEntry = (ConfigEntry)last;
 
-                connect = !(lastConfigEntry.value instanceof Integer && event.value instanceof Integer &&
-                            (int)lastConfigEntry.value == (int)event.value && lastConfigEntry.connect);
+                connect = !event.tile.getPowerConnections(new Seq<>()).isEmpty() &&
+                          !(lastConfigEntry.value instanceof Integer && event.value instanceof Integer &&
+                          (int)lastConfigEntry.value == (int)event.value && lastConfigEntry.connect);
             }
 
             HistoryEntry entry = new ConfigEntry(event, connect);
