@@ -69,15 +69,11 @@ public class CacheSeq<T> extends Seq<T>{
 
     @Override
     public boolean remove(T value){
-        try{
-            int index = writeQueue.indexOf(t -> Objects.equals(t.t1, value));
-            if(index != -1){
-                writeQueue.removeIndex(index);
-            }
-            return super.remove(value);
-        }finally{
-            cleanup();
+        int index = writeQueue.indexOf(t -> Objects.equals(t.t1, value));
+        if(index != -1){
+            writeQueue.removeIndex(index);
         }
+        return super.remove(value);
     }
 
     public boolean isOverflown(){
