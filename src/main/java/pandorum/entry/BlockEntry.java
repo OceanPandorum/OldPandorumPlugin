@@ -3,7 +3,6 @@ package pandorum.entry;
 import arc.util.*;
 import mindustry.game.EventType.BlockBuildEndEvent;
 import mindustry.gen.*;
-import mindustry.world.Tile;
 import pandorum.Misc;
 
 import java.util.concurrent.*;
@@ -14,14 +13,14 @@ public class BlockEntry implements HistoryEntry{
     @Nullable
     public final String name;
     public final Unit unit;
-    public final Tile tile;
+    public final Building building;
     public final boolean breaking;
     public long lastAccessTime;
 
     public BlockEntry(BlockBuildEndEvent event){
         this.unit = event.unit;
         this.name = unit.isPlayer() ? Misc.colorizedName(unit.getPlayer()) : unit.controller() instanceof Player ? Misc.colorizedName(unit.getPlayer()) : null;
-        this.tile = event.tile;
+        this.building = event.tile.build;
         this.breaking = event.breaking;
 
         lastAccessTime = Time.millis();
@@ -34,11 +33,11 @@ public class BlockEntry implements HistoryEntry{
             bundle.format("events.history.block.destroy.unit", unit.type);
         }
 
-        String base = name != null ? bundle.format("events.history.block.construct.player", name, tile.block().name) :
-                      bundle.format("events.history.block.construct.unit", unit.type, tile.block().name);
-        if(tile.block().rotate){
-            int rotation = tile.build.rotation;
-            base += tile.block().rotate ? bundle.format("events.history.block.construct.rotate", RotateEntry.sides[rotation == 0 ? 1 : rotation + 3]) : "";
+        String base = name != null ? bundle.format("events.history.block.construct.player", name, building.block().name) :
+                      bundle.format("events.history.block.construct.unit", unit.type, building.block().name);
+        if(building.block().rotate){
+            int rotation = building.rotation;
+            base += building.block().rotate ? bundle.format("events.history.block.construct.rotate", RotateEntry.sides[rotation == 0 ? 1 : rotation + 3]) : "";
         }
         return base;
     }
