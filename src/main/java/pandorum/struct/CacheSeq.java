@@ -1,8 +1,8 @@
-package pandorum.struct.cache;
+package pandorum.struct;
 
 import arc.struct.*;
 import arc.util.*;
-import pandorum.struct.Tuple2;
+import pandorum.struct.*;
 
 import java.util.Objects;
 

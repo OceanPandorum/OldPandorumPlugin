@@ -1,4 +1,4 @@
-package pandorum.struct.cache;
+package pandorum.struct;
 
 import arc.struct.Queue;
 import arc.util.*;
@@ -6,7 +6,7 @@ import arc.util.*;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import static pandorum.struct.cache.CacheSeq.UNSET_INT;
+import static pandorum.struct.CacheSeq.UNSET_INT;
 
 public abstract class Seqs{
 
