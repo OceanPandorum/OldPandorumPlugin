@@ -1,8 +1,7 @@
 package pandorum.struct;
 
 import arc.struct.*;
-import arc.util.*;
-import pandorum.struct.*;
+import arc.util.Time;
 
 import java.util.Objects;
 
@@ -29,7 +28,7 @@ public class CacheSeq<T> extends Seq<T>{
 
     @Override
     public void add(T e){
-        if(maximumSize != UNSET_INT && size + 1 > maximumSize){
+        if(evictsBySize() && size + 1 > maximumSize){
             overflow = true;
         }else{
             overflow = false;
@@ -82,6 +81,10 @@ public class CacheSeq<T> extends Seq<T>{
 
     public boolean expiresAfterWrite(){
         return expireAfterWriteNanos > 0;
+    }
+
+    public boolean evictsBySize(){
+        return maximumSize >= 0;
     }
 
     public void cleanup(){
