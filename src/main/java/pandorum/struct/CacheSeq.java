@@ -5,12 +5,6 @@ import arc.util.Time;
 
 import java.util.Objects;
 
-/**
- * Последовательность с некоторыми функциями кеш-карт. <br>
- * С такими как: выселение по истечению времени, лимит <br>
- * <p>
- * <b>На данный момент НЕПОТОКОБЕЗОПАСНА</b>
- */
 public class CacheSeq<T> extends Seq<T>{
     protected static final int UNSET_INT = -1;
 

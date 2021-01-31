@@ -34,7 +34,7 @@ import static mindustry.Vars.*;
 
 @SuppressWarnings("unchecked")
 public final class PandorumPlugin extends Plugin{
-    public static final Gson gson = new GsonBuilder() // для моих нужд больше уже подойдёт джексон
+    public static final Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
             .registerTypeAdapter(Instant.class, new InstantTypeAdapter())
             .disableHtmlEscaping()
@@ -237,7 +237,7 @@ public final class PandorumPlugin extends Plugin{
                 Player target = event.builder.getPlayer();
 
                 if(interval.get(300)){
-                    Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.alert", target.name, event.tile.x, event.tile.y)));
+                    Groups.player.each(p -> !alertIgnores.contains(p.uuid()), p -> p.sendMessage(bundle.format("events.alert", target.name, event.tile.x, event.tile.y)));
                 }
             }
         });

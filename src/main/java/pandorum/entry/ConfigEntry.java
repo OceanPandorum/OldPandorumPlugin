@@ -204,19 +204,17 @@ public class ConfigEntry implements HistoryEntry{
         commands = bundle.get("events.history.config.command-center.all").split(", ");
     }
 
+    public final long lastAccessTime = Time.millis();
     public final String name;
     public final Block block;
     public final Object value;
     public final boolean connect;
-    public long lastAccessTime;
 
     public ConfigEntry(ConfigEvent event, boolean connect){
         this.name = Groups.player.contains(p -> event.player == p) ? Misc.colorizedName(event.player) : bundle.get("events.unknown");
         this.block = event.tile.block();
         this.value = event.value;
         this.connect = connect;
-
-        lastAccessTime = Time.millis();
     }
 
     @Override
