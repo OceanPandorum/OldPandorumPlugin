@@ -3,7 +3,7 @@ package pandorum;
 public class HostData{
     public String ip = "pandorum.su";
     public int port;
-    public int size = 3;
+    public int size;
 
     public int teleportX;
     public int teleportY;
@@ -15,8 +15,9 @@ public class HostData{
     public int labelX;
     public int labelY;
 
-    public HostData(int port, int teleportX, int teleportY, int titleX, int titleY, int labelX, int labelY){
+    public HostData(int port, int size, int teleportX, int teleportY, int titleX, int titleY, int labelX, int labelY){
         this.port = port;
+        this.size = size;
         this.teleportX = teleportX;
         this.teleportY = teleportY;
         this.titleX = titleX;
