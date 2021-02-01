@@ -591,20 +591,20 @@ public final class PandorumPlugin extends Plugin{
             Events.fire(new GameOverEvent(Team.crux));
         });
 
-        handler.<Player>register("bc", bundle.get("commands.admin.bc.params"), bundle.get("commands.admin.bc.description"), (args, player) -> {
-            if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
-            }else{
-                Player target = Strings.canParseInt(args[0]) ? Groups.player.find(p -> p.id == Strings.parseInt(args[0])) : null;
-                String text = Strings.format("\uE805@\uE805\n\n@\n", bundle.get("commands.admin.bc.text"), args[1]);
-
-                if(target != null){
-                    Call.infoMessage(target.con, text);
-                }else{
-                    Call.infoMessage(text);
-                }
-            }
-        });
+        // handler.<Player>register("bc", bundle.get("commands.admin.bc.params"), bundle.get("commands.admin.bc.description"), (args, player) -> {
+        //     if(!player.admin){
+        //         Info.bundled(player, "commands.permission-denied");
+        //     }else{
+        //         Player target = Strings.canParseInt(args[0]) ? Groups.player.find(p -> p.id == Strings.parseInt(args[0])) : null;
+        //         String text = Strings.format("\uE805@\uE805\n\n@\n", bundle.get("commands.admin.bc.text"), args[1]);
+        //
+        //         if(target != null){
+        //             Call.infoMessage(target.con, text);
+        //         }else{
+        //             Call.infoMessage(text);
+        //         }
+        //     }
+        // });
 
         handler.<Player>register("go", bundle.get("commands.admin.go.description"), (args, player) -> {
             if(!player.admin){
