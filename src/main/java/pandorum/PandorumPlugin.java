@@ -183,7 +183,7 @@ public final class PandorumPlugin extends Plugin{
 
                 StringBuilder message = new StringBuilder(bundle.format("events.history.title", event.tile.x, event.tile.y));
 
-                entries.cleanup();
+                entries.cleanUp();
                 if(entries.isOverflown()){
                     message.append(bundle.get("events.history.overflow"));
                 }

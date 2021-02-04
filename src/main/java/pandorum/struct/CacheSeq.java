@@ -12,8 +12,6 @@ public class CacheSeq<T> extends Seq<T>{
     private final long expireAfterWriteNanos;
     private final int maximumSize;
 
-    private boolean overflow;
-
     CacheSeq(Seqs.SeqBuilder<? super T> builder){
         maximumSize = builder.maximumSize;
         expireAfterWriteNanos = builder.expireAfterWriteNanos;
@@ -22,15 +20,15 @@ public class CacheSeq<T> extends Seq<T>{
 
     @Override
     public void add(T e){
-        if(evictsBySize() && size + 1 > maximumSize){
-            overflow = true;
-        }else{
-            overflow = false;
-            writeQueue.add(Tuple2.of(e, Time.nanos()));
-            super.add(e);
+        if(e == null){
+            return;
         }
 
-        cleanup();
+        super.add(e);
+        writeQueue.add(Tuple2.of(e, Time.nanos()));
+
+        cleanUpBySize();
+        cleanUp();
     }
 
     @Override
@@ -38,7 +36,7 @@ public class CacheSeq<T> extends Seq<T>{
         try{
             return super.get(index);
         }finally{
-            cleanup();
+            cleanUp();
         }
     }
 
@@ -47,7 +45,7 @@ public class CacheSeq<T> extends Seq<T>{
         try{
             return isEmpty() ? null : super.peek();
         }finally{
-            cleanup();
+            cleanUp();
         }
     }
 
@@ -56,7 +54,7 @@ public class CacheSeq<T> extends Seq<T>{
         try{
             return isEmpty() ? null : super.first();
         }finally{
-            cleanup();
+            cleanUp();
         }
     }
 
@@ -70,7 +68,7 @@ public class CacheSeq<T> extends Seq<T>{
     }
 
     public boolean isOverflown(){
-        return overflow || size > maximumSize;
+        return evictsBySize() && size >= maximumSize;
     }
 
     public boolean expiresAfterWrite(){
@@ -81,10 +79,20 @@ public class CacheSeq<T> extends Seq<T>{
         return maximumSize >= 0;
     }
 
-    public void cleanup(){
+    public void cleanUp(){
         Tuple2<T, Long> t;
         while((t = writeQueue.last()) != null && isExpired(t.t2)){
             remove(t.t1);
+        }
+    }
+
+    public void cleanUpBySize(){
+        if(!evictsBySize()){
+            return;
+        }
+
+        while(size > maximumSize){
+            remove(first());
         }
     }
 
