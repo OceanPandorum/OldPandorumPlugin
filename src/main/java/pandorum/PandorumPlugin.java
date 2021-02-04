@@ -188,8 +188,12 @@ public final class PandorumPlugin extends Plugin{
                     message.append(bundle.get("events.history.overflow"));
                 }
 
+                int i = 0;
                 for(HistoryEntry entry : entries){
                     message.append("\n").append(entry.getMessage());
+                    if(++i > 6){
+                        break;
+                    }
                 }
 
                 if(entries.isEmpty()){
@@ -359,13 +363,16 @@ public final class PandorumPlugin extends Plugin{
 
                 page--;
 
-                if(page >= pages || page < 0){
+                if((page >= pages || page < 0) && !entries.isEmpty()){
                     Info.bundled(player, "commands.under-page", pages);
                     return;
                 }
 
                 StringBuilder result = new StringBuilder();
                 result.append(bundle.format("commands.history.page", mouseX, mouseY, page + 1, pages)).append("\n");
+                if(entries.isEmpty()){
+                    result.append("events.history.empty");
+                }
 
                 for(int i = 6 * page; i < Math.min(6 * (page + 1), entries.size); i++){
                     HistoryEntry e = entries.get(i);
