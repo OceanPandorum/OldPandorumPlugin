@@ -8,6 +8,7 @@ import arc.struct.ObjectMap.Entry;
 import arc.util.*;
 import arc.util.io.Streams;
 import com.google.gson.*;
+import mindustry.Vars;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Team;
@@ -24,6 +25,7 @@ import pandorum.entry.*;
 import pandorum.rest.*;
 import pandorum.struct.*;
 
+import javax.print.DocFlavor;
 import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -898,6 +900,30 @@ public final class PandorumPlugin extends Plugin{
                     current[0] = session;
                     session.vote(player, 1);
                 }
+            }
+        });
+
+        handler.<Player>register("playerinfo","<name/ip/id...>",bundle.get("commands.playerinfo.desc"),(arg,player)->{
+            ObjectSet<Administration.PlayerInfo> infos = Vars.netServer.admins.findByName(arg[0]);
+            if (infos.size > 0) {
+                Log.info("Players found: @", new Object[] { Integer.valueOf(infos.size) });
+                int i = 0;
+                Iterator<Administration.PlayerInfo> objectSetIterator = infos.iterator();
+                while (objectSetIterator.hasNext()) {
+                    StringBuilder b=new StringBuilder();
+                    Administration.PlayerInfo info = objectSetIterator.next();
+                    b.append(Strings.format("[@] "+bundle.get("commands.playerinfo.header")+" '@' / UUID @", new Object[] { Integer.valueOf(i++), info.lastName, info.id }));
+                    b.append(Strings.format("  "+bundle.get("commands.playerinfo.header")+": @", new Object[] { info.names }));
+                    if(player.admin()) {
+                        b.append("  IP: "+info.lastIP);
+                        b.append(Strings.format("  IPs : @", new Object[]{info.ips}));
+                    }
+                    b.append("  " + bundle.get("commands.playerinfo.joined") +": " + info.timesJoined);
+                    b.append("  " + bundle.get("commands.playerinfo.kicked") +": "+ info.timesKicked);
+                    Call.infoMessage(player.con(),b.toString());
+                }
+            } else {
+                Log.info(bundle.get("commands.player-not-found"));
             }
         });
     }
