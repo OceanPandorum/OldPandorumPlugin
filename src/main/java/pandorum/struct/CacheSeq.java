@@ -15,7 +15,7 @@ public class CacheSeq<T> extends Seq<T>{
     CacheSeq(Seqs.SeqBuilder<? super T> builder){
         maximumSize = builder.maximumSize;
         expireAfterWriteNanos = builder.expireAfterWriteNanos;
-        writeQueue = Seqs.safeQueue();
+        writeQueue = expiresAfterWrite() ? Seqs.safeQueue() : Seqs.emptyQueue();
     }
 
     @Override

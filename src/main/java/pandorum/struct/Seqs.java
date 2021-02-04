@@ -1,5 +1,6 @@
 package pandorum.struct;
 
+import arc.func.Boolf;
 import arc.struct.Queue;
 import arc.util.*;
 
@@ -24,6 +25,10 @@ public abstract class Seqs{
 
     public static <T> SafeQueue<T> safeQueue(){
         return new SafeQueue<>();
+    }
+
+    public static <T> EmptyQueue<T> emptyQueue(){
+        return new EmptyQueue<>();
     }
 
     private static class SafeQueue<T> extends Queue<T>{
@@ -56,6 +61,79 @@ public abstract class Seqs{
         @Override
         public T get(int index){
             return index < 0 || index >= size ? null : super.get(index);
+        }
+    }
+
+    private static class EmptyQueue<T> extends Queue<T>{
+
+        @Override
+        public void add(T object){
+
+        }
+
+        @Override
+        public void addFirst(T object){
+
+        }
+
+        @Override
+        public void addLast(T object){
+
+        }
+
+        @Override
+        public boolean remove(T value){
+            return false;
+        }
+
+        @Override
+        public boolean remove(T value, boolean identity){
+            return false;
+        }
+
+        @Override
+        public T removeIndex(int index){
+            return null;
+        }
+
+        @Override
+        public T removeFirst(){
+            return null;
+        }
+
+        @Override
+        public T removeLast(){
+            return null;
+        }
+
+        @Override
+        public T first(){
+            return null;
+        }
+
+        @Override
+        public T last(){
+            return null;
+        }
+
+        @Override
+        public T get(int index){
+            return null;
+        }
+
+        @Override
+        public int indexOf(T value, boolean identity){
+            return -1;
+        }
+
+        @Override
+        public int indexOf(Boolf<T> value){
+            return -1;
+        }
+
+        @Override
+        public boolean isEmpty(){
+            return true;
         }
     }
 
