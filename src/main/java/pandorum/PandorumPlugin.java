@@ -270,7 +270,7 @@ public final class PandorumPlugin extends Plugin{
         }
 
         Events.run(Trigger.update, () -> {
-            if(interval.get(1, 60 * 60 * 3) && state.isPlaying()){
+            if(interval.get(1, 60 * 60 * 5) && state.isPlaying()){
                 Call.infoPopup(bundle.format("misc.delay", TimeUnit.MILLISECONDS.toMinutes(Time.timeSinceMillis(delay))), 3f, 20, 50, 20, 450, 0);
             }
         });
