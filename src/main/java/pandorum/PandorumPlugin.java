@@ -913,7 +913,7 @@ public final class PandorumPlugin extends Plugin{
                     StringBuilder b=new StringBuilder();
                     Administration.PlayerInfo info = objectSetIterator.next();
                     b.append(Strings.format("[@] "+bundle.get("commands.playerinfo.header")+" '@' / UUID @", new Object[] { Integer.valueOf(i++), info.lastName, info.id }));
-                    b.append(Strings.format("  "+bundle.get("commands.playerinfo.header")+": @", new Object[] { info.names }));
+                    b.append(Strings.format("  "+bundle.get("commands.playerinfo.names")+": @", new Object[] { info.names }));
                     if(player.admin()) {
                         b.append("  IP: "+info.lastIP);
                         b.append(Strings.format("  IPs : @", new Object[]{info.ips}));
@@ -925,6 +925,23 @@ public final class PandorumPlugin extends Plugin{
             } else {
                 Log.info(bundle.get("commands.player-not-found"));
             }
+        });
+
+        handler.<Player>register("judgelight","<ip/id> <value>",bundle.get("commands.judgelight.desc"),(arg,player)->{
+            if(!player.admin()){
+                Call.infoMessage(player.con,bundle.get("commands.permission-denied"));
+            }
+            if (arg[0].equals("id")) {
+                Vars.netServer.admins.banPlayerID(arg[1]);
+                Call.infoMessage(player.con,bundle.get("commands.judgelight.ban"));
+                return;
+            }
+            if (arg[0].equals("ip")) {
+                Vars.netServer.admins.banPlayerIP(arg[1]);
+                Call.infoMessage(player.con,bundle.get("commands.judgelight.ban"));
+                return;
+            }
+            Call.infoMessage(player.con,bundle.get("commands.judgelight.type-err"));
         });
     }
 }
