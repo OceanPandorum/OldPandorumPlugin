@@ -25,7 +25,6 @@ import pandorum.entry.*;
 import pandorum.rest.*;
 import pandorum.struct.*;
 
-import javax.print.DocFlavor;
 import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -272,7 +271,7 @@ public final class PandorumPlugin extends Plugin{
         }
 
         Events.run(Trigger.update, () -> {
-            if(interval.get(1, 60 * 60 * 5) && state.isPlaying()){
+            if(interval.get(1, 60 * 60 * 15) && state.isPlaying()){
                 Call.infoPopup(bundle.format("misc.delay", TimeUnit.MILLISECONDS.toMinutes(Time.timeSinceMillis(delay))), 3f, 20, 50, 20, 450, 0);
             }
         });
@@ -482,7 +481,7 @@ public final class PandorumPlugin extends Plugin{
                 action.timestamp(Instant.now());
                 action.endTimestamp(delay);
 
-                actionService.save(action);
+                executor.submit(() -> actionService.save(action));
                 Call.sendMessage(bundle.format("commands.admin.mute.text", Misc.colorizedName(target)));
              });
 
@@ -906,20 +905,18 @@ public final class PandorumPlugin extends Plugin{
         handler.<Player>register("playerinfo","<name/ip/id...>",bundle.get("commands.playerinfo.desc"),(arg,player)->{
             ObjectSet<Administration.PlayerInfo> infos = Vars.netServer.admins.findByName(arg[0]);
             if (infos.size > 0) {
-                Log.info("Players found: @", new Object[] { Integer.valueOf(infos.size) });
+                Log.info("Players found: @", infos.size);
                 int i = 0;
-                Iterator<Administration.PlayerInfo> objectSetIterator = infos.iterator();
-                while (objectSetIterator.hasNext()) {
-                    StringBuilder b=new StringBuilder();
-                    Administration.PlayerInfo info = objectSetIterator.next();
-                    b.append(Strings.format("[@] "+bundle.get("commands.playerinfo.header")+" '@' / UUID @", new Object[] { Integer.valueOf(i++), info.lastName, info.id }));
-                    b.append(Strings.format("  "+bundle.get("commands.playerinfo.names")+": @", new Object[] { info.names }));
-                    if(player.admin()) {
-                        b.append("  IP: "+info.lastIP);
-                        b.append(Strings.format("  IPs : @", new Object[]{info.ips}));
+                for(PlayerInfo playerInfo : infos){
+                    StringBuilder b = new StringBuilder();
+                    b.append(Strings.format("[@] @ '@' / UUID @", i++, bundle.get("commands.playerinfo.header"), playerInfo.lastName, playerInfo.id));
+                    b.append(Strings.format("  @: @", bundle.get("commands.playerinfo.names"), playerInfo.names));
+                    if(player.admin()){
+                        b.append("  IP: ").append(playerInfo.lastIP);
+                        b.append(Strings.format("  IPs : @", playerInfo.ips));
                     }
-                    b.append("  " + bundle.get("commands.playerinfo.joined") +": " + info.timesJoined);
-                    b.append("  " + bundle.get("commands.playerinfo.kicked") +": "+ info.timesKicked);
+                    b.append("  ").append(bundle.get("commands.playerinfo.joined")).append(": ").append(playerInfo.timesJoined);
+                    b.append("  ").append(bundle.get("commands.playerinfo.kicked")).append(": ").append(playerInfo.timesKicked);
                     Call.infoMessage(player.con(),b.toString());
                 }
             } else {
@@ -928,20 +925,23 @@ public final class PandorumPlugin extends Plugin{
         });
 
         handler.<Player>register("judgelight","<ip/id> <value>",bundle.get("commands.judgelight.desc"),(arg,player)->{
-            if(!player.admin()){
+            if(!player.admin){
                 Call.infoMessage(player.con,bundle.get("commands.permission-denied"));
-            }
-            if (arg[0].equals("id")) {
-                Vars.netServer.admins.banPlayerID(arg[1]);
-                Call.infoMessage(player.con,bundle.get("commands.judgelight.ban"));
                 return;
             }
-            if (arg[0].equals("ip")) {
-                Vars.netServer.admins.banPlayerIP(arg[1]);
-                Call.infoMessage(player.con,bundle.get("commands.judgelight.ban"));
-                return;
+
+            String type = arg[0].toLowerCase();
+            switch(type){
+                case "id" -> {
+                    netServer.admins.banPlayerID(arg[1]);
+                    Call.infoMessage(player.con,bundle.get("commands.judgelight.ban"));
+                }
+                case "ip" -> {
+                    netServer.admins.banPlayerIP(arg[1]);
+                    Call.infoMessage(player.con,bundle.get("commands.judgelight.ban"));
+                }
+                default -> Call.infoMessage(player.con,bundle.get("commands.judgelight.type-err"));
             }
-            Call.infoMessage(player.con,bundle.get("commands.judgelight.type-err"));
         });
     }
 }

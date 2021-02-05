@@ -1,6 +1,6 @@
 package pandorum.entry;
 
-import arc.util.*;
+import arc.util.Time;
 import mindustry.world.Block;
 import pandorum.struct.Tuple2;
 
@@ -18,14 +18,12 @@ public class RotateEntry implements HistoryEntry{
     public final String name;
     public final Block block;
     public final Tuple2<Integer, Integer> rotation;
-    public long lastAccessTime;
+    public long lastAccessTime = Time.millis();
 
     public RotateEntry(String name, Block block, Tuple2<Integer, Integer> rotation){
         this.name = name;
         this.block = block;
         this.rotation = rotation;
-
-        lastAccessTime = Time.millis();
     }
 
     @Override
