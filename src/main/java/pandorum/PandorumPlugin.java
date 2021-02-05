@@ -8,7 +8,6 @@ import arc.struct.ObjectMap.Entry;
 import arc.util.*;
 import arc.util.io.Streams;
 import com.google.gson.*;
-import mindustry.Vars;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.game.Team;
@@ -69,8 +68,8 @@ public final class PandorumPlugin extends Plugin{
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final ExecutorService executor = Executors.newFixedThreadPool(3);
 
-    @Override
-    public void init(){
+    public PandorumPlugin(){
+
         Fi cfg = dataDirectory.child("config.json");
         if(!cfg.exists()){
             cfg.writeString(gson.toJson(config = new Config()));
@@ -80,6 +79,10 @@ public final class PandorumPlugin extends Plugin{
         }
 
         bundle = new Bundle();
+    }
+
+    @Override
+    public void init(){
         Router router = new ForwardRouter();
         actionService = new ActionService(router);
 
@@ -93,7 +96,7 @@ public final class PandorumPlugin extends Plugin{
             if(action.type == Administration.ActionType.rotate){
                 Building building = action.tile.build;
                 CacheSeq<HistoryEntry> entries = history[action.tile.x][action.tile.y];
-                HistoryEntry entry = new RotateEntry(Misc.colorizedName(action.player), building.block, Tuple2.of(action.rotation, building.rotation));
+                HistoryEntry entry = new RotateEntry(Misc.colorizedName(action.player), building.block, action.rotation);
                 entries.add(entry);
             }
             return true;

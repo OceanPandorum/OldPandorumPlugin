@@ -38,7 +38,7 @@ public class BlockEntry implements HistoryEntry{
         String base = name != null ? bundle.format("events.history.block.construct.player", name, block) :
                       bundle.format("events.history.block.construct.unit", unit.type, block);
         if(block.rotate){
-            base += bundle.format("events.history.block.construct.rotate", RotateEntry.sides[rotation == 0 ? 1 : rotation + 3]);
+            base += bundle.format("events.history.block.construct.rotate", RotateEntry.sides[rotation]);
         }
         return base;
     }
