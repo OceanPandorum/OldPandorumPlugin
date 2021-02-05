@@ -57,8 +57,14 @@ public final class PandorumPlugin extends Plugin{
     private long delay;
 
     private Seq<IpInfo> forbiddenIps;
-    private DateTimeFormatter shortFormatter;
-    private DateTimeFormatter formatter;
+    private DateTimeFormatter shortFormatter = DateTimeFormatter.ofPattern("MM dd yyyy HH:mm:ss")
+            .withLocale(Locale.forLanguageTag("ru"))
+            .withZone(ZoneId.systemDefault());
+
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
+            .withLocale(Locale.forLanguageTag("ru"))
+            .withZone(ZoneId.systemDefault());
+
     private ActionService actionService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final ExecutorService executor = Executors.newFixedThreadPool(3);
@@ -76,13 +82,7 @@ public final class PandorumPlugin extends Plugin{
         bundle = new Bundle();
         Router router = new ForwardRouter();
         actionService = new ActionService(router);
-        formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
-                .withLocale(Locale.forLanguageTag("ru"))
-                .withZone(ZoneId.systemDefault());
 
-        shortFormatter = DateTimeFormatter.ofPattern("MM dd yyyy HH:mm:ss")
-                .withLocale(Locale.forLanguageTag("ru"))
-                .withZone(ZoneId.systemDefault());
         try{
             forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split(System.lineSeparator())).map(IpInfo::new);
         }catch(IOException e){
@@ -899,35 +899,35 @@ public final class PandorumPlugin extends Plugin{
             }
         });
 
-        handler.<Player>register("playerinfo","<name/ip/id...>",bundle.get("commands.playerinfo.desc"),(arg,player)->{
+        handler.<Player>register("playerinfo", "<name/ip/id...>", bundle.get("commands.playerinfo.desc"), (arg, player) -> {
             ObjectSet<Administration.PlayerInfo> infos = netServer.admins.findByName(arg[0]);
             if (infos.size > 0) {
                 Log.info("Players found: @", infos.size);
                 int i = 0;
                 for(PlayerInfo playerInfo : infos){
-                    StringBuilder b = new StringBuilder();
-                    b.append(Strings.format("[@] @ '@' / UUID @", i++, bundle.get("commands.playerinfo.header"), playerInfo.lastName, playerInfo.id));
-                    b.append(Strings.format("  @: @", bundle.get("commands.playerinfo.names"), playerInfo.names));
-                    if(player.admin()){
-                        b.append("  IP: ").append(playerInfo.lastIP);
-                        b.append(Strings.format("  IPs : @", playerInfo.ips));
+                    StringBuilder result = new StringBuilder();
+                    result.append(Strings.format("[@] @ '@' / UUID @", i++, bundle.get("commands.playerinfo.header"), playerInfo.lastName, playerInfo.id));
+                    result.append(Strings.format("  @: @", bundle.get("commands.playerinfo.names"), playerInfo.names));
+                    if(player.admin){
+                        result.append("  IP: ").append(playerInfo.lastIP);
+                        result.append(Strings.format("  IPs : @", playerInfo.ips));
                     }
-                    b.append("  ").append(bundle.get("commands.playerinfo.joined")).append(": ").append(playerInfo.timesJoined);
-                    b.append("  ").append(bundle.get("commands.playerinfo.kicked")).append(": ").append(playerInfo.timesKicked);
-                    Call.infoMessage(player.con(),b.toString());
+                    result.append("  ").append(bundle.get("commands.playerinfo.joined")).append(": ").append(playerInfo.timesJoined);
+                    result.append("  ").append(bundle.get("commands.playerinfo.kicked")).append(": ").append(playerInfo.timesKicked);
+                    Call.infoMessage(player.con(), result.toString());
                 }
             } else {
                 Log.info(bundle.get("commands.player-not-found"));
             }
         });
 
-        handler.<Player>register("judgelight","<ip/id> <value>",bundle.get("commands.judgelight.desc"),(arg,player)->{
+        handler.<Player>register("judgelight", "<ip/id> <value>", bundle.get("commands.judgelight.desc"), (arg, player) -> {
             if(!player.admin){
                 Call.infoMessage(player.con,bundle.get("commands.permission-denied"));
                 return;
             }
 
-            String type = arg[0].toLowerCase();
+            String type = arg[0].toLowerCase(); // игнорируем регистер
             switch(type){
                 case "id" -> {
                     netServer.admins.banPlayerID(arg[1]);
