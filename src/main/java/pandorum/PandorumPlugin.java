@@ -903,7 +903,7 @@ public final class PandorumPlugin extends Plugin{
         });
 
         handler.<Player>register("playerinfo","<name/ip/id...>",bundle.get("commands.playerinfo.desc"),(arg,player)->{
-            ObjectSet<Administration.PlayerInfo> infos = Vars.netServer.admins.findByName(arg[0]);
+            ObjectSet<Administration.PlayerInfo> infos = netServer.admins.findByName(arg[0]);
             if (infos.size > 0) {
                 Log.info("Players found: @", infos.size);
                 int i = 0;
