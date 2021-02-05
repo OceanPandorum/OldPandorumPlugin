@@ -51,19 +51,20 @@ public final class PandorumPlugin extends Plugin{
     private final ObjectSet<String> votes = new ObjectSet<>();                //
     private final ObjectSet<String> alertIgnores = new ObjectSet<>();         // Соединить
     private final ObjectSet<String> activeHistoryPlayers = new ObjectSet<>(); //
-    private final Seq<IpInfo> forbiddenIps;
     private final Interval interval = new Interval(2);
 
     private CacheSeq<HistoryEntry>[][] history;
     private long delay;
 
-    private final DateTimeFormatter shortFormatter;
-    private final DateTimeFormatter formatter;
-    private final ActionService actionService;
+    private Seq<IpInfo> forbiddenIps;
+    private DateTimeFormatter shortFormatter;
+    private DateTimeFormatter formatter;
+    private ActionService actionService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final ExecutorService executor = Executors.newFixedThreadPool(3);
 
-    public PandorumPlugin(){
+    @Override
+    public void init(){
         Fi cfg = dataDirectory.child("config.json");
         if(!cfg.exists()){
             cfg.writeString(gson.toJson(config = new Config()));
@@ -87,10 +88,6 @@ public final class PandorumPlugin extends Plugin{
         }catch(IOException e){
             throw new ArcRuntimeException(e);
         }
-    }
-
-    @Override
-    public void init(){
 
         netServer.admins.addActionFilter(action -> {
             if(action.type == Administration.ActionType.rotate){
