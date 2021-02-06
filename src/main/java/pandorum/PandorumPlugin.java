@@ -18,6 +18,7 @@ import mindustry.net.Administration;
 import mindustry.net.Administration.PlayerInfo;
 import mindustry.net.Packets.KickReason;
 import mindustry.world.*;
+import mindustry.world.blocks.logic.LogicBlock;
 import pandorum.comp.*;
 import pandorum.comp.Config.PluginType;
 import pandorum.entry.*;
@@ -144,6 +145,7 @@ public final class PandorumPlugin extends Plugin{
         });
 
         Events.on(BlockBuildEndEvent.class, event -> {
+            if(event.tile.build.block() instanceof LogicBlock) return; // ага да
             HistoryEntry historyEntry = new BlockEntry(event);
 
             Seq<Tile> linkedTile = event.tile.getLinkedTiles(new Seq<>());
@@ -153,7 +155,7 @@ public final class PandorumPlugin extends Plugin{
         });
 
         Events.on(ConfigEvent.class, event -> {
-            if(event.player == null || event.tile.tileX() > world.width() || event.tile.tileX() > world.height()){
+            if(event.tile.block instanceof LogicBlock || event.player == null || event.tile.tileX() > world.width() || event.tile.tileX() > world.height()){
                 return;
             }
 
