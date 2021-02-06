@@ -57,11 +57,8 @@ public final class PandorumPlugin extends Plugin{
     private long delay;
 
     private Seq<IpInfo> forbiddenIps;
-    private DateTimeFormatter shortFormatter = DateTimeFormatter.ofPattern("MM dd yyyy HH:mm:ss")
-            .withLocale(Locale.forLanguageTag("ru"))
-            .withZone(ZoneId.systemDefault());
 
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss")
             .withLocale(Locale.forLanguageTag("ru"))
             .withZone(ZoneId.systemDefault());
 
@@ -107,7 +104,7 @@ public final class PandorumPlugin extends Plugin{
             netServer.admins.addChatFilter((target, text) -> {
                 AdminAction action = actionService.getAction(AdminActionType.mute, target.uuid());
                 if(action != null){
-                    target.sendMessage(bundle.format("events.mute", shortFormatter.format(action.endTimestamp()), action.reason().orElse(bundle.get("events.mute.reason.unknown"))));
+                    target.sendMessage(bundle.format("events.mute", formatter.format(action.endTimestamp()).replaceAll("-", ""), action.reason().orElse(bundle.get("events.mute.reason.unknown"))));
                     return null;
                 }
 
@@ -145,7 +142,6 @@ public final class PandorumPlugin extends Plugin{
         });
 
         Events.on(BlockBuildEndEvent.class, event -> {
-            if(event.tile.build.block() instanceof LogicBlock) return; // ага да
             HistoryEntry historyEntry = new BlockEntry(event);
 
             Seq<Tile> linkedTile = event.tile.getLinkedTiles(new Seq<>());
@@ -804,7 +800,7 @@ public final class PandorumPlugin extends Plugin{
 
             Seq<Map> mapList = maps.all();
             int page = args.length > 0 ? Strings.parseInt(args[0]) : 1;
-            int pages = Mathf.ceil(mapList.size / 6.0F);
+            int pages = Mathf.ceil(mapList.size / 6f);
 
             if(--page >= pages || page < 0){
                 Info.bundled(player, "commands.under-page", pages);
