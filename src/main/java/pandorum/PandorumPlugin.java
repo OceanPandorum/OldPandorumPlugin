@@ -86,8 +86,8 @@ public final class PandorumPlugin extends Plugin{
 
         try{
             forbiddenIps = Seq.with(Streams.copyString(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("vpn-ipv4.txt"))).split(System.lineSeparator())).map(IpInfo::new);
-        }catch(IOException e){
-            throw new ArcRuntimeException(e);
+        }catch(Throwable t){
+            throw new ArcRuntimeException(t);
         }
 
         netServer.admins.addActionFilter(action -> {
@@ -116,7 +116,7 @@ public final class PandorumPlugin extends Plugin{
             String lower = text.toLowerCase();
             if(current[0] != null && (lower.equals("y") || lower.equals("n"))){
                 if(current[0].voted().contains(target.uuid()) || current[0].voted().contains(netServer.admins.getInfo(target.uuid()).lastIP)){
-                    Info.bundled(target, "commands.already-voted");
+                    bundled(target, "commands.already-voted");
                     return null;
                 }
 
@@ -338,10 +338,10 @@ public final class PandorumPlugin extends Plugin{
         handler.<Player>register("alert", bundle.get("commands.alert.description"), (args, player) -> {
             if(alertIgnores.contains(player.uuid())){
                 alertIgnores.remove(player.uuid());
-                Info.bundled(player, "commands.alert.on");
+                bundled(player, "commands.alert.on");
             }else{
                 alertIgnores.add(player.uuid());
-                Info.bundled(player, "commands.alert.off");
+                bundled(player, "commands.alert.off");
             }
         });
 
@@ -349,7 +349,7 @@ public final class PandorumPlugin extends Plugin{
             String uuid = player.uuid();
             if(args.length > 0 && activeHistoryPlayers.contains(uuid)){
                 if(!Strings.canParseInt(args[0]) && !Misc.bool(args[0])){
-                    Info.bundled(player, "commands.page-not-int");
+                    bundled(player, "commands.page-not-int");
                     return;
                 }
 
@@ -363,7 +363,7 @@ public final class PandorumPlugin extends Plugin{
                 page--;
 
                 if((page >= pages || page < 0) && !entries.isEmpty()){
-                    Info.bundled(player, "commands.under-page", pages);
+                    bundled(player, "commands.under-page", pages);
                     return;
                 }
 
@@ -387,40 +387,40 @@ public final class PandorumPlugin extends Plugin{
                 player.sendMessage(result.toString());
             }else if(activeHistoryPlayers.contains(uuid)){
                 activeHistoryPlayers.remove(uuid);
-                Info.bundled(player, "commands.history.off");
+                bundled(player, "commands.history.off");
             }else{
                 activeHistoryPlayers.add(uuid);
-                Info.bundled(player, "commands.history.on");
+                bundled(player, "commands.history.on");
             }
         });
 
         if(config.rest()){
             handler.<Player>register("ban", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.ban.description"), (args, player) -> {
                 if(!player.admin){
-                    Info.bundled(player, "commands.permission-denied");
+                    bundled(player, "commands.permission-denied");
                     return;
                 }
 
                 if(!Strings.canParseInt(args[0])){
-                    Info.bundled(player, "commands.id-not-int");
+                    bundled(player, "commands.id-not-int");
                     return;
                 }
 
                 int id = Strings.parseInt(args[0]);
                 Player target = Groups.player.find(p -> p.id() == id);
                 if(target == null){
-                    Info.bundled(player, "commands.player-not-found");
+                    bundled(player, "commands.player-not-found");
                     return;
                 }
 
                 Instant delay = Misc.parseTime(args[1]);
                 if(delay == null){
-                    Info.bundled(player, "commands.admin.delay-not-int");
+                    bundled(player, "commands.admin.delay-not-int");
                     return;
                 }
 
                 if(Objects.equals(target, player) || target.admin()){
-                    Info.bundled(player, "commands.not-allowed-target");
+                    bundled(player, "commands.not-allowed-target");
                     return;
                 }
 
@@ -442,30 +442,30 @@ public final class PandorumPlugin extends Plugin{
 
             handler.<Player>register("mute", bundle.get("commands.admin.ban.params"), bundle.get("commands.admin.mute.description"), (args, player) -> {
                 if(!player.admin){
-                    Info.bundled(player, "commands.permission-denied");
+                    bundled(player, "commands.permission-denied");
                     return;
                 }
 
                 if(!Strings.canParseInt(args[0])){
-                    Info.bundled(player, "commands.id-not-int");
+                    bundled(player, "commands.id-not-int");
                     return;
                 }
 
                 Instant delay = Misc.parseTime(args[1]);
                 if(delay == null){
-                    Info.bundled(player, "commands.admin.delay-not-int");
+                    bundled(player, "commands.admin.delay-not-int");
                     return;
                 }
 
                 int id = Strings.parseInt(args[0]);
                 Player target = Groups.player.find(p -> p.id() == id);
                 if(target == null){
-                    Info.bundled(player, "commands.player-not-found");
+                    bundled(player, "commands.player-not-found");
                     return;
                 }
 
                 if(Objects.equals(target, player) || target.admin()){
-                    Info.bundled(player, "commands.not-allowed-target");
+                    bundled(player, "commands.not-allowed-target");
                     return;
                 }
 
@@ -485,31 +485,31 @@ public final class PandorumPlugin extends Plugin{
 
             handler.<Player>register("unmute", bundle.get("commands.admin.unmute.params"), bundle.get("commands.admin.unmute.description"), (args, player) -> {
                 if(!player.admin){
-                    Info.bundled(player, "commands.permission-denied");
+                    bundled(player, "commands.permission-denied");
                     return;
                 }
 
                 AdminAction action = actionService.getAction(AdminActionType.mute, args[0]);
                 if(action != null){
-                    actionService.delete(AdminActionType.mute, action.targetId());
-                    Info.bundled(player, "commands.admin.unmute.successful");
+                    executor.submit(() -> actionService.delete(AdminActionType.mute, action.targetId()));
+                    bundled(player, "commands.admin.unmute.successful");
                 }else{
-                    Info.bundled(player, "commands.admin.unban.not-banned");
+                    bundled(player, "commands.admin.unban.not-banned");
                 }
             });
 
             handler.<Player>register("unban", bundle.get("commands.admin.unban.params"), bundle.get("commands.admin.unban.description"), (args, player) -> {
                 if(!player.admin){
-                    Info.bundled(player, "commands.permission-denied");
+                    bundled(player, "commands.permission-denied");
                     return;
                 }
 
                 if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
                     PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
                     actionService.delete(AdminActionType.ban, target.id);
-                    Info.bundled(player, "commands.admin.unban.successful");
+                    bundled(player, "commands.admin.unban.successful");
                 }else{
-                    Info.bundled(player, "commands.admin.unban.not-banned");
+                    bundled(player, "commands.admin.unban.not-banned");
                 }
             });
         }
@@ -520,7 +520,7 @@ public final class PandorumPlugin extends Plugin{
                 Team team = player.team();
                 ObjectSet<String> uuids = surrendered.get(team, ObjectSet::new);
                 if(uuids.contains(uuid)){
-                    Info.bundled(player, "commands.already-voted");
+                    bundled(player, "commands.already-voted");
                     return;
                 }
 
@@ -549,7 +549,7 @@ public final class PandorumPlugin extends Plugin{
 
         handler.<Player>register("pl", bundle.get("commands.pl.params"), bundle.get("commands.pl.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.page-not-int");
+                bundled(player, "commands.page-not-int");
                 return;
             }
 
@@ -559,7 +559,7 @@ public final class PandorumPlugin extends Plugin{
             page--;
 
             if(page >= pages || page < 0){
-                Info.bundled(player, "commands.under-page", pages);
+                bundled(player, "commands.under-page", pages);
                 return;
             }
 
@@ -580,7 +580,7 @@ public final class PandorumPlugin extends Plugin{
 
         handler.<Player>register("rtv", bundle.get("commands.rtv.description"), (args, player) -> {
             if(votes.contains(player.uuid())){
-                Info.bundled(player, "commands.already-voted");
+                bundled(player, "commands.already-voted");
                 return;
             }
 
@@ -597,67 +597,17 @@ public final class PandorumPlugin extends Plugin{
             Events.fire(new GameOverEvent(Team.crux));
         });
 
-        // handler.<Player>register("bc", bundle.get("commands.admin.bc.params"), bundle.get("commands.admin.bc.description"), (args, player) -> {
-        //     if(!player.admin){
-        //         Info.bundled(player, "commands.permission-denied");
-        //     }else{
-        //         Player target = Strings.canParseInt(args[0]) ? Groups.player.find(p -> p.id == Strings.parseInt(args[0])) : null;
-        //         String text = Strings.format("\uE805@\uE805\n\n@\n", bundle.get("commands.admin.bc.text"), args[1]);
-        //
-        //         if(target != null){
-        //             Call.infoMessage(target.con, text);
-        //         }else{
-        //             Call.infoMessage(text);
-        //         }
-        //     }
-        // });
-
         handler.<Player>register("go", bundle.get("commands.admin.go.description"), (args, player) -> {
             if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
+                bundled(player, "commands.permission-denied");
             }else{
                 Events.fire(new GameOverEvent(Team.crux));
             }
         });
 
-        // handler.<Player>register("spawn", bundle.get("commands.admin.spawn.params"), bundle.get("commands.admin.spawn.description"), (args, player) -> {
-        //     if(!player.admin){
-        //         Info.bundled(player, "commands.permission-denied");
-        //         return;
-        //     }
-        //
-        //     if(args.length > 1 && !Strings.canParseInt(args[1])){
-        //         Info.bundled(player, "commands.count-not-int");
-        //         return;
-        //     }
-        //
-        //     UnitType unit = content.units().find(b -> b.name.equalsIgnoreCase(args[0]));
-        //     if(unit == null){
-        //         Info.bundled(player, "commands.admin.spawn.units");
-        //         return;
-        //     }
-        //
-        //     int count = args.length > 1 ? Strings.parseInt(args[1]) : 1;
-        //
-        //     Team team = args.length > 2 ? Structs.find(Team.baseTeams, t -> t.name.equalsIgnoreCase(args[2])) : player.team();
-        //     if(team == null){
-        //         Info.bundled(player, "commands.admin.team.teams");
-        //         return;
-        //     }
-        //
-        //     for(int i = 0; i < count; i++){
-        //         unit.spawn(team, player.x, player.y);
-        //     }
-        //
-        //     Info.bundled(player, "commands.admin.spawn.success", count, unit.name);
-        //     if(unit.equals(UnitTypes.oct) || unit.equals(UnitTypes.horizon) || unit.equals(UnitTypes.quad)){
-        //         Call.sendMessage("[scarlet]KIROV REPORTING");
-        //     }
-        // });
-
         handler.<Player>register("core", bundle.get("commands.admin.core.params"), bundle.get("commands.admin.core.description"), (args, player) -> {
             if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
+                bundled(player, "commands.permission-denied");
                 return;
             }
 
@@ -669,132 +619,45 @@ public final class PandorumPlugin extends Plugin{
 
             Call.constructFinish(player.tileOn(), core, player.unit(), (byte)0, player.team(), false);
 
-            Info.bundled(player, player.tileOn().block() == core ? "commands.admin.core.success" : "commands.admin.core.failed");
+            bundled(player, player.tileOn().block() == core ? "commands.admin.core.success" : "commands.admin.core.failed");
         });
 
         handler.<Player>register("hub", bundle.get("commands.hub.description"), (args, player) -> Call.connect(player.con, config.hubIp, config.hubPort));
 
         handler.<Player>register("team", bundle.get("commands.admin.team.params"), bundle.get("commands.admin.teamp.description"), (args, player) -> {
             if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
+                bundled(player, "commands.permission-denied");
                 return;
             }
 
-            Team team = Structs.find(Team.all, t -> t.name.toLowerCase().equals(args[0].toLowerCase()));
+            Team team = Structs.find(Team.all, t -> t.name.equalsIgnoreCase(args[0]));
             if(team == null){
-                Info.bundled(player, "commands.admin.team.teams");
+                bundled(player, "commands.admin.team.teams");
                 return;
             }
 
-            Player target = args.length > 1 ? Groups.player.find(p -> Strings.stripColors(p.name).toLowerCase().equals(args[1].toLowerCase())) : player;
+            Player target = args.length > 1 ? Groups.player.find(p -> Strings.stripColors(p.name).equalsIgnoreCase(args[1])) : player;
             if(target == null){
-                Info.bundled(player, "commands.player-not-found");
+                bundled(player, "commands.player-not-found");
                 return;
             }
 
-            Info.bundled(target, "commands.admin.team.success", team.name);
+            bundled(target, "commands.admin.team.success", team.name);
             target.team(team);
         });
 
         handler.<Player>register("s", bundle.get("commands.admin.vanish.description"), (args, player) -> {
             if(!player.admin){
-                Info.bundled(player, "commands.permission-denied");
+                bundled(player, "commands.permission-denied");
             }else{
                 player.clearUnit();
                 player.team(player.team() == Team.derelict ? Team.sharded : Team.derelict);
             }
         });
 
-        // handler.<Player>register("give", bundle.get("commands.admin.give.params"), bundle.get("commands.admin.give.description"), (args, player) -> {
-        //     if(!player.admin){
-        //         Info.bundled(player, "commands.permission-denied");
-        //         return;
-        //     }
-        //
-        //     if(!Strings.canParseInt(args[0])){
-        //         Info.bundled(player, "commands.count-not-int");
-        //         return;
-        //     }
-        //
-        //     int count = Strings.parseInt(args[0]);
-        //
-        //     Item item = content.items().find(b -> b.name.equalsIgnoreCase(args[1]));
-        //     if(item == null){
-        //         Info.bundled(player, "commands.admin.give.item-not-found");
-        //         return;
-        //     }
-        //
-        //     TeamData team = state.teams.get(player.team());
-        //     if(!team.hasCore()){
-        //         Info.bundled(player, "commands.admin.give.core-not-found");
-        //         return;
-        //     }
-        //
-        //     CoreBuild core = team.cores.first();
-        //
-        //     for(int i = 0; i < count; i++){
-        //         core.items.set(item, count);
-        //     }
-        //
-        //     Info.bundled(player, "commands.admin.give.success");
-        // });
-
-        // handler.<Player>register("tp", "<x> <y>", bundle.get("commands.admin.tp.description"), (args, player) -> {
-        //     if(!player.admin){
-        //         Info.bundled(player, "commands.permission-denied");
-        //         return;
-        //     }
-        //
-        //     int x = Mathf.clamp(Strings.parseInt(args[0]), 0, world.width()) * tilesize;
-        //     int y = Mathf.clamp(Strings.parseInt(args[1]), 0, world.height()) * tilesize;
-        //
-        //     Call.setPosition(player.con, x, y);
-        // });
-
-        // handler.<Player>register("tpp", bundle.get("commands.admin.tpp.params"), bundle.get("commands.admin.tpp.description"), (args, player) -> {
-        //     if(!player.admin){
-        //         Info.bundled(player, "commands.permission-denied");
-        //         return;
-        //     }
-        //
-        //     if(!Strings.canParseInt(args[0])){
-        //         Info.bundled(player, "commands.id-not-int");
-        //         return;
-        //     }
-        //
-        //     int id = Strings.parseInt(args[0]);
-        //     Player target = Groups.player.find(p -> p.id() == id);
-        //     if(target == null){
-        //         Info.bundled(player, "commands.player-not-found");
-        //         return;
-        //     }
-        //
-        //     Call.setPosition(player.con, target.x(), target.y());
-        // });
-
-        // handler.<Player>register("tpa", bundle.get("commands.admin.tpa.params"), bundle.get("commands.admin.tpa.description"), (args, player) -> {
-        //     if(!player.admin){
-        //         Info.bundled(player, "commands.permission-denied");
-        //         return;
-        //     }
-        //
-        //     if(args.length > 0 && !Strings.canParseInt(args[0])){
-        //         Info.bundled(player, "commands.id-not-int");
-        //         return;
-        //     }
-        //
-        //     Player target = args.length > 0 ? Groups.player.find(p -> p.id() == Strings.parseInt(args[0])) : player;
-        //     if(target == null){
-        //         Info.bundled(player, "commands.player-not-found");
-        //         return;
-        //     }
-        //
-        //     Groups.player.each(p -> Call.setPosition(p.con, target.x(), target.y()));
-        // });
-
         handler.<Player>register("maps", bundle.get("commands.maps.params"), bundle.get("commands.maps.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.page-not-int");
+                bundled(player, "commands.page-not-int");
                 return;
             }
 
@@ -803,7 +666,7 @@ public final class PandorumPlugin extends Plugin{
             int pages = Mathf.ceil(mapList.size / 6f);
 
             if(--page >= pages || page < 0){
-                Info.bundled(player, "commands.under-page", pages);
+                bundled(player, "commands.under-page", pages);
                 return;
             }
 
@@ -818,7 +681,7 @@ public final class PandorumPlugin extends Plugin{
 
         handler.<Player>register("saves", bundle.get("commands.saves.params"), bundle.get("commands.saves.description"), (args, player) -> {
             if(args.length > 0 && !Strings.canParseInt(args[0])){
-                Info.bundled(player, "commands.page-not-int");
+                bundled(player, "commands.page-not-int");
                 return;
             }
 
@@ -827,7 +690,7 @@ public final class PandorumPlugin extends Plugin{
             int pages = Mathf.ceil(saves.size / 6.0F);
 
             if(--page >= pages || page < 0){
-                Info.bundled(player, "commands.under-page", pages);
+                bundled(player, "commands.under-page", pages);
                 return;
             }
 
@@ -845,25 +708,25 @@ public final class PandorumPlugin extends Plugin{
             try{
                 mode = VoteMode.valueOf(args[0].toLowerCase());
             }catch(Throwable t){
-                Info.bundled(player, "commands.nominate.incorrect-mode");
+                bundled(player, "commands.nominate.incorrect-mode");
                 return;
             }
 
             if(current[0] != null){
-                Info.bundled(player, "commands.nominate.already-started");
+                bundled(player, "commands.nominate.already-started");
                 return;
             }
 
             switch(mode){
                 case map -> {
                     if(args.length == 1){
-                        Info.bundled(player, "commands.nominate.required-second-arg");
+                        bundled(player, "commands.nominate.required-second-arg");
                         return;
                     }
 
                     Map map = Misc.findMap(args[1]);
                     if(map == null){
-                        Info.bundled(player, "commands.nominate.map.not-found");
+                        bundled(player, "commands.nominate.map.not-found");
                         return;
                     }
 
@@ -873,7 +736,7 @@ public final class PandorumPlugin extends Plugin{
                 }
                 case save -> {
                     if(args.length == 1){
-                        Info.bundled(player, "commands.nominate.required-second-arg");
+                        bundled(player, "commands.nominate.required-second-arg");
                         return;
                     }
 
@@ -883,7 +746,7 @@ public final class PandorumPlugin extends Plugin{
                 }
                 case load -> {
                     if(args.length == 1){
-                        Info.bundled(player, "commands.nominate.required-second-arg");
+                        bundled(player, "commands.nominate.required-second-arg");
                         return;
                     }
 
@@ -900,21 +763,21 @@ public final class PandorumPlugin extends Plugin{
             }
         });
 
-        handler.<Player>register("playerinfo", "<name/ip/id...>", bundle.get("commands.playerinfo.desc"), (arg, player) -> {
+        handler.<Player>register("playerinfo", "<name/ip/id...>", bundle.get("commands.playerdesc"), (arg, player) -> {
             ObjectSet<Administration.PlayerInfo> infos = netServer.admins.findByName(arg[0]);
             if (infos.size > 0) {
                 Log.info("Players found: @", infos.size);
                 int i = 0;
                 for(PlayerInfo playerInfo : infos){
                     StringBuilder result = new StringBuilder();
-                    result.append(Strings.format("[@] @ '@' / UUID @", i++, bundle.get("commands.playerinfo.header"), playerInfo.lastName, playerInfo.id));
-                    result.append(Strings.format("  @: @", bundle.get("commands.playerinfo.names"), playerInfo.names));
+                    result.append(Strings.format("[@] @ '@' / UUID @", i++, bundle.get("commands.playerheader"), playerInfo.lastName, playerInfo.id));
+                    result.append(Strings.format("  @: @", bundle.get("commands.playernames"), playerInfo.names));
                     if(player.admin){
                         result.append("  IP: ").append(playerInfo.lastIP);
                         result.append(Strings.format("  IPs : @", playerInfo.ips));
                     }
-                    result.append("  ").append(bundle.get("commands.playerinfo.joined")).append(": ").append(playerInfo.timesJoined);
-                    result.append("  ").append(bundle.get("commands.playerinfo.kicked")).append(": ").append(playerInfo.timesKicked);
+                    result.append("  ").append(bundle.get("commands.playerjoined")).append(": ").append(playerInfo.timesJoined);
+                    result.append("  ").append(bundle.get("commands.playerkicked")).append(": ").append(playerInfo.timesKicked);
                     Call.infoMessage(player.con(), result.toString());
                 }
             } else {
@@ -928,7 +791,7 @@ public final class PandorumPlugin extends Plugin{
                 return;
             }
 
-            String type = arg[0].toLowerCase(); // игнорируем регистер
+            String type = arg[0].toLowerCase(); // игнорируем регистр
             switch(type){
                 case "id" -> {
                     netServer.admins.banPlayerID(arg[1]);
@@ -941,5 +804,13 @@ public final class PandorumPlugin extends Plugin{
                 default -> Call.infoMessage(player.con,bundle.get("commands.judgelight.type-err"));
             }
         });
+    }
+
+    public static void bundled(Player player, String key, Object... values){
+        player.sendMessage(bundle.format(key, values));
+    }
+
+    public static void format(Player player, String key, Object... values){
+        player.sendMessage(Strings.format(key, values));
     }
 }

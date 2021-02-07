@@ -40,7 +40,7 @@ public class VoteMapSession extends VoteSession{
     }
 
     @Override
-    boolean checkPass(){
+    protected boolean checkPass(){
         if(votes >= votesRequired()){
             Call.sendMessage(bundle.format("commands.nominate.map.passed", target.name()));
             map[0] = null;

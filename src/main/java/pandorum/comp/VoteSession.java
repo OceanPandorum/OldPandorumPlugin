@@ -23,30 +23,11 @@ public abstract class VoteSession{
         return voted;
     }
 
-    protected Task start(){
-        return Timer.schedule(() -> {
-            if(!checkPass()){
-                map[0] = null;
-                voted.clear();
-                task.cancel();
-            }
-        }, config.voteDuration);
-    }
+    protected abstract Task start();
 
-    public void vote(Player player, int d){
-        votes += d;
-        voted.addAll(player.uuid(), netServer.admins.getInfo(player.uuid()).lastIP);
-        checkPass();
-    }
+    public abstract void vote(Player player, int d);
 
-    boolean checkPass(){
-        if(votes >= votesRequired()){
-            map[0] = null;
-            task.cancel();
-            return true;
-        }
-        return false;
-    }
+    protected abstract boolean checkPass();
 
     protected int votesRequired(){
         return (int)Math.ceil(config.voteRatio * Groups.player.size());

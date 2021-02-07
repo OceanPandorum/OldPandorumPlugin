@@ -21,7 +21,7 @@ public class IpInfo{
 
         required = parseAddress(address);
         if(!(required.getAddress().length * 8 >= mask)){
-            throw new IllegalArgumentException(String.format("IP address %s is too short for bitmask of length %d", address, mask));
+            throw new IllegalArgumentException(Strings.format("IP address @ is too short for bitmask of length @", address, mask));
         }
     }
 
@@ -39,7 +39,7 @@ public class IpInfo{
         byte[] rem = remoteAddress.getAddress();
         byte[] req = required.getAddress();
         int fullMask = mask / 8;
-        byte b = (byte)(0xFF00 >> (mask & 0x07));
+        byte b = (byte)(0xff00 >> (mask & 0x07));
         for(int i = 0; i < fullMask; i++){
             if(rem[i] != req[i]) return false;
         }

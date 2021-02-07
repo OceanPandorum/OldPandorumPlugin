@@ -38,7 +38,7 @@ public class VoteSaveSession extends VoteSession{
     }
 
     @Override
-    boolean checkPass(){
+    protected boolean checkPass(){
         if(votes >= votesRequired()){
             Call.sendMessage(bundle.format("commands.nominate.save.passed", target));
             SaveIO.save(saveDirectory.child(String.format("%s.%s", target, saveExtension)));
