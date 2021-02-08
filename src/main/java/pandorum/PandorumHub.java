@@ -77,7 +77,7 @@ public class PandorumHub extends Plugin{
         Events.on(TapEvent.class, event -> teleport(event.player, event.tile));
 
         Events.run(EventType.Trigger.update, () -> {
-            if(interval.get(300)){
+            if(interval.get(60 * 1.5f)){
                 Groups.player.each(this::teleport);
             }
         });
