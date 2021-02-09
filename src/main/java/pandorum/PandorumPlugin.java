@@ -229,7 +229,7 @@ public final class PandorumPlugin extends Plugin{
             Building building = event.tile;
             Player target = event.player;
             if(building.block() == Blocks.thoriumReactor && event.item == Items.thorium && target.team().cores().contains(c -> event.tile.dst(c.x, c.y) < config.alertDistance)){
-                Groups.player.each(p -> !alertIgnores.contains(p.uuid()), player -> player.sendMessage(bundle.format("events.withdraw-thorium", Misc.colorizedName(target), building.tileX(), building.tileY())));
+                Groups.player.each(p -> !alertIgnores.contains(p.uuid()), p -> p.sendMessage(bundle.format("events.withdraw-thorium", Misc.colorizedName(target), building.tileX(), building.tileY())));
             }
         });
 
@@ -374,11 +374,11 @@ public final class PandorumPlugin extends Plugin{
                 }
 
                 for(int i = 6 * page; i < Math.min(6 * (page + 1), entries.size); i++){
-                    HistoryEntry e = entries.get(i);
+                    HistoryEntry entry = entries.get(i);
 
-                    result.append(e.getMessage());
+                    result.append(entry.getMessage());
                     if(forward){
-                        result.append(bundle.format("events.history.last-access-time", e.getLastAccessTime(TimeUnit.SECONDS)));
+                        result.append(bundle.format("events.history.last-access-time", entry.getLastAccessTime(TimeUnit.SECONDS)));
                     }
 
                     result.append("\n");
@@ -506,7 +506,7 @@ public final class PandorumPlugin extends Plugin{
 
                 if(netServer.admins.unbanPlayerID(args[0]) || netServer.admins.unbanPlayerIP(args[0])){
                     PlayerInfo target = Optional.ofNullable(netServer.admins.findByIP(args[0])).orElse(netServer.admins.getInfo(args[0]));
-                    actionService.delete(AdminActionType.ban, target.id);
+                    executor.submit(() -> actionService.delete(AdminActionType.ban, target.id));
                     bundled(player, "commands.admin.unban.successful");
                 }else{
                     bundled(player, "commands.admin.unban.not-banned");
