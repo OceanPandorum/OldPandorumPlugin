@@ -1,10 +1,11 @@
 package pandorum.struct;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 
 public class Tuple2<T1, T2> implements Iterable<Object>, Serializable{
+    @Serial
     private static final long serialVersionUID = -2157474721147356218L;
 
     public final T1 t1;

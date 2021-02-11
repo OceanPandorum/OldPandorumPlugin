@@ -5,7 +5,6 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.*;
 
-//todo мне нужен неизменяемый объект
 public class AdminAction{
     private String id;
 
