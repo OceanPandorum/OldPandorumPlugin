@@ -1,5 +1,6 @@
 package pandorum;
 
+import arc.util.Nullable;
 import com.google.gson.annotations.SerializedName;
 
 import java.time.Instant;
@@ -11,11 +12,18 @@ public class AdminAction{
     @SerializedName("admin_id")
     private String adminId;
 
+    @SerializedName("admin_nickname")
+    private String adminNickname;
+
     @SerializedName("target_id")
     private String targetId;
 
+    @SerializedName("target_nickname")
+    private String targetNickname;
+
     private AdminActionType type;
 
+    @Nullable
     private String reason;
 
     private Instant timestamp;
@@ -39,12 +47,28 @@ public class AdminAction{
         this.adminId = adminId;
     }
 
+    public String adminNickname(){
+        return adminNickname;
+    }
+
+    public void adminNickname(String adminNickname){
+        this.adminNickname = adminNickname;
+    }
+
     public String targetId(){
         return targetId;
     }
 
     public void targetId(String targetId){
         this.targetId = targetId;
+    }
+
+    public String targetNickname(){
+        return targetNickname;
+    }
+
+    public void targetNickname(String targetNickname){
+        this.targetNickname = targetNickname;
     }
 
     public AdminActionType type(){
@@ -86,15 +110,16 @@ public class AdminAction{
         AdminAction that = (AdminAction)o;
         return Objects.equals(id, that.id) &&
                Objects.equals(adminId, that.adminId) &&
+               Objects.equals(adminNickname, that.adminNickname) &&
                Objects.equals(targetId, that.targetId) &&
-               type == that.type &&
-               Objects.equals(reason, that.reason) &&
+               Objects.equals(targetNickname, that.targetNickname) &&
+               type == that.type && Objects.equals(reason, that.reason) &&
                Objects.equals(timestamp, that.timestamp) &&
                Objects.equals(endTimestamp, that.endTimestamp);
     }
 
     @Override
     public int hashCode(){
-        return Objects.hash(id, adminId, targetId, type, reason, timestamp, endTimestamp);
+        return Objects.hash(id, adminId, adminNickname, targetId, targetNickname, type, reason, timestamp, endTimestamp);
     }
 }

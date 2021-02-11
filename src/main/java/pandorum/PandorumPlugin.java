@@ -104,7 +104,7 @@ public final class PandorumPlugin extends Plugin{
             netServer.admins.addChatFilter((target, text) -> {
                 AdminAction action = actionService.getAction(AdminActionType.mute, target.uuid());
                 if(action != null){
-                    target.sendMessage(bundle.format("events.mute", formatter.format(action.endTimestamp()).replaceAll("-", ""), action.reason().orElse(bundle.get("events.mute.reason.unknown"))));
+                    target.sendMessage(bundle.format("events.mute", formatter.format(action.endTimestamp()).replaceAll("-", "."), action.reason().orElse(bundle.get("events.mute.reason.unknown"))));
                     return null;
                 }
 
@@ -427,7 +427,9 @@ public final class PandorumPlugin extends Plugin{
 
                 AdminAction action = new AdminAction();
                 action.targetId(target.uuid());
+                action.targetNickname(target.name);
                 action.adminId(player.uuid());
+                action.adminNickname(player.name);
                 action.type(AdminActionType.ban);
                 reason.ifPresent(action::reason);
                 action.timestamp(Instant.now());
@@ -472,7 +474,9 @@ public final class PandorumPlugin extends Plugin{
 
                 AdminAction action = new AdminAction();
                 action.targetId(target.uuid());
+                action.targetNickname(target.name);
                 action.adminId(player.uuid());
+                action.adminNickname(player.name);
                 action.type(AdminActionType.mute);
                 reason.ifPresent(action::reason);
                 action.timestamp(Instant.now());
