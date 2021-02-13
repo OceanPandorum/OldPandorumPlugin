@@ -766,6 +766,11 @@ public final class PandorumPlugin extends Plugin{
         });
 
         handler.<Player>register("playerinfo", "<name/ip/id...>", bundle.get("commands.playerinfo.desc"), (args, player) -> {
+            if(!player.admin){
+                bundled(player, bundle.get("commands.permission-denied"));
+                return;
+            }
+
             ObjectSet<Administration.PlayerInfo> infos = netServer.admins.findByName(args[0]);
             if (infos.size > 0) {
                 Log.info("Players found: @", infos.size);
